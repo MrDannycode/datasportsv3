@@ -1,0 +1,343 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── ENUMS ───────────────────────────────────────────────
+
+enum Role {
+  admin_global
+  manager_fotbal
+  manager_tenis
+  antrenor_fotbal
+  antrenor_fitness
+  medic
+  atlet_fotbal
+  atlet_tenis
+}
+
+enum Sport {
+  fotbal
+  tenis
+}
+
+enum Position {
+  portar
+  fundas
+  mijlocas
+  atacant
+}
+
+enum PreferredFoot {
+  stanga
+  dreapta
+  ambele
+}
+
+enum PreferredHand {
+  stanga
+  dreapta
+}
+
+enum PlayingStyle {
+  baseline
+  serve_volley
+  all_court
+}
+
+enum Surface {
+  zgura
+  iarba
+  hard
+}
+
+enum MatchResult {
+  victorie
+  infrangere
+}
+
+enum Severity {
+  usoara
+  medie
+  grava
+}
+
+enum TrainingType {
+  tehnic
+  fizic
+  tactic
+}
+
+enum AuditAction {
+  create
+  update
+  delete
+  login
+  logout
+}
+
+// ─── TABELE DE BAZĂ ──────────────────────────────────────
+
+model User {
+  id           Int       @id @default(autoincrement())
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  role         Role
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  profile         Profile?
+  footballAthlete FootballAthlete?
+  tennisAthlete   TennisAthlete?
+  medicalRecords  MedicalRecord[]  @relation("MedicRecords")
+  trainingPlans   TrainingPlan[]
+  notifications   Notification[]
+  auditLogs       AuditLog[]
+
+  @@map("users")
+}
+
+model Team {
+  id        Int      @id @default(autoincrement())
+  name      String
+  sport     Sport
+  country   String
+  continent String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  profiles       Profile[]
+  homeMatches    FootballMatch[] @relation("HomeTeam")
+  awayMatches    FootballMatch[] @relation("AwayTeam")
+  trainingPlans  TrainingPlan[]
+
+  @@map("teams")
+}
+
+// ─── TABELE DE PROFIL ─────────────────────────────────────
+
+model Profile {
+  id             Int       @id @default(autoincrement())
+  userId         Int       @unique @map("user_id")
+  firstName      String    @map("first_name")
+  lastName       String    @map("last_name")
+  dateOfBirth    DateTime? @map("date_of_birth")
+  nationality    String?
+  phone          String?
+  profilePicture String?   @map("profile_picture")
+  teamId         Int?      @map("team_id")
+
+  user User @relation(fields: [userId], references: [id])
+  team Team? @relation(fields: [teamId], references: [id])
+
+  @@map("profiles")
+}
+
+model FootballAthlete {
+  id            Int           @id @default(autoincrement())
+  userId        Int           @unique @map("user_id")
+  position      Position
+  jerseyNumber  Int?          @map("jersey_number")
+  heightCm      Float?        @map("height_cm")
+  weightKg      Float?        @map("weight_kg")
+  preferredFoot PreferredFoot @map("preferred_foot")
+  contractUntil DateTime?     @map("contract_until")
+
+  user            User              @relation(fields: [userId], references: [id])
+  stats           FootballStat[]
+  medicalRecords  MedicalRecord[]
+  fitnessSessions FitnessSession[]
+
+  @@map("football_athletes")
+}
+
+model TennisAthlete {
+  id             Int          @id @default(autoincrement())
+  userId         Int          @unique @map("user_id")
+  heightCm       Float?       @map("height_cm")
+  weightKg       Float?       @map("weight_kg")
+  preferredHand  PreferredHand @map("preferred_hand")
+  playingStyle   PlayingStyle  @map("playing_style")
+  atpWtaRanking  Int?         @map("atp_wta_ranking")
+  contractUntil  DateTime?    @map("contract_until")
+
+  user  User          @relation(fields: [userId], references: [id])
+  stats TennisStat[]
+  matches TennisMatch[]
+
+  @@map("tennis_athletes")
+}
+
+// ─── TABELE DE STATISTICI ────────────────────────────────
+
+model FootballStat {
+  id              Int    @id @default(autoincrement())
+  athleteId       Int    @map("athlete_id")
+  matchId         Int    @map("match_id")
+  goals           Int    @default(0)
+  assists         Int    @default(0)
+  minutesPlayed   Int    @default(0) @map("minutes_played")
+  yellowCards     Int    @default(0) @map("yellow_cards")
+  redCards        Int    @default(0) @map("red_cards")
+  shotsOnTarget   Int    @default(0) @map("shots_on_target")
+  passesCompleted Int    @default(0) @map("passes_completed")
+  kmRan           Float  @default(0) @map("km_ran")
+  rating          Float?
+
+  athlete FootballAthlete @relation(fields: [athleteId], references: [id])
+  match   FootballMatch   @relation(fields: [matchId], references: [id])
+
+  @@map("football_stats")
+}
+
+model TennisStat {
+  id                   Int    @id @default(autoincrement())
+  athleteId            Int    @map("athlete_id")
+  matchId              Int    @map("match_id")
+  aces                 Int    @default(0)
+  doubleFaults         Int    @default(0) @map("double_faults")
+  firstServePercentage Float  @default(0) @map("first_serve_percentage")
+  breakPointsSaved     Int    @default(0) @map("break_points_saved")
+  winners              Int    @default(0)
+  unforcedErrors       Int    @default(0) @map("unforced_errors")
+  setsWon              Int    @default(0) @map("sets_won")
+
+  athlete TennisAthlete @relation(fields: [athleteId], references: [id])
+  match   TennisMatch   @relation(fields: [matchId], references: [id])
+
+  @@map("tennis_stats")
+}
+
+// ─── TABELE DE MECIURI ───────────────────────────────────
+
+model FootballMatch {
+  id          Int      @id @default(autoincrement())
+  teamHomeId  Int      @map("team_home_id")
+  teamAwayId  Int      @map("team_away_id")
+  matchDate   DateTime @map("match_date")
+  location    String
+  scoreHome   Int?     @map("score_home")
+  scoreAway   Int?     @map("score_away")
+  competition String
+
+  teamHome Team @relation("HomeTeam", fields: [teamHomeId], references: [id])
+  teamAway Team @relation("AwayTeam", fields: [teamAwayId], references: [id])
+  stats    FootballStat[]
+
+  @@map("football_matches")
+}
+
+model TennisMatch {
+  id           Int         @id @default(autoincrement())
+  athleteId    Int         @map("athlete_id")
+  opponentName String      @map("opponent_name")
+  matchDate    DateTime    @map("match_date")
+  location     String
+  surface      Surface
+  result       MatchResult
+  competition  String
+
+  athlete TennisAthlete @relation(fields: [athleteId], references: [id])
+  stats   TennisStat[]
+
+  @@map("tennis_matches")
+}
+
+// ─── TABELE MEDICALE ȘI FITNESS ──────────────────────────
+
+model MedicalRecord {
+  id          Int       @id @default(autoincrement())
+  athleteId   Int       @map("athlete_id")
+  medicId     Int       @map("medic_id")
+  diagnosis   String
+  treatment   String
+  startDate   DateTime  @map("start_date")
+  endDate     DateTime? @map("end_date")
+  isAvailable Boolean   @default(true) @map("is_available")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  athlete  FootballAthlete @relation(fields: [athleteId], references: [id])
+  medic    User            @relation("MedicRecords", fields: [medicId], references: [id])
+  injuries Injury[]
+
+  @@map("medical_records")
+}
+
+model Injury {
+  id              Int      @id @default(autoincrement())
+  medicalRecordId Int      @map("medical_record_id")
+  injuryType      String   @map("injury_type")
+  bodyPart        String   @map("body_part")
+  severity        Severity
+  recoveryDays    Int      @map("recovery_days")
+  notes           String?
+
+  medicalRecord MedicalRecord @relation(fields: [medicalRecordId], references: [id])
+
+  @@map("injuries")
+}
+
+model TrainingPlan {
+  id          Int          @id @default(autoincrement())
+  teamId      Int          @map("team_id")
+  createdBy   Int          @map("created_by")
+  title       String
+  description String?
+  type        TrainingType
+  date        DateTime
+  createdAt   DateTime     @default(now()) @map("created_at")
+
+  team            Team             @relation(fields: [teamId], references: [id])
+  creator         User             @relation(fields: [createdBy], references: [id])
+  fitnessSessions FitnessSession[]
+
+  @@map("training_plans")
+}
+
+model FitnessSession {
+  id              Int      @id @default(autoincrement())
+  athleteId       Int      @map("athlete_id")
+  trainingPlanId  Int      @map("training_plan_id")
+  date            DateTime
+  durationMinutes Int      @map("duration_minutes")
+  heartRateAvg    Int?     @map("heart_rate_avg")
+  caloriesBurned  Int?     @map("calories_burned")
+  notes           String?
+
+  athlete      FootballAthlete @relation(fields: [athleteId], references: [id])
+  trainingPlan TrainingPlan    @relation(fields: [trainingPlanId], references: [id])
+
+  @@map("fitness_sessions")
+}
+
+// ─── TABELE AUXILIARE ────────────────────────────────────
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  title     String
+  message   String
+  isRead    Boolean  @default(false) @map("is_read")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("notifications")
+}
+
+model AuditLog {
+  id            Int         @id @default(autoincrement())
+  userId        Int         @map("user_id")
+  action        AuditAction
+  tableAffected String      @map("table_affected")
+  recordId      Int?        @map("record_id")
+  details       Json?
+  createdAt     DateTime    @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
