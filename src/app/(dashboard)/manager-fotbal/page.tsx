@@ -2,18 +2,17 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 
-export default async function ManagerPage() {
+export default async function ManagerFotbalPage() {
     const session = await getServerSession(authOptions)
 
-    const allowedRoles = ["manager_fotbal", "manager_tenis"]
-    if (!session || !allowedRoles.includes(session.user.role)) {
+    if (!session || session.user.role !== "manager_fotbal") {
         redirect("/login")
     }
 
     return (
         <main>
             <div className="sd-page-title">
-                <h1>Dashboard overview</h1>
+                <h1>Dashboard Manager Fotbal</h1>
             </div>
 
             {/* Key Metrics */}
