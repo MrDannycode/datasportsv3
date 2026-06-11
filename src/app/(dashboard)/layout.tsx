@@ -1,11 +1,17 @@
+import "../dashboard.css"
+import DashboardHeader from "@/components/layout/DashboardHeader"
+
 export default function DashboardLayout({
     children,
 }: {
     children: React.ReactNode
 }) {
     return (
-        <div className="min-h-screen bg-gray-100">
-            {children}
+        <div className="sd-container">
+            <div className="sd-inner">
+                <DashboardHeader activeHref="#" />
+                {children}
+            </div>
         </div>
     )
 }

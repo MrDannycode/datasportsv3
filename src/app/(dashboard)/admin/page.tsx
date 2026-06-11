@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
+import Link from "next/link"
 
 export default async function AdminPage() {
     const session = await getServerSession(authOptions)
@@ -10,28 +11,32 @@ export default async function AdminPage() {
     }
 
     return (
-        <div className="p-8">
-            <h1 className="text-3xl font-bold text-gray-800">
-                Dashboard Admin Global
-            </h1>
-            <p className="text-gray-500 mt-2">
-                Bun venit, {session.user.email}
+        <main>
+            <div className="sd-page-title">
+                <h1>Dashboard Admin Global</h1>
+            </div>
+            <p style={{ color: "#666", marginBottom: "20px", fontSize: "13px" }}>
+                Bun venit, <strong>{session.user.email}</strong>
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-                <div className="bg-white rounded-xl shadow p-6">
-                    <h2 className="text-lg font-semibold text-gray-700">Utilizatori</h2>
-                    <p className="text-4xl font-bold text-blue-600 mt-2">—</p>
+            <div className="sd-metrics">
+                <Link href="/admin/users" style={{ flex: 1, textDecoration: "none" }}>
+                    <div className="sd-box sd-metric-box" style={{ cursor: "pointer" }}>
+                        <div className="sd-metric-title">Utilizatori</div>
+                        <div className="sd-metric-value" style={{ fontSize: "14px", marginTop: "8px", color: "#0056b3" }}>
+                            Gestionează →
+                        </div>
+                    </div>
+                </Link>
+                <div className="sd-box sd-metric-box" style={{ flex: 1 }}>
+                    <div className="sd-metric-title">Echipe</div>
+                    <div className="sd-metric-value">—</div>
                 </div>
-                <div className="bg-white rounded-xl shadow p-6">
-                    <h2 className="text-lg font-semibold text-gray-700">Echipe</h2>
-                    <p className="text-4xl font-bold text-blue-600 mt-2">—</p>
-                </div>
-                <div className="bg-white rounded-xl shadow p-6">
-                    <h2 className="text-lg font-semibold text-gray-700">Audituri</h2>
-                    <p className="text-4xl font-bold text-blue-600 mt-2">—</p>
+                <div className="sd-box sd-metric-box" style={{ flex: 1 }}>
+                    <div className="sd-metric-title">Audituri</div>
+                    <div className="sd-metric-value">—</div>
                 </div>
             </div>
-        </div>
+        </main>
     )
-}
+}

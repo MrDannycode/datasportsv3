@@ -11,15 +11,27 @@ const prisma = new PrismaClient({ adapter })
 async function main() {
     const hash = await bcrypt.hash("parola123", 10)
 
-    await prisma.user.create({
-        data: {
+    await prisma.user.upsert({
+        where: { email: "admin@test.com" },
+        update: {},
+        create: {
             email: "admin@test.com",
             passwordHash: hash,
             role: "admin_global",
         },
     })
 
-    console.log("User creat cu succes!")
+    await prisma.user.upsert({
+        where: { email: "atlet@test.com" },
+        update: {},
+        create: {
+            email: "atlet@test.com",
+            passwordHash: hash,
+            role: "atlet_fotbal",
+        },
+    })
+
+    console.log("Useri creati cu succes!")
 }
 
 main()
