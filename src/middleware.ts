@@ -4,8 +4,8 @@ import type { NextRequest } from "next/server"
 
 const roleRoutes: Record<string, string> = {
     admin_global: "/admin",
-    manager_fotbal: "/manager",
-    manager_tenis: "/manager",
+    manager_fotbal: "/manager-fotbal",
+    manager_tenis: "/manager-tenis",
     antrenor_fotbal: "/antrenor-fotbal",
     antrenor_fitness: "/antrenor-fitness",
     medic: "/medic",

@@ -117,6 +117,19 @@ model Team {
   @@map("teams")
 }
 
+model Competition {
+  id        Int      @id @default(autoincrement())
+  name      String
+  sport     Sport
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  footballMatches FootballMatch[]
+  tennisMatches   TennisMatch[]
+
+  @@map("competitions")
+}
+
 // ─── TABELE DE PROFIL ─────────────────────────────────────
 
 model Profile {
@@ -214,34 +227,36 @@ model TennisStat {
 // ─── TABELE DE MECIURI ───────────────────────────────────
 
 model FootballMatch {
-  id          Int      @id @default(autoincrement())
-  teamHomeId  Int      @map("team_home_id")
-  teamAwayId  Int      @map("team_away_id")
-  matchDate   DateTime @map("match_date")
-  location    String
-  scoreHome   Int?     @map("score_home")
-  scoreAway   Int?     @map("score_away")
-  competition String
+  id            Int      @id @default(autoincrement())
+  teamHomeId    Int      @map("team_home_id")
+  teamAwayId    Int      @map("team_away_id")
+  matchDate     DateTime @map("match_date")
+  location      String
+  scoreHome     Int?     @map("score_home")
+  scoreAway     Int?     @map("score_away")
+  competitionId Int      @map("competition_id")
 
-  teamHome Team @relation("HomeTeam", fields: [teamHomeId], references: [id])
-  teamAway Team @relation("AwayTeam", fields: [teamAwayId], references: [id])
-  stats    FootballStat[]
+  teamHome    Team         @relation("HomeTeam", fields: [teamHomeId], references: [id])
+  teamAway    Team         @relation("AwayTeam", fields: [teamAwayId], references: [id])
+  competition Competition  @relation(fields: [competitionId], references: [id])
+  stats       FootballStat[]
 
   @@map("football_matches")
 }
 
 model TennisMatch {
-  id           Int         @id @default(autoincrement())
-  athleteId    Int         @map("athlete_id")
-  opponentName String      @map("opponent_name")
-  matchDate    DateTime    @map("match_date")
-  location     String
-  surface      Surface
-  result       MatchResult
-  competition  String
+  id            Int         @id @default(autoincrement())
+  athleteId     Int         @map("athlete_id")
+  opponentName  String      @map("opponent_name")
+  matchDate     DateTime    @map("match_date")
+  location      String
+  surface       Surface
+  result        MatchResult
+  competitionId Int         @map("competition_id")
 
-  athlete TennisAthlete @relation(fields: [athleteId], references: [id])
-  stats   TennisStat[]
+  athlete     TennisAthlete @relation(fields: [athleteId], references: [id])
+  competition Competition   @relation(fields: [competitionId], references: [id])
+  stats       TennisStat[]
 
   @@map("tennis_matches")
 }

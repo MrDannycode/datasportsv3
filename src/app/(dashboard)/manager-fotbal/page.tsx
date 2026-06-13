@@ -1,6 +1,10 @@
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
+import { prisma } from "@/lib/prisma"
+import MatchManager from "./MatchManager"
+import TeamManager from "./TeamManager"
+import PlayerManager from "./PlayerManager"
 
 export default async function ManagerFotbalPage() {
     const session = await getServerSession(authOptions)
@@ -8,6 +12,46 @@ export default async function ManagerFotbalPage() {
     if (!session || session.user.role !== "manager_fotbal") {
         redirect("/login")
     }
+
+    const teams = await prisma.team.findMany({
+        where: { sport: "fotbal" },
+        select: { id: true, name: true, country: true, continent: true },
+        orderBy: { name: 'asc' }
+    })
+
+    const competitions = await prisma.competition.findMany({
+        where: { sport: "fotbal" },
+        select: { id: true, name: true },
+        orderBy: { name: 'asc' }
+    })
+
+    const users = await prisma.user.findMany({
+        where: { role: "atlet_fotbal" },
+        include: {
+            profile: {
+                include: { team: true }
+            }
+        },
+        orderBy: { email: 'asc' }
+    })
+
+    const players = users.map(u => ({
+        id: u.id,
+        firstName: u.profile?.firstName || u.email.split('@')[0],
+        lastName: u.profile?.lastName || "",
+        teamId: u.profile?.teamId || null,
+        team: u.profile?.team || null,
+        hasProfile: !!u.profile
+    }))
+
+    const matches = await prisma.footballMatch.findMany({
+        include: {
+            teamHome: { select: { id: true, name: true } },
+            teamAway: { select: { id: true, name: true } },
+            competition: { select: { id: true, name: true } }
+        },
+        orderBy: { matchDate: 'desc' }
+    })
 
     return (
         <main>
@@ -18,62 +62,18 @@ export default async function ManagerFotbalPage() {
             {/* Key Metrics */}
             <div className="sd-metrics">
                 <div className="sd-box sd-metric-box">
-                    <div className="sd-metric-title">Match calendar</div>
+                    <div className="sd-metric-title">Meciuri Totale: {matches.length}</div>
                 </div>
                 <div className="sd-box sd-metric-box">
-                    <div className="sd-metric-title">Team Schedule</div>
+                    <div className="sd-metric-title">Echipe Fotbal: {teams.length}</div>
                 </div>
             </div>
 
             {/* Main Panels */}
-            <div className="sd-panels">
-                {/* Recent Activities */}
-                <div className="sd-box sd-activities">
-                    <div className="sd-box-header">
-                        <h2>Recent Activities</h2>
-                        <a href="#">View All</a>
-                    </div>
-                    <div className="sd-box-content">
-                        <table className="sd-table">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Type</th>
-                                    <th>Title</th>
-                                    <th>Distance</th>
-                                    <th>Duration</th>
-                                    <th>Pace / Speed</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Today</td>
-                                    <td>Run</td>
-                                    <td>Morning Tempo Run</td>
-                                    <td>10.0 km</td>
-                                    <td>45:00</td>
-                                    <td>4:30 /km</td>
-                                </tr>
-                                <tr>
-                                    <td>Yesterday</td>
-                                    <td>Bike</td>
-                                    <td>Recovery Ride</td>
-                                    <td>25.4 km</td>
-                                    <td>1:08:52</td>
-                                    <td>22.1 km/h</td>
-                                </tr>
-                                <tr>
-                                    <td>Wed</td>
-                                    <td>Run</td>
-                                    <td>Long Interval Session</td>
-                                    <td>15.2 km</td>
-                                    <td>1:12:15</td>
-                                    <td>4:45 /km</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+            <div className="sd-panels" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                <PlayerManager players={players as any} teams={teams} />
+                <TeamManager initialTeams={teams} />
+                <MatchManager initialMatches={matches as any} teams={teams} competitions={competitions} />
 
                 {/* Sidebar panels */}
                 <div className="sd-sidebar">

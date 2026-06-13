@@ -28,6 +28,14 @@ export default async function AdminPage() {
                         </div>
                     </div>
                 </Link>
+                <Link href="/admin/competitions" style={{ flex: 1, textDecoration: "none" }}>
+                    <div className="sd-box sd-metric-box" style={{ cursor: "pointer" }}>
+                        <div className="sd-metric-title">Competiții</div>
+                        <div className="sd-metric-value" style={{ fontSize: "14px", marginTop: "8px", color: "#0056b3" }}>
+                            Gestionează →
+                        </div>
+                    </div>
+                </Link>
                 <div className="sd-box sd-metric-box" style={{ flex: 1 }}>
                     <div className="sd-metric-title">Echipe</div>
                     <div className="sd-metric-value">—</div>
