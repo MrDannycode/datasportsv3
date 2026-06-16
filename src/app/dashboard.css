@@ -228,3 +228,290 @@
         margin: 0 5px;
     }
 }
+
+/* ---- Badges --------------------------------------------- */
+.sd-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.sd-badge-tehnic {
+    background-color: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+}
+
+.sd-badge-fizic {
+    background-color: #dcfce7;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+
+.sd-badge-tactic {
+    background-color: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+
+/* ---- Toolbar -------------------------------------------- */
+.sd-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.sd-filter-group {
+    display: flex;
+    gap: 6px;
+}
+
+.sd-filter-btn {
+    padding: 5px 14px;
+    font-size: 13px;
+    border: 1px solid #ccc;
+    background: #fff;
+    cursor: pointer;
+    border-radius: 3px;
+    color: #555;
+}
+
+.sd-filter-btn:hover {
+    background: #f0f0f0;
+}
+
+.sd-filter-btn.active {
+    background: #333;
+    color: #fff;
+    border-color: #333;
+}
+
+/* ---- Primary / Secondary / Danger buttons --------------- */
+.sd-btn-primary {
+    display: inline-block;
+    padding: 7px 16px;
+    background: #0056b3;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.sd-btn-primary:hover {
+    background: #004494;
+    text-decoration: none;
+    color: #fff;
+}
+
+.sd-btn-secondary {
+    display: inline-block;
+    padding: 7px 16px;
+    background: #fff;
+    color: #333;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.sd-btn-secondary:hover {
+    background: #f0f0f0;
+    text-decoration: none;
+}
+
+.sd-btn-danger {
+    display: inline-block;
+    padding: 7px 16px;
+    background: #c00;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.sd-btn-danger:hover {
+    background: #a00;
+}
+
+/* ---- Small action buttons ------------------------------- */
+.sd-action-group {
+    display: flex;
+    gap: 6px;
+}
+
+.sd-btn-sm {
+    padding: 3px 10px;
+    font-size: 12px;
+    border-radius: 3px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    font-weight: bold;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.sd-btn-edit {
+    background: #e9f0ff;
+    color: #0056b3;
+    border-color: #bfdbfe;
+}
+
+.sd-btn-edit:hover {
+    background: #dbeafe;
+    text-decoration: none;
+    color: #0056b3;
+}
+
+.sd-btn-delete {
+    background: #fff0f0;
+    color: #c00;
+    border-color: #fca5a5;
+}
+
+.sd-btn-delete:hover {
+    background: #ffe0e0;
+}
+
+/* ---- Description cell ----------------------------------- */
+.sd-description-cell {
+    max-width: 220px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 12px;
+    color: #555;
+}
+
+/* ---- Empty state ---------------------------------------- */
+.sd-empty-state {
+    padding: 40px;
+    text-align: center;
+    color: #666;
+}
+
+.sd-empty-state p {
+    margin-bottom: 16px;
+    font-size: 14px;
+}
+
+/* ---- Error banner --------------------------------------- */
+.sd-error-banner {
+    background: #fff0f0;
+    border: 1px solid #fca5a5;
+    color: #c00;
+    padding: 10px 15px;
+    border-radius: 3px;
+    margin-bottom: 14px;
+    font-size: 13px;
+}
+
+/* ---- Modal --------------------------------------------- */
+.sd-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.sd-modal {
+    background: #fff;
+    border: 1px solid #ccc;
+    padding: 24px;
+    max-width: 420px;
+    width: 90%;
+    border-radius: 4px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+}
+
+.sd-modal h3 {
+    margin: 0 0 12px;
+    font-size: 17px;
+}
+
+.sd-modal p {
+    font-size: 13px;
+    margin-bottom: 20px;
+    color: #444;
+}
+
+.sd-modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+/* ---- Form styles ---------------------------------------- */
+.sd-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.sd-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.sd-label {
+    font-size: 13px;
+    font-weight: bold;
+    color: #333;
+}
+
+.sd-required {
+    color: #c00;
+}
+
+.sd-input {
+    padding: 7px 10px;
+    font-size: 13px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 100%;
+    font-family: inherit;
+    background: #fff;
+    color: #333;
+}
+
+.sd-input:focus {
+    outline: 2px solid #0056b3;
+    outline-offset: 1px;
+    border-color: #0056b3;
+}
+
+.sd-textarea {
+    resize: vertical;
+    min-height: 90px;
+}
+
+.sd-hint {
+    font-size: 12px;
+    color: #666;
+    margin: 0;
+}
+
+.sd-form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    padding-top: 8px;
+    border-top: 1px solid #eee;
+}
