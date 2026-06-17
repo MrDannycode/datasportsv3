@@ -2,8 +2,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
-import Link from "next/link"
-import AntrenamenteClient from "./AntrenamenteClient"
+import AntrenamenteManager from "./AntrenamenteManager"
 
 export default async function AntrenamentePage() {
     const session = await getServerSession(authOptions)
@@ -12,13 +11,20 @@ export default async function AntrenamentePage() {
         redirect("/login")
     }
 
-    const plans = await prisma.trainingPlan.findMany({
-        where: { createdBy: Number(session.user.id) },
-        include: {
-            team: { select: { id: true, name: true } },
-        },
-        orderBy: { date: "desc" },
-    })
+    const [plans, teams] = await Promise.all([
+        prisma.trainingPlan.findMany({
+            where: { createdBy: Number(session.user.id) },
+            include: {
+                team: { select: { id: true, name: true } },
+            },
+            orderBy: { date: "desc" },
+        }),
+        prisma.team.findMany({
+            where: { sport: "fotbal" },
+            select: { id: true, name: true },
+            orderBy: { name: "asc" },
+        }),
+    ])
 
     const serializedPlans = plans.map((p) => ({
         ...p,
@@ -32,7 +38,7 @@ export default async function AntrenamentePage() {
                 <h1>Planuri de antrenament</h1>
             </div>
 
-            <AntrenamenteClient initialPlans={serializedPlans} />
+            <AntrenamenteManager initialPlans={serializedPlans} teams={teams} />
         </main>
     )
 }
