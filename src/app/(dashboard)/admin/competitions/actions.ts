@@ -16,13 +16,14 @@ export async function createCompetition(data: { name: string, sport: "fotbal" | 
     }
 
     try {
-        await prisma.competition.create({
+        const comp = await prisma.competition.create({
             data: {
                 name: data.name,
                 sport: data.sport,
             }
         })
         revalidatePath("/admin/competitions")
+        return { competition: comp }
     } catch (e: any) {
         if (e.code === 'P2002') {
             throw new Error("O competiție cu acest nume există deja.")

@@ -11,6 +11,7 @@ type Competition = {
 }
 
 export default function CompetitionsManager({ initialCompetitions }: { initialCompetitions: Competition[] }) {
+    const [competitions, setCompetitions] = useState<Competition[]>(initialCompetitions)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
     const [success, setSuccess] = useState("")
@@ -33,7 +34,10 @@ export default function CompetitionsManager({ initialCompetitions }: { initialCo
         setSuccess("")
 
         try {
-            await createCompetition(formData)
+            const result = await createCompetition(formData)
+            if (result?.competition) {
+                setCompetitions([result.competition, ...competitions])
+            }
             setSuccess("Competiția a fost adăugată cu succes!")
             resetForm()
         } catch (err: any) {
@@ -50,6 +54,7 @@ export default function CompetitionsManager({ initialCompetitions }: { initialCo
         setSuccess("")
         try {
             await deleteCompetition(id)
+            setCompetitions(competitions.filter(c => c.id !== id))
             setSuccess("Competiția a fost ștearsă.")
         } catch (err: any) {
             setError(err.message || "A apărut o eroare la ștergere.")
@@ -112,7 +117,7 @@ export default function CompetitionsManager({ initialCompetitions }: { initialCo
                             </tr>
                         </thead>
                         <tbody>
-                            {initialCompetitions.map(comp => (
+                            {competitions.map(comp => (
                                 <tr key={comp.id}>
                                     <td>#{comp.id}</td>
                                     <td style={{ fontWeight: "bold" }}>{comp.name}</td>
@@ -134,7 +139,7 @@ export default function CompetitionsManager({ initialCompetitions }: { initialCo
                                     </td>
                                 </tr>
                             ))}
-                            {initialCompetitions.length === 0 && (
+                            {competitions.length === 0 && (
                                 <tr>
                                     <td colSpan={5} style={{ textAlign: "center", padding: "20px", color: "#666" }}>Nu există nicio competiție adăugată.</td>
                                 </tr>
