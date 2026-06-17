@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { deletePlan } from "./actions"
 
 interface Team {
     id: number
@@ -60,12 +61,9 @@ export default function AntrenamenteClient({ initialPlans }: Props) {
         setDeleting(true)
         setError(null)
         try {
-            const res = await fetch(`/api/antrenor-fotbal/antrenamente/${id}`, {
-                method: "DELETE",
-            })
-            if (!res.ok) {
-                const data = await res.json()
-                throw new Error(data.error ?? "Eroare la ștergere")
+            const result = await deletePlan(id)
+            if (result?.error) {
+                throw new Error(result.error)
             }
             setPlans((prev) => prev.filter((p) => p.id !== id))
             setDeleteId(null)

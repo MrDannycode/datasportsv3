@@ -3,6 +3,7 @@
 import { useState, FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { createPlan, updatePlan } from "./actions"
 
 interface Team {
     id: number
@@ -49,27 +50,17 @@ export default function PlanFormClient({ teams, mode, initialData }: Props) {
 
         const payload = { teamId: Number(teamId), title, description, type, date }
 
-        const url =
-            mode === "create"
-                ? "/api/antrenor-fotbal/antrenamente"
-                : `/api/antrenor-fotbal/antrenamente/${initialData!.id}`
-
-        const method = mode === "create" ? "POST" : "PUT"
-
         try {
-            const res = await fetch(url, {
-                method,
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            })
+            const result =
+                mode === "create"
+                    ? await createPlan(payload)
+                    : await updatePlan(initialData!.id, payload)
 
-            if (!res.ok) {
-                const data = await res.json()
-                throw new Error(data.error ?? "Eroare la salvare")
+            if (result?.error) {
+                throw new Error(result.error)
             }
 
             router.push("/antrenor-fotbal/antrenamente")
-            router.refresh()
         } catch (e: unknown) {
             setError(e instanceof Error ? e.message : "Eroare necunoscută")
             setLoading(false)
