@@ -31,24 +31,15 @@ const TYPE_LABELS: Record<string, string> = {
     tactic: "Tactic",
 }
 
-const TYPE_BADGE: Record<string, string> = {
-    tehnic: "sd-badge-tehnic",
-    fizic: "sd-badge-fizic",
-    tactic: "sd-badge-tactic",
-}
+const INPUT_STYLE = { border: "1px solid #ccc", padding: "6px 10px", fontSize: "13px" } as const
+const LABEL_STYLE = { fontSize: "12px", fontWeight: "bold" } as const
+const FIELD_STYLE = { display: "flex", flexDirection: "column" as const, gap: "4px" }
 
 export default function AntrenamenteManager({ initialPlans, teams }: Props) {
     const [plans, setPlans] = useState<TrainingPlan[]>(initialPlans)
     const [filter, setFilter] = useState<"toate" | "tehnic" | "fizic" | "tactic">("toate")
 
-    // State for delete
-    const [deleteId, setDeleteId] = useState<number | null>(null)
-    const [deleting, setDeleting] = useState(false)
-    const [listError, setListError] = useState<string | null>(null)
-
-    // State for create/edit form
-    const [showForm, setShowForm] = useState(false)
-    const [editMode, setEditMode] = useState<boolean>(false)
+    const [editMode, setEditMode] = useState(false)
     const [editId, setEditId] = useState<number | null>(null)
 
     const [teamId, setTeamId] = useState<string>(teams[0] ? String(teams[0].id) : "")
@@ -58,20 +49,16 @@ export default function AntrenamenteManager({ initialPlans, teams }: Props) {
     const [date, setDate] = useState(new Date().toISOString().split("T")[0])
 
     const [formLoading, setFormLoading] = useState(false)
-    const [formError, setFormError] = useState<string | null>(null)
-    const [formSuccess, setFormSuccess] = useState<string | null>(null)
+    const [formError, setFormError] = useState("")
+    const [formSuccess, setFormSuccess] = useState("")
 
     const filtered = filter === "toate" ? plans : plans.filter((p) => p.type === filter)
 
     function formatDate(iso: string) {
-        return new Date(iso).toLocaleDateString("ro-RO", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-        })
+        return new Date(iso).toLocaleDateString("ro-RO")
     }
 
-    function openCreateForm() {
+    function resetForm() {
         setEditMode(false)
         setEditId(null)
         setTeamId(teams[0] ? String(teams[0].id) : "")
@@ -79,9 +66,8 @@ export default function AntrenamenteManager({ initialPlans, teams }: Props) {
         setDescription("")
         setType("tehnic")
         setDate(new Date().toISOString().split("T")[0])
-        setFormError(null)
-        setFormSuccess(null)
-        setShowForm(true)
+        setFormError("")
+        setFormSuccess("")
     }
 
     function openEditForm(plan: TrainingPlan) {
@@ -92,20 +78,15 @@ export default function AntrenamenteManager({ initialPlans, teams }: Props) {
         setDescription(plan.description ?? "")
         setType(plan.type)
         setDate(plan.date.split("T")[0])
-        setFormError(null)
-        setFormSuccess(null)
-        setShowForm(true)
-    }
-
-    function closeForm() {
-        setShowForm(false)
+        setFormError("")
+        setFormSuccess("")
     }
 
     async function handleFormSubmit(e: React.FormEvent) {
         e.preventDefault()
         setFormLoading(true)
-        setFormError(null)
-        setFormSuccess(null)
+        setFormError("")
+        setFormSuccess("")
 
         const payload = { teamId: Number(teamId), title, description, type, date }
 
@@ -113,12 +94,12 @@ export default function AntrenamenteManager({ initialPlans, teams }: Props) {
             if (editMode && editId !== null) {
                 const result = await updatePlan(editId, payload)
                 if (result?.error) throw new Error(result.error)
-                
-                // Update local state by merging the team data
+
                 if (result?.plan) {
                     const selectedTeam = teams.find(t => t.id === Number(teamId))
                     setPlans(plans.map(p => p.id === editId ? { ...result.plan, team: selectedTeam as Team, date: result.plan.date.toISOString(), createdAt: result.plan.createdAt.toISOString() } as TrainingPlan : p))
                     setFormSuccess("Planul a fost actualizat cu succes.")
+                    resetForm()
                 }
             } else {
                 const result = await createPlan(payload)
@@ -129,18 +110,10 @@ export default function AntrenamenteManager({ initialPlans, teams }: Props) {
                     const newPlan = { ...result.plan, team: selectedTeam as Team, date: result.plan.date.toISOString(), createdAt: result.plan.createdAt.toISOString() } as TrainingPlan
                     setPlans([newPlan, ...plans])
                     setFormSuccess("Planul a fost creat cu succes.")
-                    
-                    // Reset fields for consecutive creations
                     setTitle("")
                     setDescription("")
                 }
             }
-            
-            // Optionally close form after a delay or just leave it open with success message
-            setTimeout(() => {
-                closeForm()
-            }, 1500)
-            
         } catch (e: unknown) {
             setFormError(e instanceof Error ? e.message : "Eroare necunoscută")
         } finally {
@@ -148,20 +121,14 @@ export default function AntrenamenteManager({ initialPlans, teams }: Props) {
         }
     }
 
-    async function handleDelete(id: number) {
-        setDeleting(true)
-        setListError(null)
-        try {
-            const result = await deletePlan(id)
-            if (result?.error) {
-                throw new Error(result.error)
-            }
+    async function handleDelete(id: number, planTitle: string) {
+        if (!confirm(`Ștergi planul „${planTitle}"?`)) return
+
+        const result = await deletePlan(id)
+        if (result.success) {
             setPlans((prev) => prev.filter((p) => p.id !== id))
-            setDeleteId(null)
-        } catch (e: unknown) {
-            setListError(e instanceof Error ? e.message : "Eroare necunoscută")
-        } finally {
-            setDeleting(false)
+        } else {
+            alert(result.error ?? "Eroare la ștergere")
         }
     }
 
@@ -180,76 +147,138 @@ export default function AntrenamenteManager({ initialPlans, teams }: Props) {
                         </button>
                     ))}
                 </div>
-
-                {!showForm && (
-                    <button onClick={openCreateForm} className="sd-btn-primary">
-                        + Adaugă antrenament
-                    </button>
-                )}
             </div>
 
-            {listError && <div className="sd-error-banner">{listError}</div>}
-
-            {/* Create / Edit Form Area */}
-            {showForm && (
-                <div className="sd-box" style={{ marginBottom: "24px" }}>
-                    <div className="sd-box-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h2>{editMode ? "Editează plan" : "Adaugă plan nou"}</h2>
-                        <button onClick={closeForm} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer' }}>×</button>
-                    </div>
-                    <div className="sd-box-content">
-                        {formError && <div className="sd-error-banner">{formError}</div>}
-                        {formSuccess && <div style={{ color: "green", padding: "10px", background: "#efe", borderRadius: "5px", marginBottom: "15px" }}>{formSuccess}</div>}
-
-                        <form onSubmit={handleFormSubmit} className="sd-form" style={{ display: "flex", flexWrap: "wrap", gap: "15px", alignItems: "flex-start" }}>
-                            
-                            <div className="sd-form-group" style={{ flex: "1 1 200px" }}>
-                                <label htmlFor="plan-title" className="sd-label">Titlu <span className="sd-required">*</span></label>
-                                <input id="plan-title" type="text" className="sd-input" value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={200} placeholder="ex. Antrenament tactic ofensiv" />
-                            </div>
-
-                            <div className="sd-form-group" style={{ flex: "1 1 150px" }}>
-                                <label htmlFor="plan-type" className="sd-label">Tip antrenament <span className="sd-required">*</span></label>
-                                <select id="plan-type" className="sd-input" value={type} onChange={(e) => setType(e.target.value as "tehnic" | "fizic" | "tactic")} required>
-                                    <option value="tehnic">Tehnic</option>
-                                    <option value="fizic">Fizic</option>
-                                    <option value="tactic">Tactic</option>
-                                </select>
-                            </div>
-
-                            <div className="sd-form-group" style={{ flex: "1 1 200px" }}>
-                                <label htmlFor="plan-team" className="sd-label">Echipă <span className="sd-required">*</span></label>
-                                {teams.length === 0 ? (
-                                    <p className="sd-hint" style={{ color: "#c00" }}>Nu există echipe de fotbal în sistem.</p>
-                                ) : (
-                                    <select id="plan-team" className="sd-input" value={teamId} onChange={(e) => setTeamId(e.target.value)} required>
-                                        {teams.map((t) => (
-                                            <option key={t.id} value={t.id}>{t.name}</option>
-                                        ))}
-                                    </select>
-                                )}
-                            </div>
-
-                            <div className="sd-form-group" style={{ flex: "1 1 150px" }}>
-                                <label htmlFor="plan-date" className="sd-label">Data <span className="sd-required">*</span></label>
-                                <input id="plan-date" type="date" className="sd-input" value={date} onChange={(e) => setDate(e.target.value)} required />
-                            </div>
-
-                            <div className="sd-form-group" style={{ width: "100%" }}>
-                                <label htmlFor="plan-description" className="sd-label">Descriere</label>
-                                <textarea id="plan-description" className="sd-input sd-textarea" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} maxLength={1000} placeholder="Detalii despre antrenament (opțional)" />
-                            </div>
-
-                            <div className="sd-form-actions" style={{ width: "100%", justifyContent: "flex-end" }}>
-                                <button type="button" onClick={closeForm} className="sd-btn-secondary">Anulează</button>
-                                <button type="submit" className="sd-btn-primary" disabled={formLoading || teams.length === 0}>
-                                    {formLoading ? "Se salvează..." : (editMode ? "Salvează modificările" : "Creează plan")}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+            {/* Adaugă plan nou */}
+            <div className="sd-box" style={{ marginBottom: "24px" }}>
+                <div className="sd-box-header">
+                    <h2>{editMode ? "Editează plan" : "Adaugă plan nou"}</h2>
                 </div>
-            )}
+                <div className="sd-box-content">
+                    <form onSubmit={handleFormSubmit} style={{ display: "flex", gap: "12px", flexWrap: "wrap", alignItems: "flex-end" }}>
+                        <div style={{ ...FIELD_STYLE, flex: "1 1 180px" }}>
+                            <label htmlFor="plan-title" style={LABEL_STYLE}>Titlu</label>
+                            <input
+                                id="plan-title"
+                                type="text"
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                required
+                                maxLength={200}
+                                placeholder="ex. Antrenament tactic ofensiv"
+                                style={INPUT_STYLE}
+                            />
+                        </div>
+
+                        <div style={{ ...FIELD_STYLE, flex: "1 1 140px" }}>
+                            <label htmlFor="plan-type" style={LABEL_STYLE}>Tip</label>
+                            <select
+                                id="plan-type"
+                                value={type}
+                                onChange={(e) => setType(e.target.value as "tehnic" | "fizic" | "tactic")}
+                                required
+                                style={{ ...INPUT_STYLE, backgroundColor: "#fff" }}
+                            >
+                                <option value="tehnic">Tehnic</option>
+                                <option value="fizic">Fizic</option>
+                                <option value="tactic">Tactic</option>
+                            </select>
+                        </div>
+
+                        <div style={{ ...FIELD_STYLE, flex: "1 1 160px" }}>
+                            <label htmlFor="plan-team" style={LABEL_STYLE}>Echipă</label>
+                            {teams.length === 0 ? (
+                                <p style={{ color: "#c00", fontSize: "12px", margin: 0 }}>Nu există echipe.</p>
+                            ) : (
+                                <select
+                                    id="plan-team"
+                                    value={teamId}
+                                    onChange={(e) => setTeamId(e.target.value)}
+                                    required
+                                    style={{ ...INPUT_STYLE, backgroundColor: "#fff" }}
+                                >
+                                    {teams.map((t) => (
+                                        <option key={t.id} value={t.id}>{t.name}</option>
+                                    ))}
+                                </select>
+                            )}
+                        </div>
+
+                        <div style={{ ...FIELD_STYLE, flex: "1 1 140px" }}>
+                            <label htmlFor="plan-date" style={LABEL_STYLE}>Data</label>
+                            <input
+                                id="plan-date"
+                                type="date"
+                                value={date}
+                                onChange={(e) => setDate(e.target.value)}
+                                required
+                                style={INPUT_STYLE}
+                            />
+                        </div>
+
+                        <div style={{ ...FIELD_STYLE, flex: "1 1 100%", width: "100%" }}>
+                            <label htmlFor="plan-description" style={LABEL_STYLE}>Descriere</label>
+                            <textarea
+                                id="plan-description"
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                                rows={2}
+                                maxLength={1000}
+                                placeholder="Detalii despre antrenament (opțional)"
+                                style={{ ...INPUT_STYLE, width: "100%", resize: "vertical" }}
+                            />
+                        </div>
+
+                        {editMode && (
+                            <button
+                                type="button"
+                                onClick={resetForm}
+                                style={{
+                                    fontSize: "13px",
+                                    border: "1px solid #ccc",
+                                    color: "#333",
+                                    backgroundColor: "#fff",
+                                    padding: "7px 20px",
+                                    fontWeight: "bold",
+                                    cursor: "pointer",
+                                    alignSelf: "flex-end",
+                                }}
+                            >
+                                Anulează
+                            </button>
+                        )}
+
+                        <button
+                            id="plan-submit"
+                            type="submit"
+                            disabled={formLoading || teams.length === 0}
+                            style={{
+                                backgroundColor: formLoading || teams.length === 0 ? "#aaa" : "#0056b3",
+                                color: "#fff",
+                                border: "none",
+                                padding: "7px 20px",
+                                fontSize: "13px",
+                                fontWeight: "bold",
+                                cursor: formLoading || teams.length === 0 ? "not-allowed" : "pointer",
+                                alignSelf: "flex-end",
+                            }}
+                        >
+                            {formLoading
+                                ? "Se salvează..."
+                                : editMode
+                                    ? "Salvează modificările"
+                                    : "Creează plan"}
+                        </button>
+                    </form>
+
+                    {formError && (
+                        <p style={{ color: "#c00", fontSize: "12px", marginTop: "10px" }}>{formError}</p>
+                    )}
+                    {formSuccess && (
+                        <p style={{ color: "#2a7a2a", fontSize: "12px", marginTop: "10px" }}>{formSuccess}</p>
+                    )}
+                </div>
+            </div>
 
             {/* Tabel */}
             <div className="sd-box">
@@ -257,98 +286,84 @@ export default function AntrenamenteManager({ initialPlans, teams }: Props) {
                     <h2>Planuri de antrenament ({filtered.length})</h2>
                 </div>
                 <div className="sd-box-content" style={{ padding: 0 }}>
-                    {filtered.length === 0 ? (
-                        <div className="sd-empty-state">
-                            <p>Nu există planuri de antrenament{filter !== "toate" ? ` de tip „${filter}"` : ""}.</p>
-                            {!showForm && (
-                                <button onClick={openCreateForm} className="sd-btn-primary" style={{ marginTop: "10px" }}>
-                                    Creează primul plan
-                                </button>
-                            )}
-                        </div>
-                    ) : (
-                        <table className="sd-table">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Titlu</th>
-                                    <th>Tip</th>
-                                    <th>Echipă</th>
-                                    <th>Data</th>
-                                    <th>Descriere</th>
-                                    <th>Acțiuni</th>
+                    <table className="sd-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Titlu</th>
+                                <th>Tip</th>
+                                <th>Echipă</th>
+                                <th>Data</th>
+                                <th>Descriere</th>
+                                <th>Acțiuni</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filtered.map((plan) => (
+                                <tr key={plan.id}>
+                                    <td style={{ color: "#999" }}>{plan.id}</td>
+                                    <td>{plan.title}</td>
+                                    <td>
+                                        <span style={{
+                                            backgroundColor: "#e8f0fb",
+                                            color: "#0056b3",
+                                            padding: "2px 8px",
+                                            fontSize: "11px",
+                                            fontWeight: "bold",
+                                            borderRadius: "2px",
+                                        }}>
+                                            {TYPE_LABELS[plan.type]}
+                                        </span>
+                                    </td>
+                                    <td>{plan.team.name}</td>
+                                    <td style={{ color: "#666", fontSize: "12px" }}>
+                                        {formatDate(plan.date)}
+                                    </td>
+                                    <td style={{ color: "#666", fontSize: "12px" }}>
+                                        {plan.description ?? "—"}
+                                    </td>
+                                    <td>
+                                        <button
+                                            onClick={() => openEditForm(plan)}
+                                            style={{
+                                                fontSize: "11px",
+                                                border: "1px solid #0056b3",
+                                                color: "#0056b3",
+                                                backgroundColor: "transparent",
+                                                padding: "2px 8px",
+                                                cursor: "pointer",
+                                                marginRight: "6px",
+                                            }}
+                                        >
+                                            Editează
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(plan.id, plan.title)}
+                                            style={{
+                                                fontSize: "11px",
+                                                border: "1px solid #c00",
+                                                color: "#c00",
+                                                backgroundColor: "transparent",
+                                                padding: "2px 8px",
+                                                cursor: "pointer",
+                                            }}
+                                        >
+                                            Șterge
+                                        </button>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {filtered.map((plan, idx) => (
-                                    <tr key={plan.id}>
-                                        <td>{idx + 1}</td>
-                                        <td><strong>{plan.title}</strong></td>
-                                        <td>
-                                            <span className={`sd-badge ${TYPE_BADGE[plan.type]}`}>
-                                                {TYPE_LABELS[plan.type]}
-                                            </span>
-                                        </td>
-                                        <td>{plan.team.name}</td>
-                                        <td>{formatDate(plan.date)}</td>
-                                        <td className="sd-description-cell">
-                                            {plan.description ?? <em style={{ color: "#999" }}>—</em>}
-                                        </td>
-                                        <td>
-                                            <div className="sd-action-group">
-                                                <button
-                                                    onClick={() => openEditForm(plan)}
-                                                    className="sd-btn-sm sd-btn-edit"
-                                                >
-                                                    Editează
-                                                </button>
-                                                <button
-                                                    className="sd-btn-sm sd-btn-delete"
-                                                    onClick={() => setDeleteId(plan.id)}
-                                                >
-                                                    Șterge
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    )}
+                            ))}
+                            {filtered.length === 0 && (
+                                <tr>
+                                    <td colSpan={7} style={{ textAlign: "center", color: "#999", padding: "20px" }}>
+                                        Nu există planuri de antrenament{filter !== "toate" ? ` de tip „${filter}"` : ""}.
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             </div>
-
-            {/* Modal confirmare ștergere */}
-            {deleteId !== null && (
-                <div className="sd-modal-overlay">
-                    <div className="sd-modal">
-                        <h3>Confirmare ștergere</h3>
-                        <p>
-                            Ești sigur că vrei să ștergi planul{" "}
-                            <strong>
-                                &quot;{plans.find((p) => p.id === deleteId)?.title}&quot;
-                            </strong>
-                            ? Această acțiune este ireversibilă.
-                        </p>
-                        <div className="sd-modal-actions">
-                            <button
-                                className="sd-btn-primary"
-                                onClick={() => setDeleteId(null)}
-                                disabled={deleting}
-                            >
-                                Anulează
-                            </button>
-                            <button
-                                className="sd-btn-danger"
-                                onClick={() => handleDelete(deleteId)}
-                                disabled={deleting}
-                            >
-                                {deleting ? "Se șterge..." : "Șterge"}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </>
     )
 }

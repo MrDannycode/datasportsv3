@@ -73,7 +73,10 @@ export default async function AtletFotbalPage() {
                     </div>
                 </div>
                 <div className="sd-box sd-metric-box">
-                    <div className="sd-metric-title">Fitness calendar</div>
+                    <div className="sd-metric-title">Activities calendar</div>
+                </div>
+                <div className="sd-box sd-metric-box">
+                    <div className="sd-metric-title">Training calendar</div>
                 </div>
             </div>
 
