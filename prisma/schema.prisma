@@ -71,6 +71,14 @@ enum TrainingType {
   tactic
 }
 
+enum FitnessType {
+  forta
+  rezistenta
+  vitezare
+  flexibilitate
+  coordonare
+}
+
 enum AuditAction {
   create
   update
@@ -307,6 +315,19 @@ model TrainingPlan {
   fitnessSessions FitnessSession[]
 
   @@map("training_plans")
+}
+
+model FitnessPlan {
+  id          Int          @id @default(autoincrement())
+  createdBy   Int          @map("created_by")
+  title       String
+  description String?
+  type        FitnessType
+  date        DateTime
+  createdAt   DateTime     @default(now()) @map("created_at")
+
+
+  @@map("fitness_plans")
 }
 
 model FitnessSession {
