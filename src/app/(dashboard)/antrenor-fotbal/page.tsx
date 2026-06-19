@@ -18,7 +18,6 @@ export default async function AntrenorFotbalPage() {
 
     const recentPlans = await prisma.trainingPlan.findMany({
         where: { createdBy: Number(session.user.id) },
-        include: { team: { select: { name: true } } },
         orderBy: { date: "desc" },
         take: 5,
     })
@@ -65,7 +64,6 @@ export default async function AntrenorFotbalPage() {
                                         <th>Data</th>
                                         <th>Titlu</th>
                                         <th>Tip</th>
-                                        <th>Echipă</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -88,7 +86,6 @@ export default async function AntrenorFotbalPage() {
                                                     {plan.type.charAt(0).toUpperCase() + plan.type.slice(1)}
                                                 </span>
                                             </td>
-                                            <td>{plan.team.name}</td>
                                         </tr>
                                     ))}
                                 </tbody>

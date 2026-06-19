@@ -112,7 +112,6 @@ model Team {
   profiles       Profile[]
   homeMatches    FootballMatch[] @relation("HomeTeam")
   awayMatches    FootballMatch[] @relation("AwayTeam")
-  trainingPlans  TrainingPlan[]
 
   @@map("teams")
 }
@@ -297,7 +296,6 @@ model Injury {
 
 model TrainingPlan {
   id          Int          @id @default(autoincrement())
-  teamId      Int          @map("team_id")
   createdBy   Int          @map("created_by")
   title       String
   description String?
@@ -305,7 +303,6 @@ model TrainingPlan {
   date        DateTime
   createdAt   DateTime     @default(now()) @map("created_at")
 
-  team            Team             @relation(fields: [teamId], references: [id])
   creator         User             @relation(fields: [createdBy], references: [id])
   fitnessSessions FitnessSession[]
 

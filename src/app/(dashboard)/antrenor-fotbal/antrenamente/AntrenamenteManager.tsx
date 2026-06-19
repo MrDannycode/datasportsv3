@@ -3,26 +3,18 @@
 import { useState } from "react"
 import { createPlan, updatePlan, deletePlan } from "./actions"
 
-interface Team {
-    id: number
-    name: string
-}
-
 interface TrainingPlan {
     id: number
-    teamId: number
     createdBy: number
     title: string
     description: string | null
     type: "tehnic" | "fizic" | "tactic"
     date: string
     createdAt: string
-    team: Team
 }
 
 interface Props {
     initialPlans: TrainingPlan[]
-    teams: Team[]
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -35,14 +27,13 @@ const INPUT_STYLE = { border: "1px solid #ccc", padding: "6px 10px", fontSize: "
 const LABEL_STYLE = { fontSize: "12px", fontWeight: "bold" } as const
 const FIELD_STYLE = { display: "flex", flexDirection: "column" as const, gap: "4px" }
 
-export default function AntrenamenteManager({ initialPlans, teams }: Props) {
+export default function AntrenamenteManager({ initialPlans }: Props) {
     const [plans, setPlans] = useState<TrainingPlan[]>(initialPlans)
     const [filter, setFilter] = useState<"toate" | "tehnic" | "fizic" | "tactic">("toate")
 
     const [editMode, setEditMode] = useState(false)
     const [editId, setEditId] = useState<number | null>(null)
 
-    const [teamId, setTeamId] = useState<string>(teams[0] ? String(teams[0].id) : "")
     const [title, setTitle] = useState("")
     const [description, setDescription] = useState("")
     const [type, setType] = useState<"tehnic" | "fizic" | "tactic">("tehnic")
@@ -61,7 +52,6 @@ export default function AntrenamenteManager({ initialPlans, teams }: Props) {
     function resetForm() {
         setEditMode(false)
         setEditId(null)
-        setTeamId(teams[0] ? String(teams[0].id) : "")
         setTitle("")
         setDescription("")
         setType("tehnic")
@@ -73,7 +63,6 @@ export default function AntrenamenteManager({ initialPlans, teams }: Props) {
     function openEditForm(plan: TrainingPlan) {
         setEditMode(true)
         setEditId(plan.id)
-        setTeamId(String(plan.teamId))
         setTitle(plan.title)
         setDescription(plan.description ?? "")
         setType(plan.type)
@@ -88,7 +77,7 @@ export default function AntrenamenteManager({ initialPlans, teams }: Props) {
         setFormError("")
         setFormSuccess("")
 
-        const payload = { teamId: Number(teamId), title, description, type, date }
+        const payload = { title, description, type, date }
 
         try {
             if (editMode && editId !== null) {
@@ -96,8 +85,11 @@ export default function AntrenamenteManager({ initialPlans, teams }: Props) {
                 if (result?.error) throw new Error(result.error)
 
                 if (result?.plan) {
-                    const selectedTeam = teams.find(t => t.id === Number(teamId))
-                    setPlans(plans.map(p => p.id === editId ? { ...result.plan, team: selectedTeam as Team, date: result.plan.date.toISOString(), createdAt: result.plan.createdAt.toISOString() } as TrainingPlan : p))
+                    setPlans(plans.map(p => p.id === editId ? {
+                        ...result.plan,
+                        date: result.plan.date.toISOString(),
+                        createdAt: result.plan.createdAt.toISOString(),
+                    } as TrainingPlan : p))
                     setFormSuccess("Planul a fost actualizat cu succes.")
                     resetForm()
                 }
@@ -106,8 +98,11 @@ export default function AntrenamenteManager({ initialPlans, teams }: Props) {
                 if (result?.error) throw new Error(result.error)
 
                 if (result?.plan) {
-                    const selectedTeam = teams.find(t => t.id === Number(teamId))
-                    const newPlan = { ...result.plan, team: selectedTeam as Team, date: result.plan.date.toISOString(), createdAt: result.plan.createdAt.toISOString() } as TrainingPlan
+                    const newPlan = {
+                        ...result.plan,
+                        date: result.plan.date.toISOString(),
+                        createdAt: result.plan.createdAt.toISOString(),
+                    } as TrainingPlan
                     setPlans([newPlan, ...plans])
                     setFormSuccess("Planul a fost creat cu succes.")
                     setTitle("")
@@ -185,25 +180,6 @@ export default function AntrenamenteManager({ initialPlans, teams }: Props) {
                             </select>
                         </div>
 
-                        <div style={{ ...FIELD_STYLE, flex: "1 1 160px" }}>
-                            <label htmlFor="plan-team" style={LABEL_STYLE}>Echipă</label>
-                            {teams.length === 0 ? (
-                                <p style={{ color: "#c00", fontSize: "12px", margin: 0 }}>Nu există echipe.</p>
-                            ) : (
-                                <select
-                                    id="plan-team"
-                                    value={teamId}
-                                    onChange={(e) => setTeamId(e.target.value)}
-                                    required
-                                    style={{ ...INPUT_STYLE, backgroundColor: "#fff" }}
-                                >
-                                    {teams.map((t) => (
-                                        <option key={t.id} value={t.id}>{t.name}</option>
-                                    ))}
-                                </select>
-                            )}
-                        </div>
-
                         <div style={{ ...FIELD_STYLE, flex: "1 1 140px" }}>
                             <label htmlFor="plan-date" style={LABEL_STYLE}>Data</label>
                             <input
@@ -251,15 +227,15 @@ export default function AntrenamenteManager({ initialPlans, teams }: Props) {
                         <button
                             id="plan-submit"
                             type="submit"
-                            disabled={formLoading || teams.length === 0}
+                            disabled={formLoading}
                             style={{
-                                backgroundColor: formLoading || teams.length === 0 ? "#aaa" : "#0056b3",
+                                backgroundColor: formLoading ? "#aaa" : "#0056b3",
                                 color: "#fff",
                                 border: "none",
                                 padding: "7px 20px",
                                 fontSize: "13px",
                                 fontWeight: "bold",
-                                cursor: formLoading || teams.length === 0 ? "not-allowed" : "pointer",
+                                cursor: formLoading ? "not-allowed" : "pointer",
                                 alignSelf: "flex-end",
                             }}
                         >
@@ -292,7 +268,6 @@ export default function AntrenamenteManager({ initialPlans, teams }: Props) {
                                 <th>#</th>
                                 <th>Titlu</th>
                                 <th>Tip</th>
-                                <th>Echipă</th>
                                 <th>Data</th>
                                 <th>Descriere</th>
                                 <th>Acțiuni</th>
@@ -315,7 +290,6 @@ export default function AntrenamenteManager({ initialPlans, teams }: Props) {
                                             {TYPE_LABELS[plan.type]}
                                         </span>
                                     </td>
-                                    <td>{plan.team.name}</td>
                                     <td style={{ color: "#666", fontSize: "12px" }}>
                                         {formatDate(plan.date)}
                                     </td>
@@ -355,7 +329,7 @@ export default function AntrenamenteManager({ initialPlans, teams }: Props) {
                             ))}
                             {filtered.length === 0 && (
                                 <tr>
-                                    <td colSpan={7} style={{ textAlign: "center", color: "#999", padding: "20px" }}>
+                                    <td colSpan={6} style={{ textAlign: "center", color: "#999", padding: "20px" }}>
                                         Nu există planuri de antrenament{filter !== "toate" ? ` de tip „${filter}"` : ""}.
                                     </td>
                                 </tr>

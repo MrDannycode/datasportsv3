@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import MatchManager from "./MatchManager"
 import TeamManager from "./TeamManager"
 import PlayerManager from "./PlayerManager"
+import AntrenorManager from "./AntrenorManager"
 
 export default async function ManagerFotbalPage() {
     const session = await getServerSession(authOptions)
@@ -44,6 +45,25 @@ export default async function ManagerFotbalPage() {
         hasProfile: !!u.profile
     }))
 
+    const antrenorUsers = await prisma.user.findMany({
+        where: { role: "antrenor_fotbal" },
+        include: {
+            profile: {
+                include: { team: true }
+            }
+        },
+        orderBy: { email: 'asc' }
+    })
+
+    const antrenori = antrenorUsers.map(u => ({
+        id: u.id,
+        firstName: u.profile?.firstName || u.email.split('@')[0],
+        lastName: u.profile?.lastName || "",
+        teamId: u.profile?.teamId || null,
+        team: u.profile?.team || null,
+        hasProfile: !!u.profile
+    }))
+
     const matches = await prisma.footballMatch.findMany({
         include: {
             teamHome: { select: { id: true, name: true } },
@@ -72,6 +92,7 @@ export default async function ManagerFotbalPage() {
             {/* Main Panels */}
             <div className="sd-panels" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
                 <PlayerManager players={players as any} teams={teams} />
+                <AntrenorManager antrenori={antrenori} teams={teams} />
                 <TeamManager initialTeams={teams} />
                 <MatchManager initialMatches={matches as any} teams={teams} competitions={competitions} />
 

@@ -134,7 +134,7 @@ export async function deleteTeam(id: number) {
     revalidatePath("/manager-fotbal")
 }
 
-export async function assignPlayerToTeam(userId: number, teamId: string | null) {
+async function assignUserProfileToTeam(userId: number, teamId: string | null) {
     const session = await getServerSession(authOptions)
     if (!session || session.user.role !== "manager_fotbal") {
         throw new Error("Unauthorized")
@@ -162,4 +162,11 @@ export async function assignPlayerToTeam(userId: number, teamId: string | null) 
     }
     
     revalidatePath("/manager-fotbal")
+}
+export async function assignPlayerToTeam(userId: number, teamId: string | null) {
+    await assignUserProfileToTeam(userId, teamId)
+}
+
+export async function assignAntrenorToTeam(userId: number, teamId: string | null) {
+    await assignUserProfileToTeam(userId, teamId)
 }

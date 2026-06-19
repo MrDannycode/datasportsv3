@@ -11,20 +11,10 @@ export default async function AntrenamentePage() {
         redirect("/login")
     }
 
-    const [plans, teams] = await Promise.all([
-        prisma.trainingPlan.findMany({
-            where: { createdBy: Number(session.user.id) },
-            include: {
-                team: { select: { id: true, name: true } },
-            },
-            orderBy: { date: "desc" },
-        }),
-        prisma.team.findMany({
-            where: { sport: "fotbal" },
-            select: { id: true, name: true },
-            orderBy: { name: "asc" },
-        }),
-    ])
+    const plans = await prisma.trainingPlan.findMany({
+        where: { createdBy: Number(session.user.id) },
+        orderBy: { date: "desc" },
+    })
 
     const serializedPlans = plans.map((p) => ({
         ...p,
@@ -38,7 +28,7 @@ export default async function AntrenamentePage() {
                 <h1>Planuri de antrenament</h1>
             </div>
 
-            <AntrenamenteManager initialPlans={serializedPlans} teams={teams} />
+            <AntrenamenteManager initialPlans={serializedPlans} />
         </main>
     )
 }

@@ -9,7 +9,6 @@ import { revalidatePath } from "next/cache"
 type PlanType = "tehnic" | "fizic" | "tactic"
 
 interface PlanPayload {
-    teamId: number
     title: string
     description: string
     type: PlanType
@@ -24,7 +23,7 @@ export async function createPlan(payload: PlanPayload) {
         redirect("/login")
     }
 
-    const { teamId, title, description, type, date } = payload
+    const { title, description, type, date } = payload
 
     if (!title?.trim()) {
         return { error: "Titlul este obligatoriu." }
@@ -32,7 +31,6 @@ export async function createPlan(payload: PlanPayload) {
 
     const plan = await prisma.trainingPlan.create({
         data: {
-            teamId,
             title: title.trim(),
             description: description?.trim() || null,
             type,
@@ -63,7 +61,7 @@ export async function updatePlan(id: number, payload: PlanPayload) {
         return { error: "Nu ai permisiunea să modifici acest plan." }
     }
 
-    const { teamId, title, description, type, date } = payload
+    const { title, description, type, date } = payload
 
     if (!title?.trim()) {
         return { error: "Titlul este obligatoriu." }
@@ -72,7 +70,6 @@ export async function updatePlan(id: number, payload: PlanPayload) {
     const plan = await prisma.trainingPlan.update({
         where: { id },
         data: {
-            teamId,
             title: title.trim(),
             description: description?.trim() || null,
             type,

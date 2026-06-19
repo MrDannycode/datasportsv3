@@ -24,19 +24,15 @@ export async function PUT(
     }
 
     const body = await req.json()
-    const { teamId, title, description, type, date } = body
+    const { title, description, type, date } = body
 
     const updated = await prisma.trainingPlan.update({
         where: { id: planId },
         data: {
-            teamId: teamId ? Number(teamId) : undefined,
             title: title ?? undefined,
             description: description ?? null,
             type: type ?? undefined,
             date: date ? new Date(date) : undefined,
-        },
-        include: {
-            team: { select: { id: true, name: true } },
         },
     })
 
@@ -83,7 +79,6 @@ export async function GET(
     const plan = await prisma.trainingPlan.findUnique({
         where: { id: planId },
         include: {
-            team: { select: { id: true, name: true } },
             fitnessSessions: {
                 include: {
                     athlete: {

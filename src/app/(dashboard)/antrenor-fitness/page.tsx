@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
+import Link from "next/link"
 
 export default async function AntrenorFitnessPage() {
     const session = await getServerSession(authOptions)
@@ -22,6 +23,14 @@ export default async function AntrenorFitnessPage() {
                 <div className="sd-box sd-metric-box">
                     <div className="sd-metric-title">Recovery calendar</div>
                 </div>
+                <Link href="/antrenor-fitness/trainfit" style={{ flex: 1, textDecoration: "none" }}>
+                    <div className="sd-box sd-metric-box" style={{ cursor: "pointer" }}>
+                        <div className="sd-metric-title">Plan fitness</div>
+                        <div className="sd-metric-value" style={{ fontSize: "14px", marginTop: "8px", color: "#0056b3" }}>
+                            Gestionează →
+                        </div>
+                    </div>
+                </Link>
             </div>
 
             <div className="sd-panels">
