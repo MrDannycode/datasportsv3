@@ -102,6 +102,7 @@ model User {
   tennisAthlete   TennisAthlete?
   medicalRecords  MedicalRecord[]  @relation("MedicRecords")
   trainingPlans   TrainingPlan[]
+  fitnessPlans    FitnessPlan[]
   notifications   Notification[]
   auditLogs       AuditLog[]
 
@@ -325,6 +326,8 @@ model FitnessPlan {
   type        FitnessType
   date        DateTime
   createdAt   DateTime     @default(now()) @map("created_at")
+
+  creator     User         @relation(fields: [createdBy], references: [id])
 
 
   @@map("fitness_plans")

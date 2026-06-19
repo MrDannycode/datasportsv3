@@ -3,25 +3,25 @@
 import { useState } from "react"
 import { createPlan, updatePlan, deletePlan } from "./actions"
 
-interface TrainingPlan {
+interface FitnessPlan {
     id: number
     createdBy: number
     title: string
     description: string | null
-    type: "forta" | "rezistenta" | "viteza" | "flexibilitate" | "coordonare"
+    type: "forta" | "rezistenta" | "vitezare" | "flexibilitate" | "coordonare"
     date: string
     createdAt: string
 }
 
 
 interface Props {
-    initialPlans: TrainingPlan[]
+    initialPlans: FitnessPlan[]
 }
 
 const TYPE_LABELS: Record<string, string> = {
     forta: "Fortă",
     rezistenta: "Rezistență",
-    viteza: "Viteză",
+    vitezare: "Viteză",
     flexibilitate: "Flexibilitate",
     coordonare: "Coordonare",
 }
@@ -30,16 +30,16 @@ const INPUT_STYLE = { border: "1px solid #ccc", padding: "6px 10px", fontSize: "
 const LABEL_STYLE = { fontSize: "12px", fontWeight: "bold" } as const
 const FIELD_STYLE = { display: "flex", flexDirection: "column" as const, gap: "4px" }
 
-export default function AntrenamenteManager({ initialPlans }: Props) {
-    const [plans, setPlans] = useState<TrainingPlan[]>(initialPlans)
-    const [filter, setFilter] = useState<"toate" | "forta" | "rezistenta" | "viteza" | "flexibilitate" | "coordonare">("toate")
+export default function TrainfitManager({ initialPlans }: Props) {
+    const [plans, setPlans] = useState<FitnessPlan[]>(initialPlans)
+    const [filter, setFilter] = useState<"toate" | "forta" | "rezistenta" | "vitezare" | "flexibilitate" | "coordonare">("toate")
 
     const [editMode, setEditMode] = useState(false)
     const [editId, setEditId] = useState<number | null>(null)
 
     const [title, setTitle] = useState("")
     const [description, setDescription] = useState("")
-    const [type, setType] = useState<"forta" | "rezistenta" | "viteza" | "flexibilitate" | "coordonare">("forta")
+    const [type, setType] = useState<"forta" | "rezistenta" | "vitezare" | "flexibilitate" | "coordonare">("forta")
     const [date, setDate] = useState(new Date().toISOString().split("T")[0])
 
     const [formLoading, setFormLoading] = useState(false)
@@ -63,7 +63,7 @@ export default function AntrenamenteManager({ initialPlans }: Props) {
         setFormSuccess("")
     }
 
-    function openEditForm(plan: TrainingPlan) {
+    function openEditForm(plan: FitnessPlan) {
         setEditMode(true)
         setEditId(plan.id)
         setTitle(plan.title)
@@ -92,7 +92,7 @@ export default function AntrenamenteManager({ initialPlans }: Props) {
                         ...result.plan,
                         date: result.plan.date.toISOString(),
                         createdAt: result.plan.createdAt.toISOString(),
-                    } as TrainingPlan : p))
+                    } as FitnessPlan : p))
                     setFormSuccess("Planul a fost actualizat cu succes.")
                     resetForm()
                 }
@@ -105,7 +105,7 @@ export default function AntrenamenteManager({ initialPlans }: Props) {
                         ...result.plan,
                         date: result.plan.date.toISOString(),
                         createdAt: result.plan.createdAt.toISOString(),
-                    } as TrainingPlan
+                    } as FitnessPlan
                     setPlans([newPlan, ...plans])
                     setFormSuccess("Planul a fost creat cu succes.")
                     setTitle("")
@@ -135,7 +135,7 @@ export default function AntrenamenteManager({ initialPlans }: Props) {
             {/* Toolbar */}
             <div className="sd-toolbar">
                 <div className="sd-filter-group">
-                    {(["toate", "forta", "rezistenta", "viteza", "flexibilitate", "coordonare"] as const).map((f) => (
+                    {(["toate", "forta", "rezistenta", "vitezare", "flexibilitate", "coordonare"] as const).map((f) => (
                         <button
                             key={f}
                             className={`sd-filter-btn${filter === f ? " active" : ""}`}
@@ -173,13 +173,13 @@ export default function AntrenamenteManager({ initialPlans }: Props) {
                             <select
                                 id="plan-type"
                                 value={type}
-                                onChange={(e) => setType(e.target.value as "forta" | "rezistenta" | "viteza" | "flexibilitate" | "coordonare")}
+                                onChange={(e) => setType(e.target.value as "forta" | "rezistenta" | "vitezare" | "flexibilitate" | "coordonare")}
                                 required
                                 style={{ ...INPUT_STYLE, backgroundColor: "#fff" }}
                             >
                                 <option value="forta">Fortă</option>
                                 <option value="rezistenta">Rezistență</option>
-                                <option value="viteza">Viteză</option>
+                                <option value="vitezare">Viteză</option>
                                 <option value="flexibilitate">Flexibilitate</option>
                                 <option value="coordonare">Coordonare</option>
                             </select>
@@ -205,7 +205,7 @@ export default function AntrenamenteManager({ initialPlans }: Props) {
                                 onChange={(e) => setDescription(e.target.value)}
                                 rows={2}
                                 maxLength={1000}
-                                placeholder="Detalii despre antrenament (opțional)"
+                                placeholder="Detalii despre planul de fitness (opțional)"
                                 style={{ ...INPUT_STYLE, width: "100%", resize: "vertical" }}
                             />
                         </div>
@@ -264,7 +264,7 @@ export default function AntrenamenteManager({ initialPlans }: Props) {
             {/* Tabel */}
             <div className="sd-box">
                 <div className="sd-box-header">
-                    <h2>Planuri de antrenament ({filtered.length})</h2>
+                    <h2>Planuri de fitness ({filtered.length})</h2>
                 </div>
                 <div className="sd-box-content" style={{ padding: 0 }}>
                     <table className="sd-table">

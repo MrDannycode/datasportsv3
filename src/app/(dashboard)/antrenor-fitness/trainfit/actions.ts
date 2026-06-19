@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { revalidatePath } from "next/cache"
 
-type PlanType = "forta" | "rezistenta" | "viteza" | "flexibilitate" | "coordonare"
+type PlanType = "forta" | "rezistenta" | "vitezare" | "flexibilitate" | "coordonare"
 
 
 interface PlanPayload {
@@ -30,7 +30,7 @@ export async function createPlan(payload: PlanPayload) {
         return { error: "Titlul este obligatoriu." }
     }
 
-    const plan = await prisma.trainingPlan.create({
+    const plan = await prisma.fitnessPlan.create({
         data: {
             title: title.trim(),
             description: description?.trim() || null,
@@ -52,7 +52,7 @@ export async function updatePlan(id: number, payload: PlanPayload) {
         redirect("/login")
     }
 
-    const existing = await prisma.trainingPlan.findUnique({ where: { id } })
+    const existing = await prisma.fitnessPlan.findUnique({ where: { id } })
 
     if (!existing) {
         return { error: "Planul nu există." }
@@ -68,7 +68,7 @@ export async function updatePlan(id: number, payload: PlanPayload) {
         return { error: "Titlul este obligatoriu." }
     }
 
-    const plan = await prisma.trainingPlan.update({
+    const plan = await prisma.fitnessPlan.update({
         where: { id },
         data: {
             title: title.trim(),
@@ -90,7 +90,7 @@ export async function deletePlan(id: number) {
         redirect("/login")
     }
 
-    const existing = await prisma.trainingPlan.findUnique({ where: { id } })
+    const existing = await prisma.fitnessPlan.findUnique({ where: { id } })
 
     if (!existing) {
         return { error: "Planul nu există." }
@@ -100,7 +100,7 @@ export async function deletePlan(id: number) {
         return { error: "Nu ai permisiunea să ștergi acest plan." }
     }
 
-    await prisma.trainingPlan.delete({ where: { id } })
+    await prisma.fitnessPlan.delete({ where: { id } })
 
     revalidatePath("/antrenor-fitness/trainfit")
     return { success: true }
