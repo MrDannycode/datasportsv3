@@ -133,19 +133,6 @@ export default function TrainfitManager({ initialPlans }: Props) {
     return (
         <>
             {/* Toolbar */}
-            <div className="sd-toolbar">
-                <div className="sd-filter-group">
-                    {(["toate", "forta", "rezistenta", "vitezare", "flexibilitate", "coordonare"] as const).map((f) => (
-                        <button
-                            key={f}
-                            className={`sd-filter-btn${filter === f ? " active" : ""}`}
-                            onClick={() => setFilter(f)}
-                        >
-                            {f.charAt(0).toUpperCase() + f.slice(1)}
-                        </button>
-                    ))}
-                </div>
-            </div>
 
             {/* Adaugă plan nou */}
             <div className="sd-box" style={{ marginBottom: "24px" }}>
@@ -258,6 +245,20 @@ export default function TrainfitManager({ initialPlans }: Props) {
                     {formSuccess && (
                         <p style={{ color: "#2a7a2a", fontSize: "12px", marginTop: "10px" }}>{formSuccess}</p>
                     )}
+                </div>
+            </div>
+
+            <div className="sd-toolbar">
+                <div className="sd-filter-group">
+                    {(["toate", "forta", "rezistenta", "vitezare", "flexibilitate", "coordonare"] as const).map((f) => (
+                        <button
+                            key={f}
+                            className={`sd-filter-btn${filter === f ? " active" : ""}`}
+                            onClick={() => setFilter(f)}
+                        >
+                            {f.charAt(0).toUpperCase() + f.slice(1)}
+                        </button>
+                    ))}
                 </div>
             </div>
 

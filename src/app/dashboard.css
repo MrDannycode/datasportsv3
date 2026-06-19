@@ -279,7 +279,7 @@
     border: 1px solid #ccc;
     background: #fff;
     cursor: pointer;
-    border-radius: 3px;
+
     color: #555;
 }
 
@@ -437,7 +437,7 @@
     max-width: 420px;
     width: 90%;
     border-radius: 4px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
 }
 
 .sd-modal h3 {
