@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import Link from "next/link"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 interface NavItem {
     label: string
@@ -44,7 +45,8 @@ export default async function DashboardHeader({
                 ))}
             </nav>
 
-            <div className="sd-user-info">
+            <div className="sd-user-info" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <ThemeToggle />
                 {session?.user ? (
                     <>
                         Logged in as{" "}

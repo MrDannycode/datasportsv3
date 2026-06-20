@@ -8,12 +8,29 @@
     box-sizing: border-box;
 }
 
+/*---toggle dark/light---*/
+:root {
+    --sd-bg: #f4f4f4;
+    --sd-box-bg: #fff;
+    --sd-text: #333;
+    --sd-border: #ccc;
+}
+
+.dark {
+    --sd-bg: #0a0a0a;
+    --sd-box-bg: #171717;
+    --sd-text: #ededed;
+    --sd-border: #333;
+}
+
+
+
 /* ---- Outer wrapper --------------------------------------- */
 .sd-container {
     font-family: Arial, Helvetica, sans-serif;
     font-size: 14px;
-    background-color: #f4f4f4;
-    color: #333;
+    background-color: var(--sd-bg);
+    color: var(--sd-text);
     line-height: 1.5;
     min-height: 100vh;
     padding: 20px;
@@ -84,8 +101,8 @@
 
 /* ---- Generic box / panel -------------------------------- */
 .sd-box {
-    background-color: #fff;
-    border: 1px solid #ccc;
+    background-color: var(--sd-box-bg);
+    border: 1px solid var(--sd-border);
     margin-bottom: 20px;
 }
 
