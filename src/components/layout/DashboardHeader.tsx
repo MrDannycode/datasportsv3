@@ -2,6 +2,8 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import Link from "next/link"
 import { ThemeToggle } from "@/components/theme-toggle"
+import AddMedicalRecordNavButton from "@/components/layout/AddMedicalRecordNavButton"
+import { getFootballAthletes } from "@/app/(dashboard)/medic/dosar-medical/actions"
 
 interface NavItem {
     label: string
@@ -35,6 +37,8 @@ export default async function DashboardHeader({
             ? session?.user?.role === 'medic'
             : true
     )
+    const medicalAthletes =
+    session?.user?.role === "medic" ? await getFootballAthletes() : []
 
     return (
         <header className="sd-header">
@@ -43,7 +47,14 @@ export default async function DashboardHeader({
             </div>
 
             <nav className="sd-nav">
-                {visibleNavItems.map((item) => (
+                {visibleNavItems.map((item) =>
+                item.label === "Adauga Dosar" ? (
+                    <AddMedicalRecordNavButton
+                        key={item.href + item.label}
+                        athletes={medicalAthletes}
+                        isActive={item.href === activeHref}
+                    />
+                ) : (
                     <Link
                         key={item.href + item.label}
                         href={item.href}
