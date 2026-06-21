@@ -9,7 +9,7 @@ export default function AuthLayout({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: "#f4f4f4",
+            backgroundColor: "#000000ff", //prima data era f4f4f4
         }}>
             {children}
         </div>

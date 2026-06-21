@@ -14,11 +14,15 @@ interface DashboardHeaderProps {
 }
 
 const defaultNavItems: NavItem[] = [
-    { label: "Health info", href: "#" },
-    { label: "Activities", href: "#" },
-    { label: "Statistics", href: "#" },
-    { label: "+ Add new activity", href: "#" },
-    { label: "Health feedback", href: "#" },
+    { label: "Toti Atletii", href: "#" },
+    //    { label: "Health info", href: "#" },
+    //   { label: "Activities", href: "#" },
+    //    { label: "Statistics", href: "#" },
+    //    { label: "+ Add new activity", href: "#" },
+    { label: "Adauga Dosar", href: "/medic/dosar-medical?open=new" },
+    { label: "Adauga Accidentare", href: '#' },
+    { label: "Disponibilitate atleti", href: "#" },
+    { label: "Istoric Accidentari", href: "#" }
 ]
 
 export default async function DashboardHeader({
@@ -26,6 +30,11 @@ export default async function DashboardHeader({
     activeHref = "#",
 }: DashboardHeaderProps) {
     const session = await getServerSession(authOptions)
+    const visibleNavItems = navItems.filter(
+        (item) => ['Adauga Dosar', 'Disponibilitate atleti', 'Istoric Accidentari',].includes(item.label)
+            ? session?.user?.role === 'medic'
+            : true
+    )
 
     return (
         <header className="sd-header">
@@ -34,7 +43,7 @@ export default async function DashboardHeader({
             </div>
 
             <nav className="sd-nav">
-                {navItems.map((item) => (
+                {visibleNavItems.map((item) => (
                     <Link
                         key={item.href + item.label}
                         href={item.href}
@@ -63,3 +72,5 @@ export default async function DashboardHeader({
         </header>
     )
 }
+
+

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { saveMedicalRecord } from "./actions"
 import { Severity } from "@prisma/client"
 
@@ -45,12 +45,14 @@ type MedicalRecord = {
 interface Props {
     initialRecords: MedicalRecord[];
     athletes: Athlete[];
+    shouldOpenNewRecordModal?: boolean;
 }
 
-export default function DosarManager({ initialRecords, athletes }: Props) {
+export default function DosarManager({ initialRecords, athletes, shouldOpenNewRecordModal = false }: Props) {
     const [records, setRecords] = useState<MedicalRecord[]>(initialRecords)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingRecord, setEditingRecord] = useState<MedicalRecord | null>(null)
+    const hasOpenedFromQueryRef = useRef(false)
 
     // Form state
     const [athleteId, setAthleteId] = useState<number | "">("")
@@ -62,6 +64,15 @@ export default function DosarManager({ initialRecords, athletes }: Props) {
     const [injuries, setInjuries] = useState<Omit<Injury, "id" | "medicalRecordId">[]>([])
 
     const [loading, setLoading] = useState(false)
+
+    useEffect(() => {
+        if (!shouldOpenNewRecordModal || hasOpenedFromQueryRef.current) {
+            return
+        }
+
+        hasOpenedFromQueryRef.current = true
+        openModal()
+    }, [shouldOpenNewRecordModal])
 
     const openModal = (record?: MedicalRecord) => {
         if (record) {
@@ -364,3 +375,6 @@ export default function DosarManager({ initialRecords, athletes }: Props) {
         </div>
     )
 }
+
+
+

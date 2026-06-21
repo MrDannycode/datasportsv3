@@ -36,7 +36,7 @@ export default function LoginPage() {
             fontFamily: "Arial, Helvetica, sans-serif",
             fontSize: "14px",
             color: "#333",
-            backgroundColor: "#fff",
+            backgroundColor: "#8f8f8fff", //prima data era #fff
             border: "1px solid #ccc",
             padding: "30px 40px",
             width: "100%",
