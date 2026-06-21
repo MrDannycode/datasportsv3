@@ -532,3 +532,221 @@
     padding-top: 8px;
     border-top: 1px solid #eee;
 }
+
+/* =========================================================
+   Dashboard Sidebar (DashboardSidebar.tsx)
+   ========================================================= */
+
+/* Layout wrapper: main content + sidebar side by side */
+.sd-with-sidebar {
+    display: flex;
+    gap: 0;
+    align-items: flex-start;
+    min-height: calc(100vh - 80px);
+}
+
+.sd-main-content {
+    flex: 1;
+    min-width: 0;
+    padding-right: 20px;
+}
+
+/* ---- Sidebar shell ---- */
+.dsb-sidebar {
+    width: 260px;
+    flex-shrink: 0;
+    background: var(--sd-box-bg);
+    border: 1px solid var(--sd-border);
+    display: flex;
+    flex-direction: column;
+    align-self: flex-start;
+    position: sticky;
+    top: 20px;
+}
+
+/* ---- Tab buttons row ---- */
+.dsb-tabs {
+    display: flex;
+    border-bottom: 2px solid var(--sd-border);
+}
+
+.dsb-tab-btn {
+    flex: 1;
+    padding: 11px 6px;
+    font-size: 13px;
+    font-weight: bold;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    cursor: pointer;
+    color: #777;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+    letter-spacing: 0.02em;
+}
+
+.dsb-tab-btn:hover {
+    background: rgba(0, 86, 179, 0.06);
+    color: #0056b3;
+}
+
+.dsb-tab-btn--active {
+    color: #0056b3;
+    border-bottom-color: #0056b3;
+    background: rgba(0, 86, 179, 0.04);
+}
+
+/* ---- Panel header ---- */
+.dsb-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: #f0f4fa;
+    border-bottom: 1px solid var(--sd-border);
+}
+
+.dark .dsb-panel-header {
+    background: #1a1a2e;
+}
+
+.dsb-panel-title {
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #0056b3;
+}
+
+.dsb-panel-season {
+    font-size: 11px;
+    color: #888;
+}
+
+/* ---- Table inside sidebar ---- */
+.dsb-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.dsb-table th {
+    padding: 6px 8px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: bold;
+    color: #888;
+    background: #f9f9f9;
+    border-bottom: 1px solid var(--sd-border);
+}
+
+.dark .dsb-table th {
+    background: #1f1f1f;
+}
+
+.dsb-table th:nth-child(2) {
+    text-align: left;
+}
+
+.dsb-table td {
+    padding: 6px 8px;
+    text-align: center;
+    border-bottom: 1px solid #f0f0f0;
+    color: var(--sd-text);
+}
+
+.dark .dsb-table td {
+    border-bottom-color: #2a2a2a;
+}
+
+.dsb-table td:nth-child(2) {
+    text-align: left;
+}
+
+.dsb-table tr:hover td {
+    background: rgba(0, 86, 179, 0.04);
+}
+
+/* ---- Position cell ---- */
+.dsb-pos {
+    font-weight: bold;
+    color: #aaa;
+    width: 22px;
+}
+
+/* ---- Team/Player name cells ---- */
+.dsb-team-name,
+.dsb-player-name {
+    font-weight: 600;
+    color: var(--sd-text);
+    max-width: 90px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dsb-team-small {
+    color: #777;
+    font-size: 11px;
+    max-width: 70px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ---- Points cell ---- */
+.dsb-pts {
+    font-weight: bold;
+    color: #0056b3;
+}
+
+/* ---- Row colour coding ---- */
+.dsb-row-ucl td:first-child {
+    border-left: 3px solid #1e40af;
+}
+
+.dsb-row-uel td:first-child {
+    border-left: 3px solid #f59e0b;
+}
+
+/* ---- Legend ---- */
+.dsb-legend {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    font-size: 11px;
+    color: #888;
+    border-top: 1px solid var(--sd-border);
+    gap: 4px;
+}
+
+.dsb-legend-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+}
+
+.dsb-legend-ucl {
+    background: #1e40af;
+}
+
+.dsb-legend-uel {
+    background: #f59e0b;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 900px) {
+    .sd-with-sidebar {
+        flex-direction: column;
+    }
+
+    .sd-main-content {
+        padding-right: 0;
+    }
+
+    .dsb-sidebar {
+        width: 100%;
+        position: static;
+    }
+}
