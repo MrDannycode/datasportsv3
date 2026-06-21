@@ -3,35 +3,39 @@
 import { useState } from "react"
 import { Severity } from "@prisma/client"
 import { saveMedicalRecord } from "./actions"
-import { Athlete, MedicalRecord, Injury } from "./DosarManager"
+import { Athlete, Injury } from "./DosarManager"
 
 interface Props {
-    editingRecord: MedicalRecord | null;
     athletes: Athlete[];
     onClose: () => void;
     onSuccess: () => void;
 }
 
-export default function DosarMedicalModal({ editingRecord, athletes, onClose, onSuccess }: Props) {
-    const [athleteId, setAthleteId] = useState<number | "">(editingRecord?.athleteId ?? "")
-    const [diagnosis, setDiagnosis] = useState(editingRecord?.diagnosis ?? "")
-    const [treatment, setTreatment] = useState(editingRecord?.treatment ?? "")
-    const [startDate, setStartDate] = useState(editingRecord ? new Date(editingRecord.startDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0])
-    const [endDate, setEndDate] = useState((editingRecord && editingRecord.endDate) ? new Date(editingRecord.endDate).toISOString().split("T")[0] : "")
-    const [isAvailable, setIsAvailable] = useState(editingRecord ? editingRecord.isAvailable : true)
-    const [injuries, setInjuries] = useState<Omit<Injury, "id" | "medicalRecordId">[]>(editingRecord?.injuries ?? [])
+const createEmptyInjury = (): Omit<Injury, "id" | "medicalRecordId"> => ({
+    injuryType: "",
+    bodyPart: "",
+    severity: Severity.usoara,
+    recoveryDays: 0,
+    notes: "",
+})
+
+export default function InjuryModal({ athletes, onClose, onSuccess }: Props) {
+    const [athleteId, setAthleteId] = useState<number | "">("")
+    const [injuries, setInjuries] = useState<Omit<Injury, "id" | "medicalRecordId">[]>([createEmptyInjury()])
     const [loading, setLoading] = useState(false)
 
+    const handleAddInjury = () => {
+        setInjuries((current) => [...current, createEmptyInjury()])
+    }
+
     const handleRemoveInjury = (index: number) => {
-        const newInjuries = [...injuries]
-        newInjuries.splice(index, 1)
-        setInjuries(newInjuries)
+        setInjuries((current) => current.filter((_, currentIndex) => currentIndex !== index))
     }
 
     const handleInjuryChange = (index: number, field: keyof Omit<Injury, "id" | "medicalRecordId">, value: string | number | Severity | null) => {
-        const newInjuries = [...injuries]
-        newInjuries[index] = { ...newInjuries[index], [field]: value }
-        setInjuries(newInjuries)
+        setInjuries((current) =>
+            current.map((injury, currentIndex) => currentIndex === index ? { ...injury, [field]: value } : injury)
+        )
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -41,13 +45,12 @@ export default function DosarMedicalModal({ editingRecord, athletes, onClose, on
         setLoading(true)
         try {
             await saveMedicalRecord({
-                id: editingRecord?.id,
                 athleteId: Number(athleteId),
-                diagnosis,
-                treatment,
-                startDate: new Date(startDate),
-                endDate: endDate ? new Date(endDate) : null,
-                isAvailable,
+                diagnosis: "Accidentare",
+                treatment: "De stabilit",
+                startDate: new Date(),
+                endDate: null,
+                isAvailable: false,
                 injuries: injuries.map((injury) => ({
                     injuryType: injury.injuryType,
                     bodyPart: injury.bodyPart,
@@ -60,7 +63,7 @@ export default function DosarMedicalModal({ editingRecord, athletes, onClose, on
             onSuccess()
         } catch (error) {
             console.error(error)
-            alert("Eroare la salvarea dosarului")
+            alert("Eroare la salvarea accidentării")
         } finally {
             setLoading(false)
         }
@@ -74,88 +77,40 @@ export default function DosarMedicalModal({ editingRecord, athletes, onClose, on
             <div style={{
                 background: "white", padding: "24px", borderRadius: "8px", width: "600px", maxWidth: "90%", maxHeight: "90vh", overflowY: "auto",
             }}>
-                <h2 style={{ marginTop: 0 }}>{editingRecord ? "Editează Dosar" : "Adaugă Dosar Medical"}</h2>
+                <h2 style={{ marginTop: 0 }}>Adaugă Accidentare</h2>
                 <form onSubmit={handleSubmit}>
-                    <div style={{ marginBottom: "16px" }}>
-                        <label style={{ display: "block", marginBottom: "8px" }}>Atlet (Fotbal)</label>
-                        <select
-                            value={athleteId}
-                            onChange={e => setAthleteId(e.target.value ? Number(e.target.value) : "")}
-                            required
-                            style={{ width: "100%", padding: "8px", border: "1px solid #ccc", borderRadius: "4px" }}
-                        >
-                            <option value="">Selectează atlet</option>
-                            {athletes.map((athlete) => (
-                                <option key={athlete.id} value={athlete.id}>
-                                    {athlete.user.profile?.firstName} {athlete.user.profile?.lastName}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
+                    <div style={{ marginBottom: "16px", borderTop: "1px solid #eee", paddingTop: "16px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                            <h3 style={{ margin: 0 }}>Accidentări Specifice</h3>
+                            <button type="button" onClick={handleAddInjury} style={{ padding: "4px 8px", background: "#eee", border: "1px solid #ccc", borderRadius: "4px", cursor: "pointer" }}>
+                                + Adaugă Accidentare
+                            </button>
+                        </div>
 
-                    <div style={{ marginBottom: "16px" }}>
-                        <label style={{ display: "block", marginBottom: "8px" }}>Diagnostic</label>
-                        <input
-                            type="text"
-                            value={diagnosis}
-                            onChange={e => setDiagnosis(e.target.value)}
-                            required
-                            style={{ width: "100%", padding: "8px", border: "1px solid #ccc", borderRadius: "4px" }}
-                        />
-                    </div>
-
-                    <div style={{ marginBottom: "16px" }}>
-                        <label style={{ display: "block", marginBottom: "8px" }}>Tratament</label>
-                        <textarea
-                            value={treatment}
-                            onChange={e => setTreatment(e.target.value)}
-                            required
-                            rows={3}
-                            style={{ width: "100%", padding: "8px", border: "1px solid #ccc", borderRadius: "4px" }}
-                        />
-                    </div>
-
-                    <div style={{ display: "flex", gap: "16px", marginBottom: "16px" }}>
-                        <div style={{ flex: 1 }}>
-                            <label style={{ display: "block", marginBottom: "8px" }}>Data Început</label>
-                            <input
-                                type="date"
-                                value={startDate}
-                                onChange={e => setStartDate(e.target.value)}
+                        <div style={{ marginBottom: "12px" }}>
+                            <label style={{ display: "block", marginBottom: "8px" }}>Atlet (Fotbal)</label>
+                            <select
+                                value={athleteId}
+                                onChange={e => setAthleteId(e.target.value ? Number(e.target.value) : "")}
                                 required
                                 style={{ width: "100%", padding: "8px", border: "1px solid #ccc", borderRadius: "4px" }}
-                            />
+                            >
+                                <option value="">Selectează atlet</option>
+                                {athletes.map((athlete) => (
+                                    <option key={athlete.id} value={athlete.id}>
+                                        {athlete.user.profile?.firstName} {athlete.user.profile?.lastName}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
-                        <div style={{ flex: 1 }}>
-                            <label style={{ display: "block", marginBottom: "8px" }}>Data Sfârșit (Opțional)</label>
-                            <input
-                                type="date"
-                                value={endDate}
-                                onChange={e => setEndDate(e.target.value)}
-                                style={{ width: "100%", padding: "8px", border: "1px solid #ccc", borderRadius: "4px" }}
-                            />
-                        </div>
-                    </div>
-
-                    <div style={{ marginBottom: "16px" }}>
-                        <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                            <input
-                                type="checkbox"
-                                checked={isAvailable}
-                                onChange={e => setIsAvailable(e.target.checked)}
-                            />
-                            Atletul este apt pentru joc/antrenament
-                        </label>
-                    </div>
-
-                    <div style={{ marginBottom: "16px", borderTop: "1px solid #eee", paddingTop: "16px" }}>
-                        
 
                         {injuries.map((injury, index) => (
                             <div key={index} style={{ background: "#f9f9f9", padding: "12px", borderRadius: "4px", marginBottom: "8px", border: "1px solid #e0e0e0" }}>
                                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
                                     <strong>Accidentare #{index + 1}</strong>
-                                    <button type="button" onClick={() => handleRemoveInjury(index)} style={{ color: "red", background: "none", border: "none", cursor: "pointer" }}>Șterge</button>
+                                    {injuries.length > 1 ? (
+                                        <button type="button" onClick={() => handleRemoveInjury(index)} style={{ color: "red", background: "none", border: "none", cursor: "pointer" }}>Șterge</button>
+                                    ) : <span />}
                                 </div>
                                 <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
                                     <input

@@ -3,7 +3,7 @@ import { authOptions } from "@/lib/auth"
 import Link from "next/link"
 import { ThemeToggle } from "@/components/theme-toggle"
 import AddMedicalRecordNavButton from "@/components/layout/AddMedicalRecordNavButton"
-import { getFootballAthletes } from "@/app/(dashboard)/medic/dosar-medical/actions"
+import AddInjuryNavButton from "@/components/layout/AddInjuryNavButton"
 
 interface NavItem {
     label: string
@@ -17,14 +17,10 @@ interface DashboardHeaderProps {
 
 const defaultNavItems: NavItem[] = [
     { label: "Toti Atletii", href: "#" },
-    //    { label: "Health info", href: "#" },
-    //   { label: "Activities", href: "#" },
-    //    { label: "Statistics", href: "#" },
-    //    { label: "+ Add new activity", href: "#" },
     { label: "Adauga Dosar", href: "/medic/dosar-medical?open=new" },
-    { label: "Adauga Accidentare", href: '#' },
+    { label: "Adauga Accidentare", href: "#" },
     { label: "Disponibilitate atleti", href: "#" },
-    { label: "Istoric Accidentari", href: "#" }
+    { label: "Istoric Accidentari", href: "#" },
 ]
 
 export default async function DashboardHeader({
@@ -32,13 +28,11 @@ export default async function DashboardHeader({
     activeHref = "#",
 }: DashboardHeaderProps) {
     const session = await getServerSession(authOptions)
-    const visibleNavItems = navItems.filter(
-        (item) => ['Adauga Dosar', 'Disponibilitate atleti', 'Istoric Accidentari',].includes(item.label)
-            ? session?.user?.role === 'medic'
+    const visibleNavItems = navItems.filter((item) =>
+        ["Adauga Dosar", "Adauga Accidentare", "Disponibilitate atleti", "Istoric Accidentari"].includes(item.label)
+            ? session?.user?.role === "medic"
             : true
     )
-    const medicalAthletes =
-    session?.user?.role === "medic" ? await getFootballAthletes() : []
 
     return (
         <header className="sd-header">
@@ -47,22 +41,37 @@ export default async function DashboardHeader({
             </div>
 
             <nav className="sd-nav">
-                {visibleNavItems.map((item) =>
-                item.label === "Adauga Dosar" ? (
-                    <AddMedicalRecordNavButton
-                        key={item.href + item.label}
-                        athletes={medicalAthletes}
-                        isActive={item.href === activeHref}
-                    />
-                ) : (
-                    <Link
-                        key={item.href + item.label}
-                        href={item.href}
-                        className={item.href === activeHref ? "active" : ""}
-                    >
-                        {item.label}
-                    </Link>
-                ))}
+                {visibleNavItems.map((item) => {
+                    if (item.label === "Adauga Dosar") {
+                        return (
+                            <AddMedicalRecordNavButton
+                                key={item.href + item.label}
+                                label={item.label}
+                                isActive={item.href === activeHref}
+                            />
+                        )
+                    }
+
+                    if (item.label === "Adauga Accidentare") {
+                        return (
+                            <AddInjuryNavButton
+                                key={item.href + item.label}
+                                label={item.label}
+                                isActive={item.href === activeHref}
+                            />
+                        )
+                    }
+
+                    return (
+                        <Link
+                            key={item.href + item.label}
+                            href={item.href}
+                            className={item.href === activeHref ? "active" : ""}
+                        >
+                            {item.label}
+                        </Link>
+                    )
+                })}
             </nav>
 
             <div className="sd-user-info" style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -83,5 +92,3 @@ export default async function DashboardHeader({
         </header>
     )
 }
-
-

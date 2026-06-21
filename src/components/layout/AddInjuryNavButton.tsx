@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import DosarMedicalModal from "@/app/(dashboard)/medic/dosar-medical/DosarMedicalModal"
+import InjuryModal from "@/app/(dashboard)/medic/dosar-medical/InjuryModal"
 import type { Athlete } from "@/app/(dashboard)/medic/dosar-medical/DosarManager"
 import { getFootballAthletes } from "@/app/(dashboard)/medic/dosar-medical/actions"
 
@@ -10,7 +10,7 @@ interface Props {
     isActive?: boolean
 }
 
-export default function AddMedicalRecordNavButton({ label, isActive = false }: Props) {
+export default function AddInjuryNavButton({ label, isActive = false }: Props) {
     const [isOpen, setIsOpen] = useState(false)
     const [athletes, setAthletes] = useState<Athlete[]>([])
     const [isLoading, setIsLoading] = useState(false)
@@ -57,8 +57,7 @@ export default function AddMedicalRecordNavButton({ label, isActive = false }: P
             </button>
 
             {isOpen && (
-                <DosarMedicalModal
-                    editingRecord={null}
+                <InjuryModal
                     athletes={athletes}
                     onClose={() => setIsOpen(false)}
                     onSuccess={() => {
