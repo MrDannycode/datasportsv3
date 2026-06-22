@@ -1,9 +1,10 @@
-﻿import { getServerSession } from "next-auth"
+import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import Link from "next/link"
 import { ThemeToggle } from "@/components/theme-toggle"
 import AddMedicalRecordNavButton from "@/components/layout/AddMedicalRecordNavButton"
 import AddInjuryNavButton from "@/components/layout/AddInjuryNavButton"
+import AddUserNavButton from "@/components/layout/AddUserNavButton"
 import TeamAthletesNavButton, { type TeamAthlete } from "@/components/layout/TeamAthletesNavButton"
 import { prisma } from "@/lib/prisma"
 
@@ -18,23 +19,23 @@ interface DashboardHeaderProps {
 }
 
 const defaultNavItems: NavItem[] = [
-    { label: "Adauga Utilizator", href: "#" },              //admin_global
+    { label: "Adauga Utilizator", href: "#" },
     { label: "Adauga Competitie", href: "#" },
-    { label: "Importa Atleti", href: "#" },                 //manager_fotbal
+    { label: "Importa Atleti", href: "#" },
     { label: "Gestiune Antrenori", href: "#" },
     { label: "Adauga Meci", href: "#" },
-    { label: "Adauga antrenament", href: "/antrenor-fotbal/antrenamente" }, //antrenor_fotbal
+    { label: "Adauga antrenament", href: "/antrenor-fotbal/antrenamente" },
     { label: "Rapoarte Fitness", href: "#" },
-    { label: "Adauga Sesiune Fitness", href: "#" },         //antrenor_fitness
+    { label: "Adauga Sesiune Fitness", href: "#" },
     { label: "Adauga Sesiune Recuperare", href: "#" },
-    { label: "Adauga Dosar", href: "/medic/dosar-medical?open=new" }, //medic
+    { label: "Adauga Dosar", href: "/medic/dosar-medical?open=new" },
     { label: "Adauga Accidentare", href: "#" },
     { label: "Disponibilitate atleti", href: "#" },
     { label: "Istoric Accidentari", href: "#" },
-    { label: "Dosar Medical", href: "#" },                  //atlet_fotbal
+    { label: "Dosar Medical", href: "#" },
     { label: "Adauga Activitate", href: "#" },
     { label: "Feedback Daily", href: "#" },
-    { label: "Toti Atletii", href: "#" },                   //la mai multe conturi
+    { label: "Toti Atletii", href: "#" },
 ]
 
 export default async function DashboardHeader({
@@ -90,28 +91,23 @@ export default async function DashboardHeader({
             }]
         }) ?? []
     }
+
     const visibleNavItems = navItems.filter((item) =>
         item.label === "Toti Atletii"
             ? canViewTeamAthletes
-            :
-        ["Adauga Utilizator", "Adauga Competitie"].includes(item.label)
-            ? session?.user?.role === "admin_global"
-            :
-        ["Importa Atleti", "Gestiune Antrenori", "Adauga Meci"].includes(item.label)
-            ? session?.user?.role === "manager_fotbal"
-            :
-        ["Adauga antrenament", "Rapoarte Fitness"].includes(item.label)
-            ? session?.user?.role === "antrenor_fotbal"
-            :
-        ["Adauga Sesiune Fitness", "Adauga Sesiune Recuperare"].includes(item.label)
-            ? session?.user?.role === "antrenor_fitness"
-            :
-        ["Adauga Dosar", "Adauga Accidentare", "Disponibilitate atleti", "Istoric Accidentari"].includes(item.label)
-            ? session?.user?.role === "medic"
-            :
-        ["Dosar Medical", "Adauga Activitate", "Feedback Daily"].includes(item.label)
-            ? session?.user?.role === "atlet_fotbal"
-            : true
+            : ["Adauga Utilizator", "Adauga Competitie"].includes(item.label)
+                ? session?.user?.role === "admin_global"
+                : ["Importa Atleti", "Gestiune Antrenori", "Adauga Meci"].includes(item.label)
+                    ? session?.user?.role === "manager_fotbal"
+                    : ["Adauga antrenament", "Rapoarte Fitness"].includes(item.label)
+                        ? session?.user?.role === "antrenor_fotbal"
+                        : ["Adauga Sesiune Fitness", "Adauga Sesiune Recuperare"].includes(item.label)
+                            ? session?.user?.role === "antrenor_fitness"
+                            : ["Adauga Dosar", "Adauga Accidentare", "Disponibilitate atleti", "Istoric Accidentari"].includes(item.label)
+                                ? session?.user?.role === "medic"
+                                : ["Dosar Medical", "Adauga Activitate", "Feedback Daily"].includes(item.label)
+                                    ? session?.user?.role === "atlet_fotbal"
+                                    : true
     )
 
     return (
@@ -122,6 +118,16 @@ export default async function DashboardHeader({
 
             <nav className="sd-nav">
                 {visibleNavItems.map((item) => {
+                    if (item.label === "Adauga Utilizator") {
+                        return (
+                            <AddUserNavButton
+                                key={item.href + item.label}
+                                label={item.label}
+                                isActive={item.href === activeHref}
+                            />
+                        )
+                    }
+
                     if (item.label === "Adauga Dosar") {
                         return (
                             <AddMedicalRecordNavButton
@@ -183,6 +189,3 @@ export default async function DashboardHeader({
         </header>
     )
 }
-
-
-

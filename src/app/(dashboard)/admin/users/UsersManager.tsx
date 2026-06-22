@@ -1,18 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import UserCreateModal from "./UserCreateModal"
 import { createUser, deleteUser } from "./actions"
-
-const ALL_ROLES = [
-    { value: "admin_global",     label: "Admin Global" },
-    { value: "manager_fotbal",   label: "Manager Fotbal" },
-    { value: "manager_tenis",    label: "Manager Tenis" },
-    { value: "antrenor_fotbal",  label: "Antrenor Fotbal" },
-    { value: "antrenor_fitness", label: "Antrenor Fitness" },
-    { value: "medic",            label: "Medic" },
-    { value: "atlet_fotbal",     label: "Atlet Fotbal" },
-    { value: "atlet_tenis",      label: "Atlet Tenis" },
-]
 
 interface User {
     id: number
@@ -23,18 +13,45 @@ interface User {
 
 interface Props {
     initialUsers: User[]
+    shouldOpenNewUserModal?: boolean
 }
 
-export default function UsersManager({ initialUsers }: Props) {
-    const [users, setUsers] = useState<User[]>(initialUsers)
+const ALL_ROLES = [
+    { value: "admin_global", label: "Admin Global" },
+    { value: "manager_fotbal", label: "Manager Fotbal" },
+    { value: "manager_tenis", label: "Manager Tenis" },
+    { value: "antrenor_fotbal", label: "Antrenor Fotbal" },
+    { value: "antrenor_fitness", label: "Antrenor Fitness" },
+    { value: "medic", label: "Medic" },
+    { value: "atlet_fotbal", label: "Atlet Fotbal" },
+    { value: "atlet_tenis", label: "Atlet Tenis" },
+]
 
-    // Form state
+export default function UsersManager({ initialUsers, shouldOpenNewUserModal = false }: Props) {
+    const [users, setUsers] = useState<User[]>(initialUsers)
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [role, setRole] = useState("atlet_fotbal")
     const [creating, setCreating] = useState(false)
     const [formError, setFormError] = useState("")
     const [formSuccess, setFormSuccess] = useState("")
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+    const hasOpenedFromQueryRef = useRef(false)
+
+    useEffect(() => {
+        if (!shouldOpenNewUserModal || hasOpenedFromQueryRef.current) {
+            return
+        }
+
+        hasOpenedFromQueryRef.current = true
+        setIsCreateModalOpen(true)
+    }, [shouldOpenNewUserModal])
+
+    const closeCreateModal = () => {
+        setIsCreateModalOpen(false)
+        setFormError("")
+        setFormSuccess("")
+    }
 
     async function handleCreate(e: React.FormEvent) {
         e.preventDefault()
@@ -47,34 +64,35 @@ export default function UsersManager({ initialUsers }: Props) {
         if (result.error) {
             setFormError(result.error)
         } else if (result.user) {
-            setUsers([result.user, ...users])
+            setUsers(currentUsers => [result.user, ...currentUsers])
             setFormSuccess(`Utilizatorul ${result.user.email} a fost creat cu succes.`)
             setEmail("")
             setPassword("")
             setRole("atlet_fotbal")
+            setIsCreateModalOpen(false)
         }
+
         setCreating(false)
     }
 
     async function handleDelete(id: number, userEmail: string) {
-        if (!confirm(`Ștergi utilizatorul ${userEmail}?`)) return
-        
+        if (!confirm(`Stergi utilizatorul ${userEmail}?`)) return
+
         const result = await deleteUser(id)
         if (result.success) {
-            setUsers(users.filter(u => u.id !== id))
+            setUsers(currentUsers => currentUsers.filter(user => user.id !== id))
         } else {
-            alert(result.error ?? "Eroare la ștergere")
+            alert(result.error ?? "Eroare la stergere")
         }
     }
 
-    const roleLabel = (r: string) => ALL_ROLES.find(x => x.value === r)?.label ?? r
+    const roleLabel = (value: string) => ALL_ROLES.find(currentRole => currentRole.value === value)?.label ?? value
 
     return (
         <>
-            {/* ── Create user form ─────────────────────────────── */}
             <div className="sd-box" style={{ marginBottom: "24px" }}>
                 <div className="sd-box-header">
-                    <h2>Adaugă utilizator nou</h2>
+                    <h2>Adauga utilizator nou</h2>
                 </div>
                 <div className="sd-box-content">
                     <form onSubmit={handleCreate} style={{ display: "flex", gap: "12px", flexWrap: "wrap", alignItems: "flex-end" }}>
@@ -92,14 +110,14 @@ export default function UsersManager({ initialUsers }: Props) {
                         </div>
 
                         <div style={{ display: "flex", flexDirection: "column", gap: "4px", flex: "1 1 160px" }}>
-                            <label style={{ fontSize: "12px", fontWeight: "bold" }}>Parolă</label>
+                            <label style={{ fontSize: "12px", fontWeight: "bold" }}>Parola</label>
                             <input
                                 id="new-user-password"
                                 type="text"
                                 value={password}
                                 onChange={e => setPassword(e.target.value)}
                                 required
-                                placeholder="parolă temporară"
+                                placeholder="parola temporara"
                                 style={{ border: "1px solid #ccc", padding: "6px 10px", fontSize: "13px" }}
                             />
                         </div>
@@ -112,8 +130,8 @@ export default function UsersManager({ initialUsers }: Props) {
                                 onChange={e => setRole(e.target.value)}
                                 style={{ border: "1px solid #ccc", padding: "6px 10px", fontSize: "13px", backgroundColor: "#fff" }}
                             >
-                                {ALL_ROLES.map(r => (
-                                    <option key={r.value} value={r.value}>{r.label}</option>
+                                {ALL_ROLES.map(currentRole => (
+                                    <option key={currentRole.value} value={currentRole.value}>{currentRole.label}</option>
                                 ))}
                             </select>
                         </div>
@@ -133,7 +151,7 @@ export default function UsersManager({ initialUsers }: Props) {
                                 alignSelf: "flex-end",
                             }}
                         >
-                            {creating ? "Se creează..." : "Creează"}
+                            {creating ? "Se creeaza..." : "Creeaza"}
                         </button>
                     </form>
 
@@ -146,10 +164,9 @@ export default function UsersManager({ initialUsers }: Props) {
                 </div>
             </div>
 
-            {/* ── Users table ──────────────────────────────────── */}
             <div className="sd-box">
                 <div className="sd-box-header">
-                    <h2>Toți utilizatorii ({users.length})</h2>
+                    <h2>Toti utilizatorii ({users.length})</h2>
                 </div>
                 <div className="sd-box-content" style={{ padding: 0 }}>
                     <table className="sd-table">
@@ -159,14 +176,14 @@ export default function UsersManager({ initialUsers }: Props) {
                                 <th>Email</th>
                                 <th>Rol</th>
                                 <th>Creat la</th>
-                                <th>Acțiuni</th>
+                                <th>Actiuni</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {users.map(u => (
-                                <tr key={u.id}>
-                                    <td style={{ color: "#999" }}>{u.id}</td>
-                                    <td>{u.email}</td>
+                            {users.map(user => (
+                                <tr key={user.id}>
+                                    <td style={{ color: "#999" }}>{user.id}</td>
+                                    <td>{user.email}</td>
                                     <td>
                                         <span style={{
                                             backgroundColor: "#e8f0fb",
@@ -176,15 +193,15 @@ export default function UsersManager({ initialUsers }: Props) {
                                             fontWeight: "bold",
                                             borderRadius: "2px",
                                         }}>
-                                            {roleLabel(u.role)}
+                                            {roleLabel(user.role)}
                                         </span>
                                     </td>
                                     <td style={{ color: "#666", fontSize: "12px" }}>
-                                        {new Date(u.createdAt).toLocaleDateString("ro-RO")}
+                                        {new Date(user.createdAt).toLocaleDateString("ro-RO")}
                                     </td>
                                     <td>
                                         <button
-                                            onClick={() => handleDelete(u.id, u.email)}
+                                            onClick={() => handleDelete(user.id, user.email)}
                                             style={{
                                                 fontSize: "11px",
                                                 border: "1px solid #c00",
@@ -194,7 +211,7 @@ export default function UsersManager({ initialUsers }: Props) {
                                                 cursor: "pointer",
                                             }}
                                         >
-                                            Șterge
+                                            Sterge
                                         </button>
                                     </td>
                                 </tr>
@@ -202,7 +219,7 @@ export default function UsersManager({ initialUsers }: Props) {
                             {users.length === 0 && (
                                 <tr>
                                     <td colSpan={5} style={{ textAlign: "center", color: "#999", padding: "20px" }}>
-                                        Niciun utilizator găsit.
+                                        Niciun utilizator gasit.
                                     </td>
                                 </tr>
                             )}
@@ -210,6 +227,22 @@ export default function UsersManager({ initialUsers }: Props) {
                     </table>
                 </div>
             </div>
+
+            {isCreateModalOpen && (
+                <UserCreateModal
+                    email={email}
+                    password={password}
+                    role={role}
+                    creating={creating}
+                    formError={formError}
+                    formSuccess={formSuccess}
+                    onEmailChange={setEmail}
+                    onPasswordChange={setPassword}
+                    onRoleChange={setRole}
+                    onClose={closeCreateModal}
+                    onSubmit={handleCreate}
+                />
+            )}
         </>
     )
 }

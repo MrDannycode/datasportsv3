@@ -40,7 +40,7 @@ export default function LoginPage() {
             border: "1px solid #ccc",
             padding: "30px 40px",
             width: "100%",
-            maxWidth: "400px",
+            maxWidth: "480px",
         }}>
             {/* Logo / brand */}
             <div style={{ marginBottom: "20px", borderBottom: "2px solid #ccc", paddingBottom: "10px" }}>
@@ -137,12 +137,13 @@ export default function LoginPage() {
                             textAlign: "center",
                         }}
                     >
-                        🛡️ Admin
+                        Admin
                     </button>
+
                     <button
                         id="demo-atlet-fotbal"
                         type="button"
-                        onClick={() => { setEmail("atlet@test.com"); setPassword("parola123") }}
+                        onClick={() => { setEmail("manager@test.com"); setPassword("manager") }}
                         style={{
                             flex: 1,
                             border: "1px solid #ccc",
@@ -153,8 +154,76 @@ export default function LoginPage() {
                             textAlign: "center",
                         }}
                     >
-                        ⚽ Atlet Fotbal
+                         Manager Fotbal
                     </button>
+
+                    <button
+                        id="demo-atlet-fotbal"
+                        type="button"
+                        onClick={() => { setEmail("antrenor@test.com"); setPassword("antrenor") }}
+                        style={{
+                            flex: 1,
+                            border: "1px solid #ccc",
+                            backgroundColor: "#f5f5f5",
+                            padding: "5px 8px",
+                            fontSize: "12px",
+                            cursor: "pointer",
+                            textAlign: "center",
+                        }}
+                    >
+                        Antrenor Fotbal
+                    </button>
+
+                    <button
+                        id="demo-atlet-fotbal"
+                        type="button"
+                        onClick={() => { setEmail("fitness@test.com"); setPassword("fitness") }}
+                        style={{
+                            flex: 1,
+                            border: "1px solid #ccc",
+                            backgroundColor: "#f5f5f5",
+                            padding: "5px 8px",
+                            fontSize: "12px",
+                            cursor: "pointer",
+                            textAlign: "center",
+                        }}
+                    >
+                        Antrenor Fitness
+                    </button>
+
+                    <button
+                        id="demo-atlet-fotbal"
+                        type="button"
+                        onClick={() => { setEmail("medic@test.com"); setPassword("medic") }}
+                        style={{
+                            flex: 1,
+                            border: "1px solid #ccc",
+                            backgroundColor: "#f5f5f5",
+                            padding: "5px 8px",
+                            fontSize: "12px",
+                            cursor: "pointer",
+                            textAlign: "center",
+                        }}
+                    >
+                        Medic
+                    </button>
+                    
+                    <button
+                        id="demo-atlet-fotbal"
+                            type="button"
+                            onClick={() => { setEmail("atlet@test.com"); setPassword("parola123") }}
+                            style={{
+                                flex: 1,
+                                border: "1px solid #ccc",
+                                backgroundColor: "#f5f5f5",
+                                padding: "5px 8px",
+                                fontSize: "12px",
+                                cursor: "pointer",
+                                textAlign: "center",
+                            }}
+                        >
+                            Atlet Fotbal
+                        </button>
                 </div>
             </div>
         </div>
