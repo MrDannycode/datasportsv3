@@ -29,6 +29,10 @@ export default async function AntrenorFotbalPage() {
             </div>
 
             <div className="sd-metrics">
+            <div className="sd-box sd-metric-box" style={{ flex: 1 }}>
+                <div className="sd-metric-title">Accidentari Recente</div>
+                    <div className="sd-metric-value">—</div>
+                </div>
                 <div className="sd-box sd-metric-box">
                     <div className="sd-metric-title">Planuri de antrenament</div>
                     <div className="sd-metric-value">{totalPlans}</div>
@@ -136,6 +140,13 @@ export default async function AntrenorFotbalPage() {
                             </ul>
                         </div>
                     </div>
+
+                    <div className="sd-box">
+                        <div className="sd-box-header">
+                            <h2>Bara verde ca la fifa</h2>
+                        </div>
+                    </div>
+                        
                 </div>
             </div>
         </main>
