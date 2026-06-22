@@ -1,4 +1,4 @@
-import { getServerSession } from "next-auth"
+﻿import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
@@ -6,6 +6,7 @@ import MatchManager from "./MatchManager"
 import TeamManager from "./TeamManager"
 import PlayerManager from "./PlayerManager"
 import AntrenorManager from "./AntrenorManager"
+import AthleteInviteManager from "./AthleteInviteManager"
 
 export default async function ManagerFotbalPage() {
     const session = await getServerSession(authOptions)
@@ -91,6 +92,7 @@ export default async function ManagerFotbalPage() {
 
             {/* Main Panels */}
             <div className="sd-panels" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                <AthleteInviteManager teams={teams} />
                 <PlayerManager players={players as any} teams={teams} />
                 <AntrenorManager antrenori={antrenori} teams={teams} />
                 <TeamManager initialTeams={teams} />
@@ -104,8 +106,8 @@ export default async function ManagerFotbalPage() {
                         </div>
                         <div className="sd-box-content">
                             <p>Opponent: Liverpool</p>
-                            <p>Difficulty: —</p>
-                            <p>Weather: —</p>
+                            <p>Difficulty: â€”</p>
+                            <p>Weather: â€”</p>
                         </div>
                     </div>
 
@@ -128,3 +130,5 @@ export default async function ManagerFotbalPage() {
         </main>
     )
 }
+
+
