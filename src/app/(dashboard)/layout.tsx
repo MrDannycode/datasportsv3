@@ -1,12 +1,24 @@
 import "../dashboard.css"
 import DashboardHeader from "@/components/layout/DashboardHeader"
 import DashboardSidebar from "@/components/layout/DashboardSidebar"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
 
-export default function DashboardLayout({
+const rolesWithoutSidebar = new Set([
+    "admin_global",
+    "manager_fotbal",
+    "manager_tenis",
+    "atlet_tenis",
+])
+
+export default async function DashboardLayout({
     children,
 }: {
     children: React.ReactNode
 }) {
+    const session = await getServerSession(authOptions)
+    const showSidebar = !session?.user.role || !rolesWithoutSidebar.has(session.user.role)
+
     return (
         <div className="sd-container">
             <div className="sd-inner">
@@ -15,7 +27,7 @@ export default function DashboardLayout({
                     <div className="sd-main-content">
                         {children}
                     </div>
-                    <DashboardSidebar />
+                    {showSidebar && <DashboardSidebar />}
                 </div>
             </div>
         </div>
