@@ -1,9 +1,11 @@
-import { getServerSession } from "next-auth"
+﻿import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import Link from "next/link"
 import { ThemeToggle } from "@/components/theme-toggle"
 import AddMedicalRecordNavButton from "@/components/layout/AddMedicalRecordNavButton"
 import AddInjuryNavButton from "@/components/layout/AddInjuryNavButton"
+import TeamAthletesNavButton, { type TeamAthlete } from "@/components/layout/TeamAthletesNavButton"
+import { prisma } from "@/lib/prisma"
 
 interface NavItem {
     label: string
@@ -40,9 +42,57 @@ export default async function DashboardHeader({
     activeHref = "#",
 }: DashboardHeaderProps) {
     const session = await getServerSession(authOptions)
+    const teamAthleteRoles = ["antrenor_fotbal", "antrenor_fitness", "medic", "atlet_fotbal"]
+    const canViewTeamAthletes = teamAthleteRoles.includes(session?.user?.role ?? "")
+    let teamName: string | null = null
+    let teamAthletes: TeamAthlete[] = []
+
+    if (session?.user?.id && canViewTeamAthletes) {
+        const profile = await prisma.profile.findUnique({
+            where: { userId: Number(session.user.id) },
+            select: {
+                team: {
+                    select: {
+                        name: true,
+                        profiles: {
+                            where: { user: { footballAthlete: { isNot: null } } },
+                            select: {
+                                firstName: true,
+                                lastName: true,
+                                user: {
+                                    select: {
+                                        email: true,
+                                        footballAthlete: {
+                                            select: { id: true, position: true, jerseyNumber: true },
+                                        },
+                                    },
+                                },
+                            },
+                            orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
+                        },
+                    },
+                },
+            },
+        })
+
+        teamName = profile?.team?.name ?? null
+        teamAthletes = profile?.team?.profiles.flatMap((athleteProfile) => {
+            const footballAthlete = athleteProfile.user.footballAthlete
+            if (!footballAthlete) return []
+
+            return [{
+                id: footballAthlete.id,
+                firstName: athleteProfile.firstName,
+                lastName: athleteProfile.lastName,
+                email: athleteProfile.user.email,
+                position: footballAthlete.position,
+                jerseyNumber: footballAthlete.jerseyNumber,
+            }]
+        }) ?? []
+    }
     const visibleNavItems = navItems.filter((item) =>
         item.label === "Toti Atletii"
-            ? ["antrenor_fotbal", "antrenor_fitness", "medic", "atlet_fotbal"].includes(session?.user?.role ?? "")
+            ? canViewTeamAthletes
             :
         ["Adauga Utilizator", "Adauga Competitie"].includes(item.label)
             ? session?.user?.role === "admin_global"
@@ -92,6 +142,17 @@ export default async function DashboardHeader({
                         )
                     }
 
+                    if (item.label === "Toti Atletii") {
+                        return (
+                            <TeamAthletesNavButton
+                                key={item.href + item.label}
+                                label={item.label}
+                                teamName={teamName}
+                                athletes={teamAthletes}
+                            />
+                        )
+                    }
+
                     return (
                         <Link
                             key={item.href + item.label}
@@ -122,4 +183,6 @@ export default async function DashboardHeader({
         </header>
     )
 }
+
+
 
