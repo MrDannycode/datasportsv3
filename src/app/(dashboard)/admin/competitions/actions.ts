@@ -22,10 +22,22 @@ export async function createCompetition(data: { name: string, sport: "fotbal" | 
                 sport: data.sport,
             }
         })
+
+        await prisma.auditLog.create({
+            data: {
+                userId: Number(session.user.id),
+                action: "create",
+                tableAffected: "competitions",
+                recordId: comp.id,
+                details: { name: comp.name, sport: comp.sport },
+            },
+        })
+
         revalidatePath("/admin/competitions")
+        revalidatePath("/admin/audituri")
         return { competition: comp }
-    } catch (e: any) {
-        if (e.code === 'P2002') {
+    } catch (e: unknown) {
+        if (typeof e === "object" && e !== null && "code" in e && e.code === 'P2002') {
             throw new Error("O competiție cu acest nume există deja.")
         }
         throw e
@@ -39,12 +51,24 @@ export async function deleteCompetition(id: number) {
     }
 
     try {
-        await prisma.competition.delete({
+        const deletedCompetition = await prisma.competition.delete({
             where: { id }
         })
+
+        await prisma.auditLog.create({
+            data: {
+                userId: Number(session.user.id),
+                action: "delete",
+                tableAffected: "competitions",
+                recordId: deletedCompetition.id,
+                details: { name: deletedCompetition.name, sport: deletedCompetition.sport },
+            },
+        })
+
         revalidatePath("/admin/competitions")
-    } catch (e: any) {
-        if (e.code === 'P2003') {
+        revalidatePath("/admin/audituri")
+    } catch (e: unknown) {
+        if (typeof e === "object" && e !== null && "code" in e && e.code === 'P2003') {
             throw new Error("Nu se poate șterge competiția pentru că există meciuri asociate.")
         }
         throw e

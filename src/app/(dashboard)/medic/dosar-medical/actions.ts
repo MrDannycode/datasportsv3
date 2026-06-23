@@ -112,7 +112,7 @@ export async function saveMedicalRecord(data: {
         return db.medicalRecord.create({
             data: {
                 athleteId,
-                medicId: session.user.id,
+                medicId: Number(session.user.id),
                 diagnosis,
                 treatment,
                 startDate,

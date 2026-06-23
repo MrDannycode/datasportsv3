@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import Link from "next/link"
+import { prisma } from "@/lib/prisma"
 
 export default async function AdminPage() {
     const session = await getServerSession(authOptions)
@@ -9,6 +10,8 @@ export default async function AdminPage() {
     if (!session || session.user.role !== "admin_global") {
         redirect("/login")
     }
+
+    const auditLogsCount = await prisma.auditLog.count()
 
     return (
         <main>
@@ -40,11 +43,15 @@ export default async function AdminPage() {
                     <div className="sd-metric-title">Echipe</div>
                     <div className="sd-metric-value">—</div>
                 </div>
-                <div className="sd-box sd-metric-box" style={{ flex: 1 }}>
-                    <div className="sd-metric-title">Audituri</div>
-                    <div className="sd-metric-value">—</div>
-                </div>
+                <Link href="/admin/audituri" style={{ flex: 1, textDecoration: "none" }}>
+                    <div className="sd-box sd-metric-box" style={{ cursor: "pointer" }}>
+                        <div className="sd-metric-title">Audituri</div>
+                        <div className="sd-metric-value" style={{ fontSize: "14px", marginTop: "8px", color: "#0056b3" }}>
+                            {auditLogsCount} inregistrari &gt;
+                        </div>
+                    </div>
+                </Link>
             </div>
         </main>
     )
-}
+}

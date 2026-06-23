@@ -12,6 +12,7 @@ import AddMatchNavButton from "@/components/layout/AddMatchNavButton"
 import AddTrainingNavButton from "@/components/layout/AddTrainingNavButton"
 import AddFitnessSessionNavButton from "@/components/layout/AddFitnessSessionNavButton"
 import TeamAthletesNavButton, { type TeamAthlete } from "@/components/layout/TeamAthletesNavButton"
+import MedicalRecordNavButton, { type AthleteMedicalRecord } from "@/components/layout/MedicalRecordNavButton"
 import { prisma } from "@/lib/prisma"
 
 interface NavItem {
@@ -60,6 +61,7 @@ export default async function DashboardHeader({
     let footballTeams: BasicTeam[] = []
     let footballCoaches: BasicCoach[] = []
     let footballCompetitions: BasicCompetition[] = []
+    let athleteMedicalRecords: AthleteMedicalRecord[] = []
 
     if (session?.user?.role === "manager_fotbal") {
         footballTeams = await prisma.team.findMany({
@@ -137,6 +139,47 @@ export default async function DashboardHeader({
         }) ?? []
     }
 
+
+    if (session?.user?.role === "atlet_fotbal") {
+        const records = await prisma.medicalRecord.findMany({
+            where: { athlete: { userId: Number(session.user.id) } },
+            include: {
+                injuries: true,
+                medic: {
+                    select: {
+                        email: true,
+                        profile: { select: { firstName: true, lastName: true } },
+                    },
+                },
+            },
+            orderBy: { startDate: "desc" },
+        })
+
+        athleteMedicalRecords = records.map((record) => {
+            const medicProfile = record.medic.profile
+            const medicName = medicProfile
+                ? `${medicProfile.firstName} ${medicProfile.lastName}`
+                : record.medic.email
+
+            return {
+                id: record.id,
+                diagnosis: record.diagnosis,
+                treatment: record.treatment,
+                startDate: record.startDate.toISOString(),
+                endDate: record.endDate?.toISOString() ?? null,
+                isAvailable: record.isAvailable,
+                medicName,
+                injuries: record.injuries.map((injury) => ({
+                    id: injury.id,
+                    injuryType: injury.injuryType,
+                    bodyPart: injury.bodyPart,
+                    severity: injury.severity,
+                    recoveryDays: injury.recoveryDays,
+                    notes: injury.notes,
+                })),
+            }
+        })
+    }
     const visibleNavItems = navItems.filter((item) =>
         item.label === "Toti Atletii"
             ? canViewTeamAthletes
@@ -203,6 +246,10 @@ export default async function DashboardHeader({
                         return <TeamAthletesNavButton key={item.href + item.label} label={item.label} teamName={teamName} athletes={teamAthletes} />
                     }
 
+                    if (item.label === "Dosar Medical") {
+                        return <MedicalRecordNavButton key={item.href + item.label} label={item.label} records={athleteMedicalRecords} />
+                    }
+
                     return (
                         <Link key={item.href + item.label} href={item.href} className={item.href === activeHref ? "active" : ""}>
                             {item.label}
@@ -229,3 +276,5 @@ export default async function DashboardHeader({
         </header>
     )
 }
+
+

@@ -61,7 +61,6 @@ export default function AthleteInviteManager({ teams, shouldOpenInviteModal = fa
             setInviteResult(result)
             if (result.success) {
                 setInvite(emptyInvite)
-                setIsInviteModalOpen(false)
             }
         } finally { setBusy(null) }
     }

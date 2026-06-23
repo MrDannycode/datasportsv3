@@ -36,8 +36,6 @@ export default function AddAthleteNavButton({ label, teams, isActive = false }: 
             setInviteResult(result)
             if (result.success) {
                 setInvite(emptyInvite)
-                setIsOpen(false)
-                window.location.reload()
             }
         } finally {
             setBusy(false)

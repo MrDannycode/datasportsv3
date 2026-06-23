@@ -37,6 +37,10 @@ export default async function AntrenorFotbalPage() {
                     <div className="sd-metric-title">Planuri de antrenament</div>
                     <div className="sd-metric-value">{totalPlans}</div>
                 </div>
+                <div className="sd-box sd-metric-box">
+                    <div className="sd-metric-title">Cartonase </div>
+                    <div className="sd-metric-value">-</div>
+                </div>
                 <Link href="/antrenor-fotbal/antrenamente" style={{ flex: 1, textDecoration: "none" }}>
                     <div className="sd-box sd-metric-box" style={{ cursor: "pointer" }}>
                         <div className="sd-metric-title">Antrenamente</div>

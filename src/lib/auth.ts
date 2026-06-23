@@ -35,6 +35,16 @@ export const authOptions: NextAuthOptions = {
 
                 if (!passwordMatch) return null
 
+                await prisma.auditLog.create({
+                    data: {
+                        userId: user.id,
+                        action: "login",
+                        tableAffected: "users",
+                        recordId: user.id,
+                        details: { email: user.email, role: user.role },
+                    },
+                })
+
                 return {
                     id: String(user.id),
                     email: user.email,

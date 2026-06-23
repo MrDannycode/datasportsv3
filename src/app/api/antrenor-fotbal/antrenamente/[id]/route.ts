@@ -5,14 +5,15 @@ import { prisma } from "@/lib/prisma"
 // PUT /api/antrenor-fotbal/antrenamente/[id] — actualizează un plan
 export async function PUT(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+    const { id } = await params
     if (!token || token.role !== "antrenor_fotbal") {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const planId = Number(params.id)
+    const planId = Number(id)
     const existing = await prisma.trainingPlan.findUnique({ where: { id: planId } })
 
     if (!existing) {
@@ -42,14 +43,15 @@ export async function PUT(
 // DELETE /api/antrenor-fotbal/antrenamente/[id] — șterge un plan
 export async function DELETE(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+    const { id } = await params
     if (!token || token.role !== "antrenor_fotbal") {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const planId = Number(params.id)
+    const planId = Number(id)
     const existing = await prisma.trainingPlan.findUnique({ where: { id: planId } })
 
     if (!existing) {
@@ -68,14 +70,15 @@ export async function DELETE(
 // GET /api/antrenor-fotbal/antrenamente/[id] — detalii plan
 export async function GET(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+    const { id } = await params
     if (!token || token.role !== "antrenor_fotbal") {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const planId = Number(params.id)
+    const planId = Number(id)
     const plan = await prisma.trainingPlan.findUnique({
         where: { id: planId },
         include: {

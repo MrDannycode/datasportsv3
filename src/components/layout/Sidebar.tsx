@@ -95,7 +95,7 @@ export function Sidebar() {
             {/* User + Logout */}
             <div className="border-t border-gray-200 px-3 py-4">
                 <div className="mb-3 px-3">
-                    <p className="text-sm font-medium text-gray-900 truncate">{session?.user?.name}</p>
+                    <p className="text-sm font-medium text-gray-900 truncate">{session?.user?.email ?? "Utilizator"}</p>
                     <p className="text-xs text-gray-500 truncate">{session?.user?.email}</p>
                 </div>
                 <button
