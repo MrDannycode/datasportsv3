@@ -6,6 +6,7 @@ import { AuditAction, Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 
 const PAGE_SIZE = 20
+const EXPORT_LIMIT = 10000
 
 type AuditSearchParams = {
     action?: string | string[]
@@ -22,7 +23,7 @@ function firstValue(value?: string | string[]) {
     return Array.isArray(value) ? value[0] : value
 }
 
-function buildHref(params: Record<string, string | number | undefined>) {
+function buildQuery(params: Record<string, string | number | undefined>) {
     const query = new URLSearchParams()
 
     Object.entries(params).forEach(([key, value]) => {
@@ -31,8 +32,17 @@ function buildHref(params: Record<string, string | number | undefined>) {
         }
     })
 
-    const queryString = query.toString()
+    return query.toString()
+}
+
+function buildHref(params: Record<string, string | number | undefined>) {
+    const queryString = buildQuery(params)
     return queryString ? `/admin/audituri?${queryString}` : "/admin/audituri"
+}
+
+function buildExportHref(params: Record<string, string | number | undefined>) {
+    const queryString = buildQuery(params)
+    return queryString ? `/api/admin/audituri/export?${queryString}` : "/api/admin/audituri/export"
 }
 
 function formatDetails(details: Prisma.JsonValue | null) {
@@ -169,12 +179,18 @@ export default async function AdminAuditPage({ searchParams }: AdminAuditPagePro
                         <button type="submit" className="sd-btn-primary">Filtreaza</button>
                         <Link href="/admin/audituri" className="sd-btn-secondary">Reseteaza</Link>
                     </form>
+                    <p className="sd-hint" style={{ marginTop: "12px" }}>
+                        Exportul XLSX include toate rezultatele filtrate, maxim {EXPORT_LIMIT} inregistrari.
+                    </p>
                 </div>
             </div>
 
             <div className="sd-box">
                 <div className="sd-box-header">
                     <h2>Inregistrari audit ({totalLogs})</h2>
+                    <Link href={buildExportHref(filtersForLinks)} className="sd-btn-secondary">
+                        Export XLSX
+                    </Link>
                 </div>
                 <div className="sd-box-content" style={{ padding: 0, overflowX: "auto" }}>
                     <table className="sd-table">
