@@ -1,4 +1,4 @@
-﻿import { getServerSession } from "next-auth"
+import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
@@ -8,12 +8,18 @@ import PlayerManager from "./PlayerManager"
 import AntrenorManager from "./AntrenorManager"
 import AthleteInviteManager from "./AthleteInviteManager"
 
-export default async function ManagerFotbalPage() {
+interface ManagerFotbalPageProps {
+    searchParams?: Promise<{ open?: string }>
+}
+
+export default async function ManagerFotbalPage({ searchParams }: ManagerFotbalPageProps) {
     const session = await getServerSession(authOptions)
 
     if (!session || session.user.role !== "manager_fotbal") {
         redirect("/login")
     }
+
+    const resolvedSearchParams = searchParams ? await searchParams : undefined
 
     const teams = await prisma.team.findMany({
         where: { sport: "fotbal" },
@@ -80,7 +86,6 @@ export default async function ManagerFotbalPage() {
                 <h1>Dashboard Manager Fotbal</h1>
             </div>
 
-            {/* Key Metrics */}
             <div className="sd-metrics">
                 <div className="sd-box sd-metric-box">
                     <div className="sd-metric-title">Meciuri Totale: {matches.length}</div>
@@ -90,15 +95,13 @@ export default async function ManagerFotbalPage() {
                 </div>
             </div>
 
-            {/* Main Panels */}
             <div className="sd-panels" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-                <AthleteInviteManager teams={teams} />
+                <AthleteInviteManager teams={teams} shouldOpenInviteModal={resolvedSearchParams?.open === "new"} />
                 <PlayerManager players={players as any} teams={teams} />
-                <AntrenorManager antrenori={antrenori} teams={teams} />
+                <AntrenorManager antrenori={antrenori} teams={teams} shouldOpenCoachModal={resolvedSearchParams?.open === "coaches"} />
                 <TeamManager initialTeams={teams} />
-                <MatchManager initialMatches={matches as any} teams={teams} competitions={competitions} />
+                <MatchManager initialMatches={matches as any} teams={teams} competitions={competitions} shouldOpenMatchModal={resolvedSearchParams?.open === "match"} />
 
-                {/* Sidebar panels */}
                 <div className="sd-sidebar">
                     <div className="sd-box">
                         <div className="sd-box-header">
@@ -106,8 +109,8 @@ export default async function ManagerFotbalPage() {
                         </div>
                         <div className="sd-box-content">
                             <p>Opponent: Liverpool</p>
-                            <p>Difficulty: â€”</p>
-                            <p>Weather: â€”</p>
+                            <p>Difficulty: --</p>
+                            <p>Weather: --</p>
                         </div>
                     </div>
 
@@ -130,5 +133,3 @@ export default async function ManagerFotbalPage() {
         </main>
     )
 }
-
-

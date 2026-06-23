@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import FitnessPlanModal from "./FitnessPlanModal"
 import { createPlan, updatePlan, deletePlan } from "./actions"
 
 interface FitnessPlan {
@@ -13,15 +14,15 @@ interface FitnessPlan {
     createdAt: string
 }
 
-
 interface Props {
     initialPlans: FitnessPlan[]
+    shouldOpenNewPlanModal?: boolean
 }
 
 const TYPE_LABELS: Record<string, string> = {
-    forta: "Fortă",
-    rezistenta: "Rezistență",
-    vitezare: "Viteză",
+    forta: "Forta",
+    rezistenta: "Rezistenta",
+    vitezare: "Viteza",
     flexibilitate: "Flexibilitate",
     coordonare: "Coordonare",
 }
@@ -30,37 +31,54 @@ const INPUT_STYLE = { border: "1px solid #ccc", padding: "6px 10px", fontSize: "
 const LABEL_STYLE = { fontSize: "12px", fontWeight: "bold" } as const
 const FIELD_STYLE = { display: "flex", flexDirection: "column" as const, gap: "4px" }
 
-export default function TrainfitManager({ initialPlans }: Props) {
+export default function TrainfitManager({ initialPlans, shouldOpenNewPlanModal = false }: Props) {
     const [plans, setPlans] = useState<FitnessPlan[]>(initialPlans)
     const [filter, setFilter] = useState<"toate" | "forta" | "rezistenta" | "vitezare" | "flexibilitate" | "coordonare">("toate")
-
     const [editMode, setEditMode] = useState(false)
     const [editId, setEditId] = useState<number | null>(null)
-
     const [title, setTitle] = useState("")
     const [description, setDescription] = useState("")
     const [type, setType] = useState<"forta" | "rezistenta" | "vitezare" | "flexibilitate" | "coordonare">("forta")
     const [date, setDate] = useState(new Date().toISOString().split("T")[0])
-
     const [formLoading, setFormLoading] = useState(false)
     const [formError, setFormError] = useState("")
     const [formSuccess, setFormSuccess] = useState("")
+    const [isPlanModalOpen, setIsPlanModalOpen] = useState(false)
+    const hasOpenedFromQueryRef = useRef(false)
 
-    const filtered = filter === "toate" ? plans : plans.filter((p) => p.type === filter)
+    useEffect(() => {
+        if (!shouldOpenNewPlanModal || hasOpenedFromQueryRef.current) {
+            return
+        }
+
+        hasOpenedFromQueryRef.current = true
+        setIsPlanModalOpen(true)
+    }, [shouldOpenNewPlanModal])
+
+    const filtered = filter === "toate" ? plans : plans.filter((plan) => plan.type === filter)
 
     function formatDate(iso: string) {
         return new Date(iso).toLocaleDateString("ro-RO")
     }
 
-    function resetForm() {
+    function clearFormFields() {
         setEditMode(false)
         setEditId(null)
         setTitle("")
         setDescription("")
         setType("forta")
         setDate(new Date().toISOString().split("T")[0])
+    }
+
+    function resetForm() {
+        clearFormFields()
         setFormError("")
         setFormSuccess("")
+    }
+
+    function closePlanModal() {
+        setIsPlanModalOpen(false)
+        resetForm()
     }
 
     function openEditForm(plan: FitnessPlan) {
@@ -72,6 +90,7 @@ export default function TrainfitManager({ initialPlans }: Props) {
         setDate(plan.date.split("T")[0])
         setFormError("")
         setFormSuccess("")
+        setIsPlanModalOpen(true)
     }
 
     async function handleFormSubmit(e: React.FormEvent) {
@@ -88,13 +107,18 @@ export default function TrainfitManager({ initialPlans }: Props) {
                 if (result?.error) throw new Error(result.error)
 
                 if (result?.plan) {
-                    setPlans(plans.map(p => p.id === editId ? {
-                        ...result.plan,
-                        date: result.plan.date.toISOString(),
-                        createdAt: result.plan.createdAt.toISOString(),
-                    } as FitnessPlan : p))
+                    setPlans((currentPlans) => currentPlans.map((plan) =>
+                        plan.id === editId
+                            ? {
+                                ...result.plan,
+                                date: result.plan.date.toISOString(),
+                                createdAt: result.plan.createdAt.toISOString(),
+                            } as FitnessPlan
+                            : plan,
+                    ))
+                    clearFormFields()
                     setFormSuccess("Planul a fost actualizat cu succes.")
-                    resetForm()
+                    setIsPlanModalOpen(false)
                 }
             } else {
                 const result = await createPlan(payload)
@@ -106,38 +130,36 @@ export default function TrainfitManager({ initialPlans }: Props) {
                         date: result.plan.date.toISOString(),
                         createdAt: result.plan.createdAt.toISOString(),
                     } as FitnessPlan
-                    setPlans([newPlan, ...plans])
+
+                    setPlans((currentPlans) => [newPlan, ...currentPlans])
+                    clearFormFields()
                     setFormSuccess("Planul a fost creat cu succes.")
-                    setTitle("")
-                    setDescription("")
+                    setIsPlanModalOpen(false)
                 }
             }
-        } catch (e: unknown) {
-            setFormError(e instanceof Error ? e.message : "Eroare necunoscută")
+        } catch (error: unknown) {
+            setFormError(error instanceof Error ? error.message : "Eroare necunoscuta")
         } finally {
             setFormLoading(false)
         }
     }
 
     async function handleDelete(id: number, planTitle: string) {
-        if (!confirm(`Ștergi planul „${planTitle}"?`)) return
+        if (!confirm(`Stergi planul "${planTitle}"?`)) return
 
         const result = await deletePlan(id)
         if (result.success) {
-            setPlans((prev) => prev.filter((p) => p.id !== id))
+            setPlans((prev) => prev.filter((plan) => plan.id !== id))
         } else {
-            alert(result.error ?? "Eroare la ștergere")
+            alert(result.error ?? "Eroare la stergere")
         }
     }
 
     return (
         <>
-            {/* Toolbar */}
-
-            {/* Adaugă plan nou */}
             <div className="sd-box" style={{ marginBottom: "24px" }}>
                 <div className="sd-box-header">
-                    <h2>{editMode ? "Editează plan" : "Adaugă plan nou"}</h2>
+                    <h2>{editMode ? "Editeaza plan" : "Adauga plan nou"}</h2>
                 </div>
                 <div className="sd-box-content">
                     <form onSubmit={handleFormSubmit} style={{ display: "flex", gap: "12px", flexWrap: "wrap", alignItems: "flex-end" }}>
@@ -150,12 +172,12 @@ export default function TrainfitManager({ initialPlans }: Props) {
                                 onChange={(e) => setTitle(e.target.value)}
                                 required
                                 maxLength={200}
-                                placeholder="ex. Antrenament tactic ofensiv"
+                                placeholder="ex. Circuit forta tren inferior"
                                 style={INPUT_STYLE}
                             />
                         </div>
 
-                        <div style={{ ...FIELD_STYLE, flex: "1 1 140px" }}>
+                        <div style={{ ...FIELD_STYLE, flex: "1 1 160px" }}>
                             <label htmlFor="plan-type" style={LABEL_STYLE}>Tip</label>
                             <select
                                 id="plan-type"
@@ -164,9 +186,9 @@ export default function TrainfitManager({ initialPlans }: Props) {
                                 required
                                 style={{ ...INPUT_STYLE, backgroundColor: "#fff" }}
                             >
-                                <option value="forta">Fortă</option>
-                                <option value="rezistenta">Rezistență</option>
-                                <option value="vitezare">Viteză</option>
+                                <option value="forta">Forta</option>
+                                <option value="rezistenta">Rezistenta</option>
+                                <option value="vitezare">Viteza</option>
                                 <option value="flexibilitate">Flexibilitate</option>
                                 <option value="coordonare">Coordonare</option>
                             </select>
@@ -192,7 +214,7 @@ export default function TrainfitManager({ initialPlans }: Props) {
                                 onChange={(e) => setDescription(e.target.value)}
                                 rows={2}
                                 maxLength={1000}
-                                placeholder="Detalii despre planul de fitness (opțional)"
+                                placeholder="Detalii despre planul de fitness (optional)"
                                 style={{ ...INPUT_STYLE, width: "100%", resize: "vertical" }}
                             />
                         </div>
@@ -212,7 +234,7 @@ export default function TrainfitManager({ initialPlans }: Props) {
                                     alignSelf: "flex-end",
                                 }}
                             >
-                                Anulează
+                                Anuleaza
                             </button>
                         )}
 
@@ -231,38 +253,29 @@ export default function TrainfitManager({ initialPlans }: Props) {
                                 alignSelf: "flex-end",
                             }}
                         >
-                            {formLoading
-                                ? "Se salvează..."
-                                : editMode
-                                    ? "Salvează modificările"
-                                    : "Creează plan"}
+                            {formLoading ? "Se salveaza..." : editMode ? "Salveaza modificarile" : "Creeaza plan"}
                         </button>
                     </form>
 
-                    {formError && (
-                        <p style={{ color: "#c00", fontSize: "12px", marginTop: "10px" }}>{formError}</p>
-                    )}
-                    {formSuccess && (
-                        <p style={{ color: "#2a7a2a", fontSize: "12px", marginTop: "10px" }}>{formSuccess}</p>
-                    )}
+                    {formError && <p style={{ color: "#c00", fontSize: "12px", marginTop: "10px" }}>{formError}</p>}
+                    {formSuccess && <p style={{ color: "#2a7a2a", fontSize: "12px", marginTop: "10px" }}>{formSuccess}</p>}
                 </div>
             </div>
 
             <div className="sd-toolbar">
                 <div className="sd-filter-group">
-                    {(["toate", "forta", "rezistenta", "vitezare", "flexibilitate", "coordonare"] as const).map((f) => (
+                    {(["toate", "forta", "rezistenta", "vitezare", "flexibilitate", "coordonare"] as const).map((currentFilter) => (
                         <button
-                            key={f}
-                            className={`sd-filter-btn${filter === f ? " active" : ""}`}
-                            onClick={() => setFilter(f)}
+                            key={currentFilter}
+                            className={`sd-filter-btn${filter === currentFilter ? " active" : ""}`}
+                            onClick={() => setFilter(currentFilter)}
                         >
-                            {f.charAt(0).toUpperCase() + f.slice(1)}
+                            {currentFilter.charAt(0).toUpperCase() + currentFilter.slice(1)}
                         </button>
                     ))}
                 </div>
             </div>
 
-            {/* Tabel */}
             <div className="sd-box">
                 <div className="sd-box-header">
                     <h2>Planuri de fitness ({filtered.length})</h2>
@@ -276,7 +289,7 @@ export default function TrainfitManager({ initialPlans }: Props) {
                                 <th>Tip</th>
                                 <th>Data</th>
                                 <th>Descriere</th>
-                                <th>Acțiuni</th>
+                                <th>Actiuni</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -285,23 +298,12 @@ export default function TrainfitManager({ initialPlans }: Props) {
                                     <td style={{ color: "#999" }}>{plan.id}</td>
                                     <td>{plan.title}</td>
                                     <td>
-                                        <span style={{
-                                            backgroundColor: "#e8f0fb",
-                                            color: "#0056b3",
-                                            padding: "2px 8px",
-                                            fontSize: "11px",
-                                            fontWeight: "bold",
-                                            borderRadius: "2px",
-                                        }}>
+                                        <span style={{ backgroundColor: "#e8f0fb", color: "#0056b3", padding: "2px 8px", fontSize: "11px", fontWeight: "bold", borderRadius: "2px" }}>
                                             {TYPE_LABELS[plan.type]}
                                         </span>
                                     </td>
-                                    <td style={{ color: "#666", fontSize: "12px" }}>
-                                        {formatDate(plan.date)}
-                                    </td>
-                                    <td style={{ color: "#666", fontSize: "12px" }}>
-                                        {plan.description ?? "—"}
-                                    </td>
+                                    <td style={{ color: "#666", fontSize: "12px" }}>{formatDate(plan.date)}</td>
+                                    <td style={{ color: "#666", fontSize: "12px" }}>{plan.description ?? "-"}</td>
                                     <td>
                                         <button
                                             onClick={() => openEditForm(plan)}
@@ -315,7 +317,7 @@ export default function TrainfitManager({ initialPlans }: Props) {
                                                 marginRight: "6px",
                                             }}
                                         >
-                                            Editează
+                                            Editeaza
                                         </button>
                                         <button
                                             onClick={() => handleDelete(plan.id, plan.title)}
@@ -328,7 +330,7 @@ export default function TrainfitManager({ initialPlans }: Props) {
                                                 cursor: "pointer",
                                             }}
                                         >
-                                            Șterge
+                                            Sterge
                                         </button>
                                     </td>
                                 </tr>
@@ -336,7 +338,7 @@ export default function TrainfitManager({ initialPlans }: Props) {
                             {filtered.length === 0 && (
                                 <tr>
                                     <td colSpan={6} style={{ textAlign: "center", color: "#999", padding: "20px" }}>
-                                        Nu există planuri de antrenament{filter !== "toate" ? ` de tip „${filter}"` : ""}.
+                                        Nu exista planuri de fitness.
                                     </td>
                                 </tr>
                             )}
@@ -344,6 +346,26 @@ export default function TrainfitManager({ initialPlans }: Props) {
                     </table>
                 </div>
             </div>
+
+            {isPlanModalOpen && (
+                <FitnessPlanModal
+                    editMode={editMode}
+                    title={title}
+                    description={description}
+                    type={type}
+                    date={date}
+                    formLoading={formLoading}
+                    formError={formError}
+                    formSuccess={formSuccess}
+                    onTitleChange={setTitle}
+                    onDescriptionChange={setDescription}
+                    onTypeChange={setType}
+                    onDateChange={setDate}
+                    onCancelEdit={resetForm}
+                    onClose={closePlanModal}
+                    onSubmit={handleFormSubmit}
+                />
+            )}
         </>
     )
 }

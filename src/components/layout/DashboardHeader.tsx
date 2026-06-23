@@ -5,6 +5,12 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import AddMedicalRecordNavButton from "@/components/layout/AddMedicalRecordNavButton"
 import AddInjuryNavButton from "@/components/layout/AddInjuryNavButton"
 import AddUserNavButton from "@/components/layout/AddUserNavButton"
+import AddCompetitionNavButton from "@/components/layout/AddCompetitionNavButton"
+import AddAthleteNavButton from "@/components/layout/AddAthleteNavButton"
+import CoachManagementNavButton from "@/components/layout/CoachManagementNavButton"
+import AddMatchNavButton from "@/components/layout/AddMatchNavButton"
+import AddTrainingNavButton from "@/components/layout/AddTrainingNavButton"
+import AddFitnessSessionNavButton from "@/components/layout/AddFitnessSessionNavButton"
 import TeamAthletesNavButton, { type TeamAthlete } from "@/components/layout/TeamAthletesNavButton"
 import { prisma } from "@/lib/prisma"
 
@@ -12,6 +18,10 @@ interface NavItem {
     label: string
     href: string
 }
+
+type BasicTeam = { id: number; name: string }
+type BasicCoach = { id: number; firstName: string; lastName: string; teamId: number | null; team: BasicTeam | null }
+type BasicCompetition = { id: number; name: string }
 
 interface DashboardHeaderProps {
     navItems?: NavItem[]
@@ -21,12 +31,12 @@ interface DashboardHeaderProps {
 const defaultNavItems: NavItem[] = [
     { label: "Adauga Utilizator", href: "#" },
     { label: "Adauga Competitie", href: "#" },
-    { label: "Importa Atleti", href: "#" },
+    { label: "Adauga Atleti", href: "#" },
     { label: "Gestiune Antrenori", href: "#" },
     { label: "Adauga Meci", href: "#" },
     { label: "Adauga antrenament", href: "/antrenor-fotbal/antrenamente" },
     { label: "Rapoarte Fitness", href: "#" },
-    { label: "Adauga Sesiune Fitness", href: "#" },
+    { label: "Adauga Sesiune Fitness", href: "/antrenor-fitness/trainfit?open=new" },
     { label: "Adauga Sesiune Recuperare", href: "#" },
     { label: "Adauga Dosar", href: "/medic/dosar-medical?open=new" },
     { label: "Adauga Accidentare", href: "#" },
@@ -47,6 +57,41 @@ export default async function DashboardHeader({
     const canViewTeamAthletes = teamAthleteRoles.includes(session?.user?.role ?? "")
     let teamName: string | null = null
     let teamAthletes: TeamAthlete[] = []
+    let footballTeams: BasicTeam[] = []
+    let footballCoaches: BasicCoach[] = []
+    let footballCompetitions: BasicCompetition[] = []
+
+    if (session?.user?.role === "manager_fotbal") {
+        footballTeams = await prisma.team.findMany({
+            where: { sport: "fotbal" },
+            select: { id: true, name: true },
+            orderBy: { name: "asc" },
+        })
+
+        footballCompetitions = await prisma.competition.findMany({
+            where: { sport: "fotbal" },
+            select: { id: true, name: true },
+            orderBy: { name: "asc" },
+        })
+
+        const coachUsers = await prisma.user.findMany({
+            where: { role: "antrenor_fotbal" },
+            include: {
+                profile: {
+                    include: { team: { select: { id: true, name: true } } },
+                },
+            },
+            orderBy: { email: "asc" },
+        })
+
+        footballCoaches = coachUsers.map((user) => ({
+            id: user.id,
+            firstName: user.profile?.firstName || user.email.split("@")[0],
+            lastName: user.profile?.lastName || "",
+            teamId: user.profile?.teamId || null,
+            team: user.profile?.team || null,
+        }))
+    }
 
     if (session?.user?.id && canViewTeamAthletes) {
         const profile = await prisma.profile.findUnique({
@@ -97,7 +142,7 @@ export default async function DashboardHeader({
             ? canViewTeamAthletes
             : ["Adauga Utilizator", "Adauga Competitie"].includes(item.label)
                 ? session?.user?.role === "admin_global"
-                : ["Importa Atleti", "Gestiune Antrenori", "Adauga Meci"].includes(item.label)
+                : ["Adauga Atleti", "Gestiune Antrenori", "Adauga Meci"].includes(item.label)
                     ? session?.user?.role === "manager_fotbal"
                     : ["Adauga antrenament", "Rapoarte Fitness"].includes(item.label)
                         ? session?.user?.role === "antrenor_fotbal"
@@ -119,52 +164,47 @@ export default async function DashboardHeader({
             <nav className="sd-nav">
                 {visibleNavItems.map((item) => {
                     if (item.label === "Adauga Utilizator") {
-                        return (
-                            <AddUserNavButton
-                                key={item.href + item.label}
-                                label={item.label}
-                                isActive={item.href === activeHref}
-                            />
-                        )
+                        return <AddUserNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} />
+                    }
+
+                    if (item.label === "Adauga Competitie") {
+                        return <AddCompetitionNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} />
+                    }
+
+                    if (item.label === "Adauga Atleti") {
+                        return <AddAthleteNavButton key={item.href + item.label} label={item.label} teams={footballTeams} isActive={item.href === activeHref} />
+                    }
+
+                    if (item.label === "Gestiune Antrenori") {
+                        return <CoachManagementNavButton key={item.href + item.label} label={item.label} antrenori={footballCoaches} teams={footballTeams} isActive={item.href === activeHref} />
+                    }
+
+                    if (item.label === "Adauga Meci") {
+                        return <AddMatchNavButton key={item.href + item.label} label={item.label} teams={footballTeams} competitions={footballCompetitions} isActive={item.href === activeHref} />
+                    }
+
+                    if (item.label === "Adauga antrenament") {
+                        return <AddTrainingNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} />
+                    }
+
+                    if (item.label === "Adauga Sesiune Fitness") {
+                        return <AddFitnessSessionNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} />
                     }
 
                     if (item.label === "Adauga Dosar") {
-                        return (
-                            <AddMedicalRecordNavButton
-                                key={item.href + item.label}
-                                label={item.label}
-                                isActive={item.href === activeHref}
-                            />
-                        )
+                        return <AddMedicalRecordNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} />
                     }
 
                     if (item.label === "Adauga Accidentare") {
-                        return (
-                            <AddInjuryNavButton
-                                key={item.href + item.label}
-                                label={item.label}
-                                isActive={item.href === activeHref}
-                            />
-                        )
+                        return <AddInjuryNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} />
                     }
 
                     if (item.label === "Toti Atletii") {
-                        return (
-                            <TeamAthletesNavButton
-                                key={item.href + item.label}
-                                label={item.label}
-                                teamName={teamName}
-                                athletes={teamAthletes}
-                            />
-                        )
+                        return <TeamAthletesNavButton key={item.href + item.label} label={item.label} teamName={teamName} athletes={teamAthletes} />
                     }
 
                     return (
-                        <Link
-                            key={item.href + item.label}
-                            href={item.href}
-                            className={item.href === activeHref ? "active" : ""}
-                        >
+                        <Link key={item.href + item.label} href={item.href} className={item.href === activeHref ? "active" : ""}>
                             {item.label}
                         </Link>
                     )

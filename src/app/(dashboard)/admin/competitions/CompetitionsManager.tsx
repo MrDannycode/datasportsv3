@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import CompetitionCreateModal from "./CompetitionCreateModal"
 import { createCompetition, deleteCompetition } from "./actions"
 
 type Competition = {
@@ -10,19 +11,40 @@ type Competition = {
     createdAt: Date
 }
 
-export default function CompetitionsManager({ initialCompetitions }: { initialCompetitions: Competition[] }) {
+interface Props {
+    initialCompetitions: Competition[]
+    shouldOpenNewCompetitionModal?: boolean
+}
+
+export default function CompetitionsManager({ initialCompetitions, shouldOpenNewCompetitionModal = false }: Props) {
     const [competitions, setCompetitions] = useState<Competition[]>(initialCompetitions)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
     const [success, setSuccess] = useState("")
-
-    const [formData, setFormData] = useState<{name: string, sport: "fotbal" | "tenis"}>({
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+    const hasOpenedFromQueryRef = useRef(false)
+    const [formData, setFormData] = useState<{ name: string, sport: "fotbal" | "tenis" }>({
         name: "",
         sport: "fotbal"
     })
 
+    useEffect(() => {
+        if (!shouldOpenNewCompetitionModal || hasOpenedFromQueryRef.current) {
+            return
+        }
+
+        hasOpenedFromQueryRef.current = true
+        setIsCreateModalOpen(true)
+    }, [shouldOpenNewCompetitionModal])
+
     const resetForm = () => {
         setFormData({ name: "", sport: "fotbal" })
+        setError("")
+        setSuccess("")
+    }
+
+    const closeCreateModal = () => {
+        setIsCreateModalOpen(false)
         setError("")
         setSuccess("")
     }
@@ -36,28 +58,29 @@ export default function CompetitionsManager({ initialCompetitions }: { initialCo
         try {
             const result = await createCompetition(formData)
             if (result?.competition) {
-                setCompetitions([result.competition, ...competitions])
+                setCompetitions(currentCompetitions => [result.competition, ...currentCompetitions])
             }
-            setSuccess("Competiția a fost adăugată cu succes!")
+            setSuccess("Competitia a fost adaugata cu succes!")
             resetForm()
+            setIsCreateModalOpen(false)
         } catch (err: any) {
-            setError(err.message || "A apărut o eroare.")
+            setError(err.message || "A aparut o eroare.")
         } finally {
             setLoading(false)
         }
     }
 
     const handleDelete = async (id: number) => {
-        if (!confirm("Sigur doriți să ștergeți această competiție?")) return
+        if (!confirm("Sigur doriti sa stergeti aceasta competitie?")) return
         setLoading(true)
         setError("")
         setSuccess("")
         try {
             await deleteCompetition(id)
-            setCompetitions(competitions.filter(c => c.id !== id))
-            setSuccess("Competiția a fost ștearsă.")
+            setCompetitions(currentCompetitions => currentCompetitions.filter(competition => competition.id !== id))
+            setSuccess("Competitia a fost stearsa.")
         } catch (err: any) {
-            setError(err.message || "A apărut o eroare la ștergere.")
+            setError(err.message || "A aparut o eroare la stergere.")
         } finally {
             setLoading(false)
         }
@@ -66,30 +89,30 @@ export default function CompetitionsManager({ initialCompetitions }: { initialCo
     return (
         <div className="sd-box">
             <div className="sd-box-header">
-                <h2>Adăugare Competiție Nouă</h2>
+                <h2>Adaugare Competitie Noua</h2>
             </div>
             <div className="sd-box-content">
                 {error && <div style={{ color: "red", marginBottom: "10px", padding: "10px", background: "#fee", borderRadius: "5px" }}>{error}</div>}
                 {success && <div style={{ color: "green", marginBottom: "10px", padding: "10px", background: "#efe", borderRadius: "5px" }}>{success}</div>}
-                
+
                 <form onSubmit={handleSubmit} style={{ display: "flex", gap: "10px", alignItems: "flex-end", marginBottom: "30px", padding: "15px", border: "1px solid #ddd", borderRadius: "5px", background: "#f9f9f9" }}>
                     <div style={{ flex: 2 }}>
-                        <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Nume Competiție</label>
-                        <input 
-                            required 
-                            type="text" 
+                        <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Nume Competitie</label>
+                        <input
+                            required
+                            type="text"
                             placeholder="ex: Liga 1"
-                            value={formData.name} 
-                            onChange={e => setFormData({...formData, name: e.target.value})}
+                            value={formData.name}
+                            onChange={e => setFormData({ ...formData, name: e.target.value })}
                             style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
                         />
                     </div>
                     <div style={{ flex: 1 }}>
                         <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Sport</label>
-                        <select 
-                            required 
-                            value={formData.sport} 
-                            onChange={e => setFormData({...formData, sport: e.target.value as "fotbal" | "tenis"})}
+                        <select
+                            required
+                            value={formData.sport}
+                            onChange={e => setFormData({ ...formData, sport: e.target.value as "fotbal" | "tenis" })}
                             style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
                         >
                             <option value="fotbal">Fotbal</option>
@@ -98,22 +121,22 @@ export default function CompetitionsManager({ initialCompetitions }: { initialCo
                     </div>
                     <div>
                         <button disabled={loading} type="submit" style={{ padding: "9px 20px", background: "#0070f3", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }}>
-                            {loading ? "Se salvează..." : "Adaugă"}
+                            {loading ? "Se salveaza..." : "Adauga"}
                         </button>
                     </div>
                 </form>
 
-                <h3 style={{ marginBottom: "15px", fontSize: "16px", borderBottom: "1px solid #eee", paddingBottom: "10px" }}>Competiții Existente</h3>
-                
+                <h3 style={{ marginBottom: "15px", fontSize: "16px", borderBottom: "1px solid #eee", paddingBottom: "10px" }}>Competitii Existente</h3>
+
                 <div style={{ overflowX: "auto" }}>
                     <table className="sd-table">
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Nume Competiție</th>
+                                <th>Nume Competitie</th>
                                 <th>Sport</th>
-                                <th>Data Creării</th>
-                                <th style={{ textAlign: "right" }}>Acțiuni</th>
+                                <th>Data Crearii</th>
+                                <th style={{ textAlign: "right" }}>Actiuni</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -122,32 +145,46 @@ export default function CompetitionsManager({ initialCompetitions }: { initialCo
                                     <td>#{comp.id}</td>
                                     <td style={{ fontWeight: "bold" }}>{comp.name}</td>
                                     <td>
-                                        <span style={{ 
-                                            padding: "3px 8px", 
-                                            borderRadius: "12px", 
+                                        <span style={{
+                                            padding: "3px 8px",
+                                            borderRadius: "12px",
                                             fontSize: "12px",
-                                            background: comp.sport === 'fotbal' ? '#e6f7ff' : '#f6ffed',
-                                            color: comp.sport === 'fotbal' ? '#0050b3' : '#389e0d',
-                                            border: `1px solid ${comp.sport === 'fotbal' ? '#91d5ff' : '#b7eb8f'}`
+                                            background: comp.sport === "fotbal" ? "#e6f7ff" : "#f6ffed",
+                                            color: comp.sport === "fotbal" ? "#0050b3" : "#389e0d",
+                                            border: `1px solid ${comp.sport === "fotbal" ? "#91d5ff" : "#b7eb8f"}`
                                         }}>
-                                            {comp.sport === 'fotbal' ? 'Fotbal' : 'Tenis'}
+                                            {comp.sport === "fotbal" ? "Fotbal" : "Tenis"}
                                         </span>
                                     </td>
                                     <td>{new Date(comp.createdAt).toLocaleDateString("ro-RO")}</td>
                                     <td style={{ textAlign: "right" }}>
-                                        <button disabled={loading} onClick={() => handleDelete(comp.id)} style={{ padding: "4px 10px", cursor: "pointer", background: "#fff0f0", color: "red", border: "1px solid #ffcccc", borderRadius: "3px" }}>Șterge</button>
+                                        <button disabled={loading} onClick={() => handleDelete(comp.id)} style={{ padding: "4px 10px", cursor: "pointer", background: "#fff0f0", color: "red", border: "1px solid #ffcccc", borderRadius: "3px" }}>Sterge</button>
                                     </td>
                                 </tr>
                             ))}
                             {competitions.length === 0 && (
                                 <tr>
-                                    <td colSpan={5} style={{ textAlign: "center", padding: "20px", color: "#666" }}>Nu există nicio competiție adăugată.</td>
+                                    <td colSpan={5} style={{ textAlign: "center", padding: "20px", color: "#666" }}>Nu exista nicio competitie adaugata.</td>
                                 </tr>
                             )}
                         </tbody>
                     </table>
                 </div>
             </div>
+
+            {isCreateModalOpen && (
+                <CompetitionCreateModal
+                    name={formData.name}
+                    sport={formData.sport}
+                    loading={loading}
+                    error={error}
+                    success={success}
+                    onNameChange={(value) => setFormData({ ...formData, name: value })}
+                    onSportChange={(value) => setFormData({ ...formData, sport: value })}
+                    onClose={closeCreateModal}
+                    onSubmit={handleSubmit}
+                />
+            )}
         </div>
     )
 }

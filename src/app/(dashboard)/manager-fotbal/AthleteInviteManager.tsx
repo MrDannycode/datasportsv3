@@ -1,6 +1,7 @@
-﻿"use client"
+"use client"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import AthleteInviteModal from "./AthleteInviteModal"
 import { importAthletes, inviteAthlete, type AthleteInviteInput, type AthleteInviteResult } from "./athlete-actions"
 
 type Team = { id: number; name: string }
@@ -28,21 +29,40 @@ function parseCsv(text: string) {
     return records
 }
 
-export default function AthleteInviteManager({ teams }: { teams: Team[] }) {
+interface Props {
+    teams: Team[]
+    shouldOpenInviteModal?: boolean
+}
+
+export default function AthleteInviteManager({ teams, shouldOpenInviteModal = false }: Props) {
     const [invite, setInvite] = useState<AthleteInviteInput>(emptyInvite)
     const [inviteResult, setInviteResult] = useState<AthleteInviteResult | null>(null)
     const [importResults, setImportResults] = useState<AthleteInviteResult[]>([])
     const [error, setError] = useState("")
     const [busy, setBusy] = useState<"invite" | "import" | null>(null)
+    const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
+    const hasOpenedFromQueryRef = useRef(false)
     const fileRef = useRef<HTMLInputElement>(null)
     const update = (name: keyof AthleteInviteInput, value: string) => setInvite(current => ({ ...current, [name]: value }))
+
+    useEffect(() => {
+        if (!shouldOpenInviteModal || hasOpenedFromQueryRef.current) {
+            return
+        }
+
+        hasOpenedFromQueryRef.current = true
+        setIsInviteModalOpen(true)
+    }, [shouldOpenInviteModal])
 
     async function submitInvite(event: React.FormEvent) {
         event.preventDefault(); setBusy("invite"); setInviteResult(null)
         try {
             const result = await inviteAthlete(invite)
             setInviteResult(result)
-            if (result.success) setInvite(emptyInvite)
+            if (result.success) {
+                setInvite(emptyInvite)
+                setIsInviteModalOpen(false)
+            }
         } finally { setBusy(null) }
     }
 
@@ -56,9 +76,9 @@ export default function AthleteInviteManager({ teams }: { teams: Team[] }) {
             if (missing.length) throw new Error(`Lipsesc coloanele obligatorii: ${missing.join(", ")}.`)
             const value = (row: string[], name: string) => row[headers.indexOf(name)] ?? ""
             const rows = records.map(row => ({ email: value(row, "email"), firstName: value(row, "firstname"), lastName: value(row, "lastname"), position: value(row, "position"), preferredFoot: value(row, "preferredfoot"), teamId: value(row, "teamid"), jerseyNumber: value(row, "jerseynumber") }))
-            if (!rows.length) throw new Error("Fișierul CSV nu conține atleți.")
+            if (!rows.length) throw new Error("Fisierul CSV nu contine atleti.")
             setImportResults((await importAthletes(rows)).results)
-        } catch (reason) { setError(reason instanceof Error ? reason.message : "Importul a eșuat.") }
+        } catch (reason) { setError(reason instanceof Error ? reason.message : "Importul a esuat.") }
         finally { setBusy(null); if (fileRef.current) fileRef.current.value = "" }
     }
 
@@ -69,25 +89,37 @@ export default function AthleteInviteManager({ teams }: { teams: Team[] }) {
     }
 
     return <div style={{ display: "grid", gap: "20px" }}>
-        <div className="sd-box"><div className="sd-box-header"><h2>Invită atlet</h2></div><div className="sd-box-content">
+        <div className="sd-box"><div className="sd-box-header"><h2>Invita atlet</h2></div><div className="sd-box-content">
             <form onSubmit={submitInvite} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: "12px", alignItems: "end" }}>
                 <label style={labelStyle}>Email<input type="email" required value={invite.email} onChange={e => update("email", e.target.value)} style={fieldStyle} /></label>
                 <label style={labelStyle}>Prenume<input required value={invite.firstName} onChange={e => update("firstName", e.target.value)} style={fieldStyle} /></label>
                 <label style={labelStyle}>Nume<input required value={invite.lastName} onChange={e => update("lastName", e.target.value)} style={fieldStyle} /></label>
-                <label style={labelStyle}>Poziție<select value={invite.position} onChange={e => update("position", e.target.value)} style={fieldStyle}><option value="portar">Portar</option><option value="fundas">Fundaș</option><option value="mijlocas">Mijlocaș</option><option value="atacant">Atacant</option></select></label>
-                <label style={labelStyle}>Picior preferat<select value={invite.preferredFoot} onChange={e => update("preferredFoot", e.target.value)} style={fieldStyle}><option value="stanga">Stângul</option><option value="dreapta">Dreptul</option><option value="ambele">Ambele</option></select></label>
-                <label style={labelStyle}>Echipa<select value={invite.teamId ?? ""} onChange={e => update("teamId", e.target.value)} style={fieldStyle}><option value="">Fără echipă</option>{teams.map(team => <option key={team.id} value={team.id}>{team.name}</option>)}</select></label>
-                <label style={labelStyle}>Număr tricou<input type="number" min="1" max="99" value={invite.jerseyNumber ?? ""} onChange={e => update("jerseyNumber", e.target.value)} style={fieldStyle} /></label>
-                <button disabled={busy !== null} style={{ ...fieldStyle, border: 0, background: "#0056b3", color: "#fff", fontWeight: 700, cursor: "pointer" }}>{busy === "invite" ? "Se creează..." : "Trimite invitația"}</button>
+                <label style={labelStyle}>Pozitie<select value={invite.position} onChange={e => update("position", e.target.value)} style={fieldStyle}><option value="portar">Portar</option><option value="fundas">Fundas</option><option value="mijlocas">Mijlocas</option><option value="atacant">Atacant</option></select></label>
+                <label style={labelStyle}>Picior preferat<select value={invite.preferredFoot} onChange={e => update("preferredFoot", e.target.value)} style={fieldStyle}><option value="stanga">Stangul</option><option value="dreapta">Dreptul</option><option value="ambele">Ambele</option></select></label>
+                <label style={labelStyle}>Echipa<select value={invite.teamId ?? ""} onChange={e => update("teamId", e.target.value)} style={fieldStyle}><option value="">Fara echipa</option>{teams.map(team => <option key={team.id} value={team.id}>{team.name}</option>)}</select></label>
+                <label style={labelStyle}>Numar tricou<input type="number" min="1" max="99" value={invite.jerseyNumber ?? ""} onChange={e => update("jerseyNumber", e.target.value)} style={fieldStyle} /></label>
+                <button disabled={busy !== null} style={{ ...fieldStyle, border: 0, background: "#0056b3", color: "#fff", fontWeight: 700, cursor: "pointer" }}>{busy === "invite" ? "Se creeaza..." : "Trimite invitatia"}</button>
             </form>
-            {inviteResult && <div role="status" style={{ marginTop: 12, padding: 10, background: inviteResult.success ? "#ecfdf5" : "#fef2f2", color: inviteResult.success ? "#166534" : "#b91c1c", fontSize: 13 }}>{inviteResult.success ? <>Cont creat pentru <strong>{inviteResult.email}</strong>. Parolă temporară: <strong style={{ userSelect: "all" }}>{inviteResult.temporaryPassword}</strong></> : inviteResult.error}</div>}
+            {inviteResult && <div role="status" style={{ marginTop: 12, padding: 10, background: inviteResult.success ? "#ecfdf5" : "#fef2f2", color: inviteResult.success ? "#166534" : "#b91c1c", fontSize: 13 }}>{inviteResult.success ? <>Cont creat pentru <strong>{inviteResult.email}</strong>. Parola temporara: <strong style={{ userSelect: "all" }}>{inviteResult.temporaryPassword}</strong></> : inviteResult.error}</div>}
         </div></div>
 
-        <div className="sd-box"><div className="sd-box-header"><h2>Importă atleți din CSV</h2></div><div className="sd-box-content">
-            <p style={{ marginTop: 0, color: "#64748b", fontSize: 13 }}>Obligatoriu: email, firstName, lastName, position, preferredFoot. Opțional: teamId, jerseyNumber. Maximum 250 de rânduri.</p>
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}><button type="button" onClick={downloadTemplate} style={{ ...fieldStyle, cursor: "pointer" }}>Descarcă model CSV</button><label style={{ ...fieldStyle, background: "#0056b3", color: "#fff", cursor: "pointer", fontWeight: 700 }}>{busy === "import" ? "Se importă..." : "Alege fișier CSV"}<input ref={fileRef} type="file" accept=".csv,text/csv" disabled={busy !== null} onChange={e => { const file = e.target.files?.[0]; if (file) void submitCsv(file) }} style={{ display: "none" }} /></label></div>
+        <div className="sd-box"><div className="sd-box-header"><h2>Importa atleti din CSV</h2></div><div className="sd-box-content">
+            <p style={{ marginTop: 0, color: "#64748b", fontSize: 13 }}>Obligatoriu: email, firstName, lastName, position, preferredFoot. Optional: teamId, jerseyNumber. Maximum 250 de randuri.</p>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}><button type="button" onClick={downloadTemplate} style={{ ...fieldStyle, cursor: "pointer" }}>Descarca model CSV</button><label style={{ ...fieldStyle, background: "#0056b3", color: "#fff", cursor: "pointer", fontWeight: 700 }}>{busy === "import" ? "Se importa..." : "Alege fisier CSV"}<input ref={fileRef} type="file" accept=".csv,text/csv" disabled={busy !== null} onChange={e => { const file = e.target.files?.[0]; if (file) void submitCsv(file) }} style={{ display: "none" }} /></label></div>
             {error && <p style={{ color: "#b91c1c", fontSize: 13 }}>{error}</p>}
-            {importResults.length > 0 && <div style={{ marginTop: 14, overflowX: "auto" }}><p style={{ fontSize: 13, fontWeight: 700 }}>Import finalizat: {importResults.filter(r => r.success).length} creați, {importResults.filter(r => !r.success).length} respinși.</p><table className="sd-table"><thead><tr><th>Rând</th><th>Email</th><th>Rezultat</th><th>Parolă temporară / eroare</th></tr></thead><tbody>{importResults.map(result => <tr key={`${result.row}-${result.email}`}><td>{result.row}</td><td>{result.email || "—"}</td><td style={{ color: result.success ? "#166534" : "#b91c1c", fontWeight: 700 }}>{result.success ? "Creat" : "Respins"}</td><td style={{ userSelect: result.success ? "all" : "auto" }}>{result.temporaryPassword ?? result.error}</td></tr>)}</tbody></table></div>}
+            {importResults.length > 0 && <div style={{ marginTop: 14, overflowX: "auto" }}><p style={{ fontSize: 13, fontWeight: 700 }}>Import finalizat: {importResults.filter(r => r.success).length} creati, {importResults.filter(r => !r.success).length} respinsi.</p><table className="sd-table"><thead><tr><th>Rand</th><th>Email</th><th>Rezultat</th><th>Parola temporara / eroare</th></tr></thead><tbody>{importResults.map(result => <tr key={`${result.row}-${result.email}`}><td>{result.row}</td><td>{result.email || "—"}</td><td style={{ color: result.success ? "#166534" : "#b91c1c", fontWeight: 700 }}>{result.success ? "Creat" : "Respins"}</td><td style={{ userSelect: result.success ? "all" : "auto" }}>{result.temporaryPassword ?? result.error}</td></tr>)}</tbody></table></div>}
         </div></div>
+
+        {isInviteModalOpen && (
+            <AthleteInviteModal
+                invite={invite}
+                teams={teams}
+                busy={busy === "invite"}
+                inviteResult={inviteResult}
+                onUpdate={update}
+                onClose={() => setIsInviteModalOpen(false)}
+                onSubmit={submitInvite}
+            />
+        )}
     </div>
 }
