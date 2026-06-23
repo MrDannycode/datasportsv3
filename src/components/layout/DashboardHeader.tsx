@@ -13,6 +13,7 @@ import AddTrainingNavButton from "@/components/layout/AddTrainingNavButton"
 import AddFitnessSessionNavButton from "@/components/layout/AddFitnessSessionNavButton"
 import TeamAthletesNavButton, { type TeamAthlete } from "@/components/layout/TeamAthletesNavButton"
 import MedicalRecordNavButton, { type AthleteMedicalRecord } from "@/components/layout/MedicalRecordNavButton"
+import ExportAuditNavButton from "@/components/layout/ExportAuditNavButton"
 import { prisma } from "@/lib/prisma"
 
 interface NavItem {
@@ -32,6 +33,7 @@ interface DashboardHeaderProps {
 const defaultNavItems: NavItem[] = [
     { label: "Adauga Utilizator", href: "#" },
     { label: "Adauga Competitie", href: "#" },
+    { label: "Export Audit Curent", href: "#"},
     { label: "Adauga Atleti", href: "#" },
     { label: "Gestiune Antrenori", href: "#" },
     { label: "Adauga Meci", href: "#" },
@@ -183,7 +185,7 @@ export default async function DashboardHeader({
     const visibleNavItems = navItems.filter((item) =>
         item.label === "Toti Atletii"
             ? canViewTeamAthletes
-            : ["Adauga Utilizator", "Adauga Competitie"].includes(item.label)
+            : ["Adauga Utilizator", "Adauga Competitie", "Export Audit Curent"].includes(item.label)
                 ? session?.user?.role === "admin_global"
                 : ["Adauga Atleti", "Gestiune Antrenori", "Adauga Meci"].includes(item.label)
                     ? session?.user?.role === "manager_fotbal"

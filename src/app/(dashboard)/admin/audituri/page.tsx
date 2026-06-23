@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { AuditAction, Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
+import AuditExportButton from "./AuditExportButton"
 
 const PAGE_SIZE = 20
 const EXPORT_LIMIT = 10000
@@ -188,9 +189,9 @@ export default async function AdminAuditPage({ searchParams }: AdminAuditPagePro
             <div className="sd-box">
                 <div className="sd-box-header">
                     <h2>Inregistrari audit ({totalLogs})</h2>
-                    <Link href={buildExportHref(filtersForLinks)} className="sd-btn-secondary">
+                    <a href={buildExportHref(filtersForLinks)} download className="sd-btn-secondary">
                         Export XLSX
-                    </Link>
+                    </a>
                 </div>
                 <div className="sd-box-content" style={{ padding: 0, overflowX: "auto" }}>
                     <table className="sd-table">

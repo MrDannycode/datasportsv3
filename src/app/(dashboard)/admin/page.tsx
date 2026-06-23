@@ -39,10 +39,6 @@ export default async function AdminPage() {
                         </div>
                     </div>
                 </Link>
-                <div className="sd-box sd-metric-box" style={{ flex: 1 }}>
-                    <div className="sd-metric-title">Echipe</div>
-                    <div className="sd-metric-value">—</div>
-                </div>
                 <Link href="/admin/audituri" style={{ flex: 1, textDecoration: "none" }}>
                     <div className="sd-box sd-metric-box" style={{ cursor: "pointer" }}>
                         <div className="sd-metric-title">Audituri</div>
