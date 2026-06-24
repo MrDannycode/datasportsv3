@@ -11,6 +11,7 @@ import CoachManagementNavButton from "@/components/layout/CoachManagementNavButt
 import AddMatchNavButton from "@/components/layout/AddMatchNavButton"
 import AddTrainingNavButton from "@/components/layout/AddTrainingNavButton"
 import AddFitnessSessionNavButton from "@/components/layout/AddFitnessSessionNavButton"
+import AddActivityNavButton from "@/components/layout/AddActivityNavButton"
 import TeamAthletesNavButton, { type TeamAthlete } from "@/components/layout/TeamAthletesNavButton"
 import MedicalRecordNavButton, { type AthleteMedicalRecord } from "@/components/layout/MedicalRecordNavButton"
 import ExportAuditNavButton from "@/components/layout/ExportAuditNavButton"
@@ -33,7 +34,7 @@ interface DashboardHeaderProps {
 const defaultNavItems: NavItem[] = [
     { label: "Adauga Utilizator", href: "#" },
     { label: "Adauga Competitie", href: "#" },
-    { label: "Export Audit Curent", href: "#"},
+    { label: "Export Audit Curent", href: "#" },
     { label: "Adauga Atleti", href: "#" },
     { label: "Gestiune Antrenori", href: "#" },
     { label: "Adauga Meci", href: "#" },
@@ -46,7 +47,7 @@ const defaultNavItems: NavItem[] = [
     { label: "Disponibilitate atleti", href: "#" },
     { label: "Istoric Accidentari", href: "#" },
     { label: "Dosar Medical", href: "#" },
-    { label: "Adauga Activitate", href: "#" },
+    { label: "Adauga Activitate", href: "/atlet-fotbal/activity?open=new" },
     { label: "Feedback Daily", href: "#" },
     { label: "Toti Atletii", href: "#" },
 ]
@@ -64,6 +65,7 @@ export default async function DashboardHeader({
     let footballCoaches: BasicCoach[] = []
     let footballCompetitions: BasicCompetition[] = []
     let athleteMedicalRecords: AthleteMedicalRecord[] = []
+    let athleteHasCardiacData = false
 
     if (session?.user?.role === "manager_fotbal") {
         footballTeams = await prisma.team.findMany({
@@ -141,7 +143,6 @@ export default async function DashboardHeader({
         }) ?? []
     }
 
-
     if (session?.user?.role === "atlet_fotbal") {
         const records = await prisma.medicalRecord.findMany({
             where: { athlete: { userId: Number(session.user.id) } },
@@ -181,7 +182,15 @@ export default async function DashboardHeader({
                 })),
             }
         })
+
+        const athleteProfile = await prisma.profile.findUnique({
+            where: { userId: Number(session.user.id) },
+            select: { restingHeartRate: true, maxHeartRate: true },
+        })
+
+        athleteHasCardiacData = !!(athleteProfile?.restingHeartRate && athleteProfile?.maxHeartRate)
     }
+
     const visibleNavItems = navItems.filter((item) =>
         item.label === "Toti Atletii"
             ? canViewTeamAthletes
@@ -248,6 +257,10 @@ export default async function DashboardHeader({
                         return <AddInjuryNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} />
                     }
 
+                    if (item.label === "Adauga Activitate") {
+                        return <AddActivityNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} hasCardiacData={athleteHasCardiacData} />
+                    }
+
                     if (item.label === "Toti Atletii") {
                         return <TeamAthletesNavButton key={item.href + item.label} label={item.label} teamName={teamName} athletes={teamAthletes} />
                     }
@@ -282,5 +295,3 @@ export default async function DashboardHeader({
         </header>
     )
 }
-
-

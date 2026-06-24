@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
+import Link from "next/link"
 
 export default async function AtletFotbalPage() {
     const session = await getServerSession(authOptions)
@@ -78,6 +79,14 @@ export default async function AtletFotbalPage() {
                 <div className="sd-box sd-metric-box">
                     <div className="sd-metric-title">Training calendar</div>
                 </div>
+                <Link href="/atlet-fotbal/activity" style={{ flex: 1, textDecoration: "none" }}>
+                    <div className="sd-box sd-metric-box" style={{ cursor: "pointer" }}>
+                        <div className="sd-metric-title">Activities</div>
+                        <div className="sd-metric-value" style={{ fontSize: "14px", marginTop: "8px", color: "#0056b3" }}>
+                            Gestionează →
+                        </div>
+                    </div>
+                </Link>
             </div>
 
             <div className="sd-panels">
@@ -142,17 +151,18 @@ export default async function AtletFotbalPage() {
 
                     <div className="sd-box">
                         <div className="sd-box-header">
-                            <h2>Data Science</h2>
+                            <h2>Calculations</h2>
                         </div>
                         <div className="sd-box-content">
                             <ul className="sd-list">
-                                <li>VO2Max</li>
-                                <li>Fitness level</li>
-                                <li>Fatigue</li>
-                                <li>Stress Balance</li>
-                                <li>Workload ratio</li>
+                                <li>Data</li>
+                                <li>TRIMP</li>
+                                <li>CTL(Fitness)</li>
+                                <li>ATL(Fatigue)</li>
+                                <li>TSB(Form)</li>
+                                <li>A:C Ratio</li>
                                 <li>Monotony</li>
-                                <li>Recovery</li>
+                                <li>Strain</li>
                             </ul>
                         </div>
                     </div>
