@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react"
 import UserCreateModal from "./UserCreateModal"
-import { createUser, deleteUser } from "./actions"
+import UserEditModal from "./UserEditModal"
+import { createUser, deleteUser, updateUser } from "./actions"
 
 interface User {
     id: number
@@ -36,6 +37,12 @@ export default function UsersManager({ initialUsers, shouldOpenNewUserModal = fa
     const [formError, setFormError] = useState("")
     const [formSuccess, setFormSuccess] = useState("")
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+    const [editingUser, setEditingUser] = useState<User | null>(null)
+    const [editEmail, setEditEmail] = useState("")
+    const [editPassword, setEditPassword] = useState("")
+    const [editRole, setEditRole] = useState("atlet_fotbal")
+    const [editing, setEditing] = useState(false)
+    const [editError, setEditError] = useState("")
     const hasOpenedFromQueryRef = useRef(false)
 
     useEffect(() => {
@@ -73,6 +80,45 @@ export default function UsersManager({ initialUsers, shouldOpenNewUserModal = fa
         }
 
         setCreating(false)
+    }
+
+    function openEditModal(user: User) {
+        setEditingUser(user)
+        setEditEmail(user.email)
+        setEditPassword("")
+        setEditRole(user.role)
+        setEditError("")
+    }
+
+    function closeEditModal() {
+        setEditingUser(null)
+        setEditEmail("")
+        setEditPassword("")
+        setEditRole("atlet_fotbal")
+        setEditError("")
+    }
+
+    async function handleEdit(e: React.FormEvent) {
+        e.preventDefault()
+        if (!editingUser) return
+
+        setEditing(true)
+        setEditError("")
+
+        const result = await updateUser(editingUser.id, {
+            email: editEmail,
+            password: editPassword,
+            role: editRole,
+        })
+
+        if (result.error) {
+            setEditError(result.error)
+        } else if (result.user) {
+            setUsers(currentUsers => currentUsers.map(user => user.id === result.user.id ? result.user : user))
+            closeEditModal()
+        }
+
+        setEditing(false)
     }
 
     async function handleDelete(id: number, userEmail: string) {
@@ -200,19 +246,36 @@ export default function UsersManager({ initialUsers, shouldOpenNewUserModal = fa
                                         {new Date(user.createdAt).toLocaleDateString("ro-RO")}
                                     </td>
                                     <td>
-                                        <button
-                                            onClick={() => handleDelete(user.id, user.email)}
-                                            style={{
-                                                fontSize: "11px",
-                                                border: "1px solid #c00",
-                                                color: "#c00",
-                                                backgroundColor: "transparent",
-                                                padding: "2px 8px",
-                                                cursor: "pointer",
-                                            }}
-                                        >
-                                            Sterge
-                                        </button>
+                                        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                                            <button
+                                                type="button"
+                                                onClick={() => openEditModal(user)}
+                                                style={{
+                                                    fontSize: "11px",
+                                                    border: "1px solid #0056b3",
+                                                    color: "#0056b3",
+                                                    backgroundColor: "transparent",
+                                                    padding: "2px 8px",
+                                                    cursor: "pointer",
+                                                }}
+                                            >
+                                                Edit
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDelete(user.id, user.email)}
+                                                style={{
+                                                    fontSize: "11px",
+                                                    border: "1px solid #c00",
+                                                    color: "#c00",
+                                                    backgroundColor: "transparent",
+                                                    padding: "2px 8px",
+                                                    cursor: "pointer",
+                                                }}
+                                            >
+                                                Sterge
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -227,6 +290,21 @@ export default function UsersManager({ initialUsers, shouldOpenNewUserModal = fa
                     </table>
                 </div>
             </div>
+
+            {editingUser && (
+                <UserEditModal
+                    email={editEmail}
+                    password={editPassword}
+                    role={editRole}
+                    saving={editing}
+                    formError={editError}
+                    onEmailChange={setEditEmail}
+                    onPasswordChange={setEditPassword}
+                    onRoleChange={setEditRole}
+                    onClose={closeEditModal}
+                    onSubmit={handleEdit}
+                />
+            )}
 
             {isCreateModalOpen && (
                 <UserCreateModal

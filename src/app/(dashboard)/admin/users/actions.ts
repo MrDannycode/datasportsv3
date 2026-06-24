@@ -52,6 +52,67 @@ export async function createUser(data: { email: string; password: string; role: 
     return { user }
 }
 
+export async function updateUser(id: number, data: { email: string; password?: string; role: string }) {
+    const session = await getServerSession(authOptions)
+    if (!session || session.user.role !== "admin_global") {
+        return { error: "Unauthorized" }
+    }
+
+    const { email, password, role } = data
+
+    if (!email || !role) {
+        return { error: "Email si rol sunt obligatorii" }
+    }
+
+    if (!Object.values(Role).includes(role as Role)) {
+        return { error: "Rol invalid" }
+    }
+
+    const existing = await prisma.user.findFirst({
+        where: {
+            email,
+            NOT: { id },
+        },
+    })
+
+    if (existing) {
+        return { error: "Email-ul este deja inregistrat" }
+    }
+
+    try {
+        const updateData: { email: string; role: Role; passwordHash?: string } = {
+            email,
+            role: role as Role,
+        }
+
+        if (password?.trim()) {
+            updateData.passwordHash = await bcrypt.hash(password, 10)
+        }
+
+        const user = await prisma.user.update({
+            where: { id },
+            data: updateData,
+            select: { id: true, email: true, role: true, createdAt: true },
+        })
+
+        await prisma.auditLog.create({
+            data: {
+                userId: Number(session.user.id),
+                action: "update",
+                tableAffected: "users",
+                recordId: user.id,
+                details: { email: user.email, role: user.role, passwordChanged: Boolean(password?.trim()) },
+            },
+        })
+
+        revalidatePath("/admin/users")
+        revalidatePath("/admin/audituri")
+        return { user }
+    } catch {
+        return { error: "Utilizatorul nu a fost gasit sau a aparut o eroare" }
+    }
+}
+
 export async function deleteUser(id: number) {
     const session = await getServerSession(authOptions)
     if (!session || session.user.role !== "admin_global") {
