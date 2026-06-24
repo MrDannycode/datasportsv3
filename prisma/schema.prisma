@@ -87,6 +87,11 @@ enum AuditAction {
   logout
 }
 
+enum Gender {
+  MALE
+  FEMALE
+}
+
 // ─── TABELE DE BAZĂ ──────────────────────────────────────
 
 model User {
@@ -141,18 +146,23 @@ model Competition {
 // ─── TABELE DE PROFIL ─────────────────────────────────────
 
 model Profile {
-  id             Int       @id @default(autoincrement())
-  userId         Int       @unique @map("user_id")
-  firstName      String    @map("first_name")
-  lastName       String    @map("last_name")
-  dateOfBirth    DateTime? @map("date_of_birth")
-  nationality    String?
-  phone          String?
-  profilePicture String?   @map("profile_picture")
-  teamId         Int?      @map("team_id")
+  id               Int       @id @default(autoincrement())
+  userId           Int       @unique @map("user_id")
+  firstName        String    @map("first_name")
+  lastName         String    @map("last_name")
+  dateOfBirth      DateTime? @map("date_of_birth")
+  nationality      String?
+  phone            String?
+  profilePicture   String?   @map("profile_picture")
+  teamId           Int?      @map("team_id")
+  restingHeartRate Int?      @map("resting_heart_rate") // HR_rest necesar pentru TRIMP
+  maxHeartRate     Int?      @map("max_heart_rate")     // HR_max necesar pentru TRIMP
+  gender           Gender?                              // MALE / FEMALE factor Y Banister
 
-  user User @relation(fields: [userId], references: [id])
-  team Team? @relation(fields: [teamId], references: [id])
+  user       User        @relation(fields: [userId], references: [id])
+  team       Team?       @relation(fields: [teamId], references: [id])
+  activities Activity[]
+  dailyLoads DailyLoad[]
 
   @@map("profiles")
 }
@@ -376,4 +386,46 @@ model AuditLog {
   user User @relation(fields: [userId], references: [id])
 
   @@map("audit_logs")
+}
+
+// --- TRAINING LOAD ------------------------------------------------------
+
+/// O sesiune de antrenament - sursa primara pentru calculul TRIMP.
+/// Nu se insereaza manual in DailyLoad; pipeline-ul de calcul
+/// reagregeaza automat dupa fiecare upsert in Activity.
+model Activity {
+  id           Int      @id @default(autoincrement())
+  athleteId    Int      @map("athlete_id")
+  date         DateTime
+  durationMin  Float    @map("duration_min")   // durata in minute
+  avgHeartRate Float?   @map("avg_heart_rate") // HR mediu (fallback pentru TRIMP)
+  sport        String?                          // "fotbal", "tenis", etc.
+  notes        String?
+  trimp        Float?                           // calculat si stocat dupa import
+
+  athlete Profile @relation(fields: [athleteId], references: [id])
+
+  @@index([athleteId, date])
+  @@map("activities")
+}
+
+/// Agregare zilnica per atlet - se populeaza exclusiv prin pipeline,
+/// niciodata manual. @@unique garanteaza un singur rand per atlet/zi.
+model DailyLoad {
+  id        Int      @id @default(autoincrement())
+  athleteId Int      @map("athlete_id")
+  date      DateTime @db.Date
+  trimp     Float                     // suma TRIMP-urilor activitatilor din ziua respectiva
+  atl       Float                     // Fatigue  - EWMA 7 zile
+  ctl       Float                     // Fitness  - EWMA 42 zile
+  tsb       Float                     // Form     - CTL - ATL
+  acRatio   Float    @map("ac_ratio") // Workload Ratio - ATL / CTL
+  monotony  Float?                    // avg(TRIMP) / stddev(TRIMP) - necesita minim 7 zile
+  strain    Float?                    // sum(TRIMP_7zile) * Monotony
+
+  athlete Profile @relation(fields: [athleteId], references: [id])
+
+  @@unique([athleteId, date])
+  @@index([athleteId])
+  @@map("daily_loads")
 }
