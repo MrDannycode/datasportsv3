@@ -5,16 +5,17 @@ type Team = {
     name: string
 }
 
-type Antrenor = {
+type StaffMember = {
     id: number
     firstName: string
     lastName: string
+    role: string
     teamId: number | null
     team: Team | null
 }
 
 interface Props {
-    antrenori: Antrenor[]
+    antrenori: StaffMember[]
     teams: Team[]
     loading: boolean
     error: string
@@ -23,7 +24,15 @@ interface Props {
     onClose: () => void
 }
 
+const STAFF_ROLE_LABELS: Record<string, string> = {
+    antrenor_fotbal: "Antrenor Fotbal",
+    antrenor_fitness: "Antrenor Fitness",
+    medic: "Medic",
+}
+
 export default function CoachAssignmentModal({ antrenori, teams, loading, error, successMsg, onAssign, onClose }: Props) {
+    const roleLabel = (role: string) => STAFF_ROLE_LABELS[role] ?? role
+
     return (
         <div
             role="dialog"
@@ -62,9 +71,9 @@ export default function CoachAssignmentModal({ antrenori, teams, loading, error,
                     }}
                 >
                     <div>
-                        <h2 id="coach-assignment-modal-title" style={{ margin: 0 }}>Alocare Antrenori</h2>
+                        <h2 id="coach-assignment-modal-title" style={{ margin: 0 }}>Alocare Staff</h2>
                         <p style={{ margin: "6px 0 0", color: "#666", fontSize: "13px" }}>
-                            Administreaza rapid alocarea antrenorilor pe echipele de fotbal.
+                            Administreaza rapid alocarea staffului pe echipele de fotbal.
                         </p>
                     </div>
                     <button
@@ -85,7 +94,8 @@ export default function CoachAssignmentModal({ antrenori, teams, loading, error,
                         <table className="sd-table">
                             <thead>
                                 <tr>
-                                    <th>Nume Antrenor</th>
+                                    <th>Nume</th>
+                                    <th>Rol</th>
                                     <th>Echipa Curenta</th>
                                     <th>Actiuni</th>
                                 </tr>
@@ -94,6 +104,7 @@ export default function CoachAssignmentModal({ antrenori, teams, loading, error,
                                 {antrenori.map(antrenor => (
                                     <tr key={antrenor.id}>
                                         <td>{antrenor.firstName} {antrenor.lastName}</td>
+                                        <td>{roleLabel(antrenor.role)}</td>
                                         <td>{antrenor.team?.name || "Nicio echipa"}</td>
                                         <td>
                                             <select
@@ -112,7 +123,7 @@ export default function CoachAssignmentModal({ antrenori, teams, loading, error,
                                 ))}
                                 {antrenori.length === 0 && (
                                     <tr>
-                                        <td colSpan={3} style={{ textAlign: "center", padding: "15px", color: "#666" }}>Nu exista antrenori inregistrati.</td>
+                                        <td colSpan={4} style={{ textAlign: "center", padding: "15px", color: "#666" }}>Nu exista conturi de staff inregistrate.</td>
                                     </tr>
                                 )}
                             </tbody>

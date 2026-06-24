@@ -162,7 +162,9 @@ async function assignUserProfileToTeam(userId: number, teamId: string | null) {
     }
     
     revalidatePath("/manager-fotbal")
+    revalidatePath("/manager-fotbal/antrenori")
 }
+
 export async function assignPlayerToTeam(userId: number, teamId: string | null) {
     await assignUserProfileToTeam(userId, teamId)
 }

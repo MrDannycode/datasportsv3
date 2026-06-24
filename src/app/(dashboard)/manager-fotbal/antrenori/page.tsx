@@ -25,7 +25,7 @@ export default async function AntrenoriPage({ searchParams }: AntrenoriPageProps
             orderBy: { name: "asc" },
         }),
         prisma.user.findMany({
-            where: { role: "antrenor_fotbal" },
+            where: { role: { in: ["antrenor_fotbal", "antrenor_fitness", "medic"] } },
             include: { profile: { include: { team: true } } },
             orderBy: { email: "asc" },
         }),
@@ -35,6 +35,7 @@ export default async function AntrenoriPage({ searchParams }: AntrenoriPageProps
         id: user.id,
         firstName: user.profile?.firstName || user.email.split("@")[0],
         lastName: user.profile?.lastName || "",
+        role: user.role,
         teamId: user.profile?.teamId || null,
         team: user.profile?.team || null,
         hasProfile: !!user.profile,
@@ -44,7 +45,7 @@ export default async function AntrenoriPage({ searchParams }: AntrenoriPageProps
         <main>
             <div className="sd-page-title" style={{ display: "flex", alignItems: "center", gap: "15px" }}>
                 <Link href="/manager-fotbal" className="sd-btn-secondary">Inapoi</Link>
-                <h1>Antrenori fotbal</h1>
+                <h1>Staff fotbal</h1>
             </div>
             <AntrenorManager antrenori={antrenori} teams={teams} shouldOpenCoachModal={resolvedSearchParams?.open === "coaches"} />
         </main>

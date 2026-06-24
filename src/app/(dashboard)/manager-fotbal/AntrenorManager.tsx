@@ -9,18 +9,25 @@ type Team = {
     name: string
 }
 
-type Antrenor = {
+type StaffMember = {
     id: number
     firstName: string
     lastName: string
+    role: string
     teamId: number | null
     team: Team | null
 }
 
 interface Props {
-    antrenori: Antrenor[]
+    antrenori: StaffMember[]
     teams: Team[]
     shouldOpenCoachModal?: boolean
+}
+
+const STAFF_ROLE_LABELS: Record<string, string> = {
+    antrenor_fotbal: "Antrenor Fotbal",
+    antrenor_fitness: "Antrenor Fitness",
+    medic: "Medic",
 }
 
 export default function AntrenorManager({
@@ -49,7 +56,7 @@ export default function AntrenorManager({
         setSuccessMsg("")
         try {
             await assignAntrenorToTeam(profileId, teamId === "" ? null : teamId)
-            setSuccessMsg("Antrenorul a fost actualizat cu succes.")
+            setSuccessMsg("Contul a fost actualizat cu succes.")
             setTimeout(() => setSuccessMsg(""), 3000)
         } catch (err) {
             setError(err instanceof Error ? err.message : "A aparut o eroare la salvare.")
@@ -58,10 +65,12 @@ export default function AntrenorManager({
         }
     }
 
+    const roleLabel = (role: string) => STAFF_ROLE_LABELS[role] ?? role
+
     return (
         <div className="sd-box">
             <div className="sd-box-header">
-                <h2>Alocare Antrenori</h2>
+                <h2>Alocare Staff</h2>
             </div>
             <div className="sd-box-content">
                 {error && <div style={{ color: "red", marginBottom: "10px" }}>{error}</div>}
@@ -71,7 +80,8 @@ export default function AntrenorManager({
                     <table className="sd-table">
                         <thead>
                             <tr>
-                                <th>Nume Antrenor</th>
+                                <th>Nume</th>
+                                <th>Rol</th>
                                 <th>Echipa Curenta</th>
                                 <th>Actiuni</th>
                             </tr>
@@ -80,6 +90,7 @@ export default function AntrenorManager({
                             {antrenori.map(antrenor => (
                                 <tr key={antrenor.id}>
                                     <td>{antrenor.firstName} {antrenor.lastName}</td>
+                                    <td>{roleLabel(antrenor.role)}</td>
                                     <td>{antrenor.team?.name || "Nicio echipa"}</td>
                                     <td>
                                         <select
@@ -98,7 +109,7 @@ export default function AntrenorManager({
                             ))}
                             {antrenori.length === 0 && (
                                 <tr>
-                                    <td colSpan={3} style={{ textAlign: "center", padding: "15px", color: "#666" }}>Nu exista antrenori inregistrati.</td>
+                                    <td colSpan={4} style={{ textAlign: "center", padding: "15px", color: "#666" }}>Nu exista conturi de staff inregistrate.</td>
                                 </tr>
                             )}
                         </tbody>
