@@ -41,6 +41,7 @@ export async function createPlan(payload: PlanPayload) {
     })
 
     revalidatePath("/antrenor-fitness/trainfit")
+    revalidatePath("/antrenor-fitness/fitness-calendar")
     return { plan }
 }
 
@@ -79,6 +80,7 @@ export async function updatePlan(id: number, payload: PlanPayload) {
     })
 
     revalidatePath("/antrenor-fitness/trainfit")
+    revalidatePath("/antrenor-fitness/fitness-calendar")
     return { plan }
 }
 
@@ -103,5 +105,7 @@ export async function deletePlan(id: number) {
     await prisma.fitnessPlan.delete({ where: { id } })
 
     revalidatePath("/antrenor-fitness/trainfit")
+    revalidatePath("/antrenor-fitness/fitness-calendar")
     return { success: true }
 }
+

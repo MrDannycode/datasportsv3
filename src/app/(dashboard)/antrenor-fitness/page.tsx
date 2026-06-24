@@ -2,13 +2,27 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import Link from "next/link"
+import { prisma } from "@/lib/prisma"
 
+const FITNESS_TYPE_LABELS: Record<string, string> = {
+    forta: "Forta",
+    rezistenta: "Rezistenta",
+    vitezare: "Viteza",
+    flexibilitate: "Flexibilitate",
+    coordonare: "Coordonare",
+}
 export default async function AntrenorFitnessPage() {
     const session = await getServerSession(authOptions)
 
     if (!session || session.user.role !== "antrenor_fitness") {
         redirect("/login")
     }
+
+    const fitnessPlans = await prisma.fitnessPlan.findMany({
+        where: { createdBy: Number(session.user.id) },
+        orderBy: { date: "asc" },
+        take: 5,
+    })
 
     return (
         <main>
@@ -17,8 +31,39 @@ export default async function AntrenorFitnessPage() {
             </div>
 
             <div className="sd-metrics">
-                <div className="sd-box sd-metric-box">
+                <div className="sd-box sd-metric-box" style={{ height: "auto", minHeight: "150px" }}>
                     <div className="sd-metric-title">Fitness calendar</div>
+                    <div style={{ marginTop: "15px", textAlign: "left" }}>
+                        {fitnessPlans.length === 0 ? (
+                            <p style={{ fontSize: "14px", color: "#666" }}>Nu ai adaugat activitati de fitness.</p>
+                        ) : (
+                            <ul style={{ listStyle: "none", padding: 0, margin: 0, fontSize: "14px" }}>
+                                {fitnessPlans.map((plan) => (
+                                    <li key={plan.id} style={{ marginBottom: "10px", paddingBottom: "10px", borderBottom: "1px solid #eee" }}>
+                                        <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center" }}>
+                                            <span style={{ fontWeight: "bold" }}>{plan.title}</span>
+                                            <span style={{ backgroundColor: "#eef7ed", color: "#2a7a2a", padding: "2px 8px", fontSize: "11px", fontWeight: "bold", borderRadius: "2px", whiteSpace: "nowrap" }}>
+                                                {FITNESS_TYPE_LABELS[plan.type]}
+                                            </span>
+                                        </div>
+                                        <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
+                                            {new Date(plan.date).toLocaleDateString("ro-RO", {
+                                                weekday: "short", day: "numeric", month: "short",
+                                            })}
+                                        </div>
+                                        {plan.description && (
+                                            <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
+                                                {plan.description}
+                                            </div>
+                                        )}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                    <Link href="/antrenor-fitness/fitness-calendar" style={{ display: "inline-block", marginTop: "8px", fontSize: "13px", color: "#0056b3", textDecoration: "none" }}>
+                        Vezi toate activitatile
+                    </Link>
                 </div>
                 <div className="sd-box sd-metric-box">
                     <div className="sd-metric-title">Recovery calendar</div>
@@ -114,3 +159,7 @@ export default async function AntrenorFitnessPage() {
         </main>
     )
 }
+
+
+
+

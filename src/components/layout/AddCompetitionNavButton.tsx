@@ -13,6 +13,8 @@ export default function AddCompetitionNavButton({ label, isActive = false }: Pro
     const [isOpen, setIsOpen] = useState(false)
     const [name, setName] = useState("")
     const [sport, setSport] = useState<"fotbal" | "tenis">("fotbal")
+    const [startDate, setStartDate] = useState("")
+    const [endDate, setEndDate] = useState("")
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
     const [success, setSuccess] = useState("")
@@ -30,15 +32,17 @@ export default function AddCompetitionNavButton({ label, isActive = false }: Pro
         setSuccess("")
 
         try {
-            const result = await createCompetition({ name, sport })
+            const result = await createCompetition({ name, sport, startDate, endDate })
             if (result?.competition) {
                 setName("")
                 setSport("fotbal")
+                setStartDate("")
+                setEndDate("")
                 setIsOpen(false)
                 window.location.reload()
             }
-        } catch (err: any) {
-            setError(err.message || "A aparut o eroare.")
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "A aparut o eroare.")
         } finally {
             setLoading(false)
         }
@@ -68,11 +72,15 @@ export default function AddCompetitionNavButton({ label, isActive = false }: Pro
                 <CompetitionCreateModal
                     name={name}
                     sport={sport}
+                    startDate={startDate}
+                    endDate={endDate}
                     loading={loading}
                     error={error}
                     success={success}
                     onNameChange={setName}
                     onSportChange={setSport}
+                    onStartDateChange={setStartDate}
+                    onEndDateChange={setEndDate}
                     onClose={closeModal}
                     onSubmit={handleSubmit}
                 />

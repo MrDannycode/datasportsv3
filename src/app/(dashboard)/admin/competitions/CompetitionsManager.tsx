@@ -9,12 +9,41 @@ type Competition = {
     id: number
     name: string
     sport: "fotbal" | "tenis"
+    startDate: Date | string | null
+    endDate: Date | string | null
     createdAt: Date
+}
+
+type CompetitionFormData = {
+    name: string
+    sport: "fotbal" | "tenis"
+    startDate: string
+    endDate: string
 }
 
 interface Props {
     initialCompetitions: Competition[]
     shouldOpenNewCompetitionModal?: boolean
+}
+
+const emptyFormData: CompetitionFormData = {
+    name: "",
+    sport: "fotbal",
+    startDate: "",
+    endDate: "",
+}
+
+function toDateInputValue(value: Date | string | null) {
+    if (!value) return ""
+    return new Date(value).toISOString().slice(0, 10)
+}
+
+function formatCompetitionDuration(startDate: Date | string | null, endDate: Date | string | null) {
+    if (!startDate || !endDate) return "-"
+
+    const start = new Date(startDate).toLocaleDateString("ro-RO")
+    const end = new Date(endDate).toLocaleDateString("ro-RO")
+    return `${start} - ${end}`
 }
 
 export default function CompetitionsManager({ initialCompetitions, shouldOpenNewCompetitionModal = false }: Props) {
@@ -26,14 +55,8 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
     const [editingCompetition, setEditingCompetition] = useState<Competition | null>(null)
     const [editError, setEditError] = useState("")
     const hasOpenedFromQueryRef = useRef(false)
-    const [formData, setFormData] = useState<{ name: string, sport: "fotbal" | "tenis" }>({
-        name: "",
-        sport: "fotbal"
-    })
-    const [editFormData, setEditFormData] = useState<{ name: string, sport: "fotbal" | "tenis" }>({
-        name: "",
-        sport: "fotbal"
-    })
+    const [formData, setFormData] = useState<CompetitionFormData>(emptyFormData)
+    const [editFormData, setEditFormData] = useState<CompetitionFormData>(emptyFormData)
 
     useEffect(() => {
         if (!shouldOpenNewCompetitionModal || hasOpenedFromQueryRef.current) {
@@ -45,7 +68,7 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
     }, [shouldOpenNewCompetitionModal])
 
     const resetForm = () => {
-        setFormData({ name: "", sport: "fotbal" })
+        setFormData(emptyFormData)
         setError("")
         setSuccess("")
     }
@@ -58,7 +81,12 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
 
     const openEditModal = (competition: Competition) => {
         setEditingCompetition(competition)
-        setEditFormData({ name: competition.name, sport: competition.sport })
+        setEditFormData({
+            name: competition.name,
+            sport: competition.sport,
+            startDate: toDateInputValue(competition.startDate),
+            endDate: toDateInputValue(competition.endDate),
+        })
         setEditError("")
         setError("")
         setSuccess("")
@@ -66,7 +94,7 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
 
     const closeEditModal = () => {
         setEditingCompetition(null)
-        setEditFormData({ name: "", sport: "fotbal" })
+        setEditFormData(emptyFormData)
         setEditError("")
     }
 
@@ -141,8 +169,8 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                 {error && <div style={{ color: "red", marginBottom: "10px", padding: "10px", background: "#fee", borderRadius: "5px" }}>{error}</div>}
                 {success && <div style={{ color: "green", marginBottom: "10px", padding: "10px", background: "#efe", borderRadius: "5px" }}>{success}</div>}
 
-                <form onSubmit={handleSubmit} style={{ display: "flex", gap: "10px", alignItems: "flex-end", marginBottom: "30px", padding: "15px", border: "1px solid #ddd", borderRadius: "5px", background: "#f9f9f9" }}>
-                    <div style={{ flex: 2 }}>
+                <form onSubmit={handleSubmit} style={{ display: "flex", gap: "10px", alignItems: "flex-end", marginBottom: "30px", padding: "15px", border: "1px solid #ddd", borderRadius: "5px", background: "#f9f9f9", flexWrap: "wrap" }}>
+                    <div style={{ flex: "2 1 240px" }}>
                         <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Nume Competitie</label>
                         <input
                             required
@@ -153,7 +181,7 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                             style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
                         />
                     </div>
-                    <div style={{ flex: 1 }}>
+                    <div style={{ flex: "1 1 150px" }}>
                         <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Sport</label>
                         <select
                             required
@@ -164,6 +192,25 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                             <option value="fotbal">Fotbal</option>
                             <option value="tenis">Tenis</option>
                         </select>
+                    </div>
+                    <div style={{ flex: "1 1 150px" }}>
+                        <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Data inceput</label>
+                        <input
+                            type="date"
+                            value={formData.startDate}
+                            onChange={e => setFormData({ ...formData, startDate: e.target.value })}
+                            style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+                        />
+                    </div>
+                    <div style={{ flex: "1 1 150px" }}>
+                        <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Data final</label>
+                        <input
+                            type="date"
+                            value={formData.endDate}
+                            min={formData.startDate || undefined}
+                            onChange={e => setFormData({ ...formData, endDate: e.target.value })}
+                            style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+                        />
                     </div>
                     <div>
                         <button disabled={loading} type="submit" style={{ padding: "9px 20px", background: "#0070f3", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }}>
@@ -181,6 +228,7 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                                 <th>ID</th>
                                 <th>Nume Competitie</th>
                                 <th>Sport</th>
+                                <th>Durata</th>
                                 <th>Data Crearii</th>
                                 <th style={{ textAlign: "right" }}>Actiuni</th>
                             </tr>
@@ -202,6 +250,7 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                                             {comp.sport === "fotbal" ? "Fotbal" : "Tenis"}
                                         </span>
                                     </td>
+                                    <td>{formatCompetitionDuration(comp.startDate, comp.endDate)}</td>
                                     <td>{new Date(comp.createdAt).toLocaleDateString("ro-RO")}</td>
                                     <td style={{ textAlign: "right" }}>
                                         <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", flexWrap: "wrap" }}>
@@ -213,7 +262,7 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                             ))}
                             {competitions.length === 0 && (
                                 <tr>
-                                    <td colSpan={5} style={{ textAlign: "center", padding: "20px", color: "#666" }}>Nu exista nicio competitie adaugata.</td>
+                                    <td colSpan={6} style={{ textAlign: "center", padding: "20px", color: "#666" }}>Nu exista nicio competitie adaugata.</td>
                                 </tr>
                             )}
                         </tbody>
@@ -225,10 +274,14 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                 <CompetitionEditModal
                     name={editFormData.name}
                     sport={editFormData.sport}
+                    startDate={editFormData.startDate}
+                    endDate={editFormData.endDate}
                     loading={loading}
                     error={editError}
                     onNameChange={(value) => setEditFormData({ ...editFormData, name: value })}
                     onSportChange={(value) => setEditFormData({ ...editFormData, sport: value })}
+                    onStartDateChange={(value) => setEditFormData({ ...editFormData, startDate: value })}
+                    onEndDateChange={(value) => setEditFormData({ ...editFormData, endDate: value })}
                     onClose={closeEditModal}
                     onSubmit={handleEdit}
                 />
@@ -238,11 +291,15 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                 <CompetitionCreateModal
                     name={formData.name}
                     sport={formData.sport}
+                    startDate={formData.startDate}
+                    endDate={formData.endDate}
                     loading={loading}
                     error={error}
                     success={success}
                     onNameChange={(value) => setFormData({ ...formData, name: value })}
                     onSportChange={(value) => setFormData({ ...formData, sport: value })}
+                    onStartDateChange={(value) => setFormData({ ...formData, startDate: value })}
+                    onEndDateChange={(value) => setFormData({ ...formData, endDate: value })}
                     onClose={closeCreateModal}
                     onSubmit={handleSubmit}
                 />

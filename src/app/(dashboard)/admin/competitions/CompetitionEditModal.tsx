@@ -3,10 +3,14 @@
 interface Props {
     name: string
     sport: "fotbal" | "tenis"
+    startDate: string
+    endDate: string
     loading: boolean
     error: string
     onNameChange: (value: string) => void
     onSportChange: (value: "fotbal" | "tenis") => void
+    onStartDateChange: (value: string) => void
+    onEndDateChange: (value: string) => void
     onClose: () => void
     onSubmit: (e: React.FormEvent) => Promise<void>
 }
@@ -14,10 +18,14 @@ interface Props {
 export default function CompetitionEditModal({
     name,
     sport,
+    startDate,
+    endDate,
     loading,
     error,
     onNameChange,
     onSportChange,
+    onStartDateChange,
+    onEndDateChange,
     onClose,
     onSubmit,
 }: Props) {
@@ -61,7 +69,7 @@ export default function CompetitionEditModal({
                     <div>
                         <h2 id="edit-competition-modal-title" style={{ margin: 0 }}>Editeaza competitie</h2>
                         <p style={{ margin: "6px 0 0", color: "#666", fontSize: "13px" }}>
-                            Actualizeaza datele competitiei.
+                            Actualizeaza datele competitiei si durata de desfasurare.
                         </p>
                     </div>
                     <button
@@ -100,6 +108,25 @@ export default function CompetitionEditModal({
                                 <option value="fotbal">Fotbal</option>
                                 <option value="tenis">Tenis</option>
                             </select>
+                        </div>
+                        <div style={{ flex: "1 1 180px" }}>
+                            <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Data inceput</label>
+                            <input
+                                type="date"
+                                value={startDate}
+                                onChange={e => onStartDateChange(e.target.value)}
+                                style={{ width: "100%", padding: "10px 12px", borderRadius: "4px", border: "1px solid #ccc" }}
+                            />
+                        </div>
+                        <div style={{ flex: "1 1 180px" }}>
+                            <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Data final</label>
+                            <input
+                                type="date"
+                                value={endDate}
+                                min={startDate || undefined}
+                                onChange={e => onEndDateChange(e.target.value)}
+                                style={{ width: "100%", padding: "10px 12px", borderRadius: "4px", border: "1px solid #ccc" }}
+                            />
                         </div>
                         <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", width: "100%", marginTop: "8px" }}>
                             <button
