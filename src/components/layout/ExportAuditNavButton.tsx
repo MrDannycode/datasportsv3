@@ -6,6 +6,7 @@ import { usePathname, useSearchParams } from "next/navigation"
 interface Props {
     label: string
     isActive?: boolean
+    ignoreFilters?: boolean
 }
 
 function filenameFromDisposition(disposition: string | null) {
@@ -13,12 +14,16 @@ function filenameFromDisposition(disposition: string | null) {
     return match?.[1] ?? `audituri-${new Date().toISOString().slice(0, 10)}.xlsx`
 }
 
-export default function ExportAuditNavButton({ label, isActive = false }: Props) {
+export default function ExportAuditNavButton({ label, isActive = false, ignoreFilters = false }: Props) {
     const pathname = usePathname()
     const searchParams = useSearchParams()
     const [isExporting, setIsExporting] = useState(false)
 
     const buildExportHref = () => {
+        if (ignoreFilters) {
+            return "/api/admin/audituri/export"
+        }
+
         const exportParams = new URLSearchParams()
 
         if (pathname === "/admin/audituri") {

@@ -216,6 +216,10 @@ export default async function DashboardHeader({
                         return <AddCompetitionNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} />
                     }
 
+                    if (item.label === "Export Audit Curent") {
+                        return <ExportAuditNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} ignoreFilters={true} />
+                    }
+
                     if (item.label === "Adauga Atleti") {
                         return <AddAthleteNavButton key={item.href + item.label} label={item.label} teams={footballTeams} isActive={item.href === activeHref} />
                     }
