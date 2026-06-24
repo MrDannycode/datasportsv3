@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { assignPlayerToTeam } from "./actions"
 
 type Team = {
@@ -16,6 +16,9 @@ type Player = {
     team: Team | null
 }
 
+type SortField = "player" | "team"
+type SortDirection = "asc" | "desc"
+
 export default function PlayerManager({ 
     players,
     teams
@@ -26,6 +29,46 @@ export default function PlayerManager({
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
     const [successMsg, setSuccessMsg] = useState("")
+    const [sortConfig, setSortConfig] = useState<{ field: SortField, direction: SortDirection }>({
+        field: "player",
+        direction: "asc",
+    })
+
+    const sortedPlayers = useMemo(() => {
+        return [...players].sort((a, b) => {
+            const aValue = sortConfig.field === "player"
+                ? `${a.firstName} ${a.lastName}`.trim()
+                : a.team?.name || "Nicio echipă"
+            const bValue = sortConfig.field === "player"
+                ? `${b.firstName} ${b.lastName}`.trim()
+                : b.team?.name || "Nicio echipă"
+            const result = aValue.localeCompare(bValue, "ro", { sensitivity: "base" })
+
+            if (result !== 0) {
+                return sortConfig.direction === "asc" ? result : -result
+            }
+
+            const aName = `${a.firstName} ${a.lastName}`.trim()
+            const bName = `${b.firstName} ${b.lastName}`.trim()
+
+            return aName.localeCompare(bName, "ro", { sensitivity: "base" })
+        })
+    }, [players, sortConfig])
+
+    const handleSort = (field: SortField) => {
+        setSortConfig((current) => ({
+            field,
+            direction: current.field === field && current.direction === "asc" ? "desc" : "asc",
+        }))
+    }
+
+    const renderSortIndicator = (field: SortField) => {
+        if (sortConfig.field !== field) {
+            return "Sort"
+        }
+
+        return sortConfig.direction === "asc" ? "A-Z" : "Z-A"
+    }
 
     const handleAssign = async (profileId: number, teamId: string) => {
         setLoading(true)
@@ -36,8 +79,8 @@ export default function PlayerManager({
             setSuccessMsg("Jucătorul a fost actualizat cu succes.")
             // Clear message after 3 seconds
             setTimeout(() => setSuccessMsg(""), 3000)
-        } catch (err: any) {
-            setError(err.message || "A apărut o eroare la salvare.")
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "A apărut o eroare la salvare.")
         } finally {
             setLoading(false)
         }
@@ -46,7 +89,7 @@ export default function PlayerManager({
     return (
         <div className="sd-box">
             <div className="sd-box-header">
-                <h2>Alocare Jucători</h2>
+                <h2>Alocare Jucatori</h2>
             </div>
             <div className="sd-box-content">
                 
@@ -57,13 +100,31 @@ export default function PlayerManager({
                     <table className="sd-table">
                         <thead>
                             <tr>
-                                <th>Nume Jucător</th>
-                                <th>Echipa Curentă</th>
-                                <th>Acțiuni</th>
+                                <th>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleSort("player")}
+                                        aria-label="Sorteaza dupa numele jucatorului"
+                                        style={{ background: "none", border: 0, padding: 0, color: "inherit", font: "inherit", fontWeight: 700, cursor: "pointer" }}
+                                    >
+                                        Nume Jucator {renderSortIndicator("player")}
+                                    </button>
+                                </th>
+                                <th>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleSort("team")}
+                                        aria-label="Sorteaza dupa echipa curenta"
+                                        style={{ background: "none", border: 0, padding: 0, color: "inherit", font: "inherit", fontWeight: 700, cursor: "pointer" }}
+                                    >
+                                        Echipa Curenta {renderSortIndicator("team")}
+                                    </button>
+                                </th>
+                                <th>Actiuni</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {players.map(player => (
+                            {sortedPlayers.map(player => (
                                 <tr key={player.id}>
                                     <td>{player.firstName} {player.lastName}</td>
                                     <td>{player.team?.name || "Nicio echipă"}</td>
