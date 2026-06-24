@@ -15,6 +15,7 @@ import AddActivityNavButton from "@/components/layout/AddActivityNavButton"
 import TeamAthletesNavButton, { type TeamAthlete } from "@/components/layout/TeamAthletesNavButton"
 import MedicalRecordNavButton, { type AthleteMedicalRecord } from "@/components/layout/MedicalRecordNavButton"
 import ExportAuditNavButton from "@/components/layout/ExportAuditNavButton"
+import MyProfileNavButton from "@/components/layout/MyProfileNavButton"
 import { prisma } from "@/lib/prisma"
 
 interface NavItem {
@@ -48,7 +49,7 @@ const defaultNavItems: NavItem[] = [
     { label: "Istoric Accidentari", href: "#" },
     { label: "Dosar Medical", href: "#" },
     { label: "Adauga Activitate", href: "/atlet-fotbal/activity?open=new" },
-    { label: "Feedback Daily", href: "#" },
+    { label: "Profilul meu", href: "#" },
     { label: "Toti Atletii", href: "#" },
 ]
 
@@ -66,6 +67,7 @@ export default async function DashboardHeader({
     let footballCompetitions: BasicCompetition[] = []
     let athleteMedicalRecords: AthleteMedicalRecord[] = []
     let athleteHasCardiacData = false
+    let myProfileData: any = null
 
     if (session?.user?.role === "manager_fotbal") {
         footballTeams = await prisma.team.findMany({
@@ -185,10 +187,40 @@ export default async function DashboardHeader({
 
         const athleteProfile = await prisma.profile.findUnique({
             where: { userId: Number(session.user.id) },
-            select: { restingHeartRate: true, maxHeartRate: true },
+            select: { 
+                firstName: true, lastName: true, phone: true, dateOfBirth: true, gender: true,
+                restingHeartRate: true, maxHeartRate: true,
+                user: {
+                    select: {
+                        footballAthlete: {
+                            select: { heightCm: true, weightKg: true, preferredFoot: true }
+                        },
+                        tennisAthlete: {
+                            select: { heightCm: true, weightKg: true, preferredHand: true }
+                        }
+                    }
+                }
+            },
         })
 
         athleteHasCardiacData = !!(athleteProfile?.restingHeartRate && athleteProfile?.maxHeartRate)
+        
+        if (athleteProfile) {
+           myProfileData = {
+              firstName: athleteProfile.firstName,
+              lastName: athleteProfile.lastName,
+              dateOfBirth: athleteProfile.dateOfBirth?.toISOString() || null,
+              phone: athleteProfile.phone,
+              restingHeartRate: athleteProfile.restingHeartRate,
+              maxHeartRate: athleteProfile.maxHeartRate,
+              gender: athleteProfile.gender,
+              heightCm: athleteProfile.user?.footballAthlete?.heightCm || athleteProfile.user?.tennisAthlete?.heightCm || null,
+              weightKg: athleteProfile.user?.footballAthlete?.weightKg || athleteProfile.user?.tennisAthlete?.weightKg || null,
+              preferredFoot: athleteProfile.user?.footballAthlete?.preferredFoot || null,
+              preferredHand: athleteProfile.user?.tennisAthlete?.preferredHand || null,
+              sportType: athleteProfile.user?.footballAthlete ? "fotbal" : athleteProfile.user?.tennisAthlete ? "tenis" : null
+           }
+        }
     }
 
     const visibleNavItems = navItems.filter((item) =>
@@ -204,7 +236,7 @@ export default async function DashboardHeader({
                             ? session?.user?.role === "antrenor_fitness"
                             : ["Adauga Dosar", "Adauga Accidentare", "Disponibilitate atleti", "Istoric Accidentari"].includes(item.label)
                                 ? session?.user?.role === "medic"
-                                : ["Dosar Medical", "Adauga Activitate", "Feedback Daily"].includes(item.label)
+                                : ["Dosar Medical", "Adauga Activitate", "Profilul meu"].includes(item.label)
                                     ? session?.user?.role === "atlet_fotbal"
                                     : true
     )
@@ -267,6 +299,10 @@ export default async function DashboardHeader({
 
                     if (item.label === "Dosar Medical") {
                         return <MedicalRecordNavButton key={item.href + item.label} label={item.label} records={athleteMedicalRecords} />
+                    }
+
+                    if (item.label === "Profilul meu" && myProfileData) {
+                        return <MyProfileNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} initialData={myProfileData} />
                     }
 
                     return (

@@ -3,7 +3,7 @@ import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
-import SportScienceMetrics from "@/components/sport-science/SportScienceMetrics"
+import SportScienceMetrics, { type SportScienceLoad } from "@/components/sport-science/SportScienceMetrics"
 import type { Prisma } from "@prisma/client"
 
 type UpcomingMatch = Prisma.FootballMatchGetPayload<{ include: { teamHome: true; teamAway: true } }>
@@ -40,6 +40,25 @@ export default async function AtletFotbalPage() {
     let upcomingMatches: UpcomingMatch[] = [];
     let assignedTrainingPlans: AssignedTrainingPlan[] = [];
     let assignedFitnessPlans: AssignedFitnessPlan[] = [];
+    let latestLoad: SportScienceLoad | null = null;
+
+    if (profile) {
+        latestLoad = await prisma.dailyLoad.findFirst({
+            where: { athleteId: profile.id },
+            orderBy: { date: "desc" },
+            select: {
+                date: true,
+                trimp: true,
+                atl: true,
+                ctl: true,
+                tsb: true,
+                acRatio: true,
+                monotony: true,
+                strain: true,
+            },
+        });
+    }
+
     if (profile?.teamId) {
         upcomingMatches = await prisma.footballMatch.findMany({
             where: {
@@ -298,7 +317,7 @@ export default async function AtletFotbalPage() {
                             <h2>Sport Science</h2>
                         </div>
                         <div className="sd-box-content">
-                            <SportScienceMetrics />
+                            <SportScienceMetrics latestLoad={latestLoad} />
                         </div>
                     </div>
                 </div>
@@ -306,6 +325,9 @@ export default async function AtletFotbalPage() {
         </main>
     )
 }
+
+
+
 
 
 
