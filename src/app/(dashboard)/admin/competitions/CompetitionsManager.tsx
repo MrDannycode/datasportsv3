@@ -2,12 +2,13 @@
 
 import { useEffect, useRef, useState } from "react"
 import CompetitionCreateModal from "./CompetitionCreateModal"
-import { createCompetition, deleteCompetition } from "./actions"
+import CompetitionEditModal from "./CompetitionEditModal"
+import { createCompetition, deleteCompetition, updateCompetition } from "./actions"
 
 type Competition = {
     id: number
     name: string
-    sport: string
+    sport: "fotbal" | "tenis"
     createdAt: Date
 }
 
@@ -22,8 +23,14 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
     const [error, setError] = useState("")
     const [success, setSuccess] = useState("")
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+    const [editingCompetition, setEditingCompetition] = useState<Competition | null>(null)
+    const [editError, setEditError] = useState("")
     const hasOpenedFromQueryRef = useRef(false)
     const [formData, setFormData] = useState<{ name: string, sport: "fotbal" | "tenis" }>({
+        name: "",
+        sport: "fotbal"
+    })
+    const [editFormData, setEditFormData] = useState<{ name: string, sport: "fotbal" | "tenis" }>({
         name: "",
         sport: "fotbal"
     })
@@ -49,6 +56,20 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
         setSuccess("")
     }
 
+    const openEditModal = (competition: Competition) => {
+        setEditingCompetition(competition)
+        setEditFormData({ name: competition.name, sport: competition.sport })
+        setEditError("")
+        setError("")
+        setSuccess("")
+    }
+
+    const closeEditModal = () => {
+        setEditingCompetition(null)
+        setEditFormData({ name: "", sport: "fotbal" })
+        setEditError("")
+    }
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
@@ -63,8 +84,33 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
             setSuccess("Competitia a fost adaugata cu succes!")
             resetForm()
             setIsCreateModalOpen(false)
-        } catch (err: any) {
-            setError(err.message || "A aparut o eroare.")
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "A aparut o eroare.")
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleEdit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!editingCompetition) return
+
+        setLoading(true)
+        setEditError("")
+        setError("")
+        setSuccess("")
+
+        try {
+            const result = await updateCompetition(editingCompetition.id, editFormData)
+            if (result?.competition) {
+                setCompetitions(currentCompetitions => currentCompetitions.map(competition => (
+                    competition.id === result.competition.id ? result.competition : competition
+                )))
+            }
+            setSuccess("Competitia a fost actualizata.")
+            closeEditModal()
+        } catch (err: unknown) {
+            setEditError(err instanceof Error ? err.message : "A aparut o eroare la editare.")
         } finally {
             setLoading(false)
         }
@@ -79,8 +125,8 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
             await deleteCompetition(id)
             setCompetitions(currentCompetitions => currentCompetitions.filter(competition => competition.id !== id))
             setSuccess("Competitia a fost stearsa.")
-        } catch (err: any) {
-            setError(err.message || "A aparut o eroare la stergere.")
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "A aparut o eroare la stergere.")
         } finally {
             setLoading(false)
         }
@@ -158,7 +204,10 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                                     </td>
                                     <td>{new Date(comp.createdAt).toLocaleDateString("ro-RO")}</td>
                                     <td style={{ textAlign: "right" }}>
-                                        <button disabled={loading} onClick={() => handleDelete(comp.id)} style={{ padding: "4px 10px", cursor: "pointer", background: "#fff0f0", color: "red", border: "1px solid #ffcccc", borderRadius: "3px" }}>Sterge</button>
+                                        <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", flexWrap: "wrap" }}>
+                                            <button disabled={loading} type="button" onClick={() => openEditModal(comp)} style={{ padding: "4px 10px", cursor: "pointer", background: "#f0f7ff", color: "#0050b3", border: "1px solid #91d5ff", borderRadius: "3px" }}>Edit</button>
+                                            <button disabled={loading} type="button" onClick={() => handleDelete(comp.id)} style={{ padding: "4px 10px", cursor: "pointer", background: "#fff0f0", color: "red", border: "1px solid #ffcccc", borderRadius: "3px" }}>Sterge</button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -171,6 +220,19 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                     </table>
                 </div>
             </div>
+
+            {editingCompetition && (
+                <CompetitionEditModal
+                    name={editFormData.name}
+                    sport={editFormData.sport}
+                    loading={loading}
+                    error={editError}
+                    onNameChange={(value) => setEditFormData({ ...editFormData, name: value })}
+                    onSportChange={(value) => setEditFormData({ ...editFormData, sport: value })}
+                    onClose={closeEditModal}
+                    onSubmit={handleEdit}
+                />
+            )}
 
             {isCreateModalOpen && (
                 <CompetitionCreateModal

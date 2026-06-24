@@ -44,6 +44,46 @@ export async function createCompetition(data: { name: string, sport: "fotbal" | 
     }
 }
 
+export async function updateCompetition(id: number, data: { name: string, sport: "fotbal" | "tenis" }) {
+    const session = await getServerSession(authOptions)
+    if (!session || session.user.role !== "admin_global") {
+        throw new Error("Unauthorized")
+    }
+
+    if (!data.name || !data.sport) {
+        throw new Error("Numele si sportul sunt obligatorii.")
+    }
+
+    try {
+        const competition = await prisma.competition.update({
+            where: { id },
+            data: {
+                name: data.name,
+                sport: data.sport,
+            },
+        })
+
+        await prisma.auditLog.create({
+            data: {
+                userId: Number(session.user.id),
+                action: "update",
+                tableAffected: "competitions",
+                recordId: competition.id,
+                details: { name: competition.name, sport: competition.sport },
+            },
+        })
+
+        revalidatePath("/admin/competitions")
+        revalidatePath("/admin/audituri")
+        return { competition }
+    } catch (e: unknown) {
+        if (typeof e === "object" && e !== null && "code" in e && e.code === "P2025") {
+            throw new Error("Competitia nu a fost gasita.")
+        }
+        throw e
+    }
+}
+
 export async function deleteCompetition(id: number) {
     const session = await getServerSession(authOptions)
     if (!session || session.user.role !== "admin_global") {
