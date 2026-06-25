@@ -4,16 +4,6 @@ import { useState } from "react"
 
 type SidebarTab = "clasament" | "jucatori"
 
-const clasamentData = [
-    { pos: 1, team: "Manchester City", played: 30, won: 22, drawn: 5, lost: 3, pts: 71 },
-    { pos: 2, team: "Arsenal", played: 30, won: 21, drawn: 5, lost: 4, pts: 68 },
-    { pos: 3, team: "Liverpool", played: 30, won: 20, drawn: 6, lost: 4, pts: 66 },
-    { pos: 4, team: "Aston Villa", played: 30, won: 18, drawn: 4, lost: 8, pts: 58 },
-    { pos: 5, team: "Tottenham", played: 30, won: 14, drawn: 6, lost: 10, pts: 48 },
-    { pos: 6, team: "Chelsea", played: 30, won: 13, drawn: 7, lost: 10, pts: 46 },
-    { pos: 7, team: "Newcastle", played: 30, won: 13, drawn: 5, lost: 12, pts: 44 },
-    { pos: 8, team: "Man United", played: 30, won: 11, drawn: 5, lost: 14, pts: 38 },
-]
 
 export type SidebarPlayer = {
     id: number
@@ -23,15 +13,27 @@ export type SidebarPlayer = {
     tsb: number | null
 }
 
+export type SidebarStanding = {
+    pos: number
+    team: string
+    played: number
+    won: number
+    drawn: number
+    lost: number
+    pts: number
+}
+
 type DashboardSidebarProps = {
     players: SidebarPlayer[]
+    standings: SidebarStanding[]
+    standingsLeagueName: string | null
 }
 
 function formatMetric(value: number | null) {
     return value === null ? "-" : value.toFixed(1)
 }
 
-export default function DashboardSidebar({ players }: DashboardSidebarProps) {
+export default function DashboardSidebar({ players, standings, standingsLeagueName }: DashboardSidebarProps) {
     const [activeTab, setActiveTab] = useState<SidebarTab>("clasament")
 
     return (
@@ -59,7 +61,7 @@ export default function DashboardSidebar({ players }: DashboardSidebarProps) {
                 {activeTab === "clasament" && (
                     <div className="dsb-panel" id="dsb-panel-clasament">
                         <div className="dsb-panel-header">
-                            <span className="dsb-panel-title">Premier League</span>
+                            <span className="dsb-panel-title">{standingsLeagueName ?? "Clasament"}</span>
                             <span className="dsb-panel-season">2024/25</span>
                         </div>
                         <table className="dsb-table">
@@ -75,26 +77,32 @@ export default function DashboardSidebar({ players }: DashboardSidebarProps) {
                                 </tr>
                             </thead>
                             <tbody>
-                                {clasamentData.map((row) => (
-                                    <tr
-                                        key={row.pos}
-                                        className={
-                                            row.pos <= 4
-                                                ? "dsb-row-ucl"
-                                                : row.pos <= 6
-                                                    ? "dsb-row-uel"
-                                                    : ""
-                                        }
-                                    >
-                                        <td className="dsb-pos">{row.pos}</td>
-                                        <td className="dsb-team-name">{row.team}</td>
-                                        <td>{row.played}</td>
-                                        <td>{row.won}</td>
-                                        <td>{row.drawn}</td>
-                                        <td>{row.lost}</td>
-                                        <td className="dsb-pts">{row.pts}</td>
+                                {standings.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={7}>Nu exista clasament pentru liga contului logat.</td>
                                     </tr>
-                                ))}
+                                ) : (
+                                    standings.map((row) => (
+                                        <tr
+                                            key={row.team}
+                                            className={
+                                                row.pos <= 4
+                                                    ? "dsb-row-ucl"
+                                                    : row.pos <= 6
+                                                        ? "dsb-row-uel"
+                                                        : ""
+                                            }
+                                        >
+                                            <td className="dsb-pos">{row.pos}</td>
+                                            <td className="dsb-team-name">{row.team}</td>
+                                            <td>{row.played}</td>
+                                            <td>{row.won}</td>
+                                            <td>{row.drawn}</td>
+                                            <td>{row.lost}</td>
+                                            <td className="dsb-pts">{row.pts}</td>
+                                        </tr>
+                                    ))
+                                )}
                             </tbody>
                         </table>
                         <div className="dsb-legend">
