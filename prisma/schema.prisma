@@ -46,6 +46,8 @@ model Competition {
   sport           Sport
   country         String
   continent       String
+  startDate       DateTime?       @map("start_date")
+  endDate         DateTime?       @map("end_date")
   createdAt       DateTime        @default(now()) @map("created_at")
   updatedAt       DateTime        @updatedAt @map("updated_at")
   footballMatches FootballMatch[]
