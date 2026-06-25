@@ -3,12 +3,16 @@
 interface Props {
     name: string
     sport: "fotbal" | "tenis"
+    country: string
+    continent: string
     startDate: string
     endDate: string
     loading: boolean
     error: string
     onNameChange: (value: string) => void
     onSportChange: (value: "fotbal" | "tenis") => void
+    onCountryChange: (value: string) => void
+    onContinentChange: (value: string) => void
     onStartDateChange: (value: string) => void
     onEndDateChange: (value: string) => void
     onClose: () => void
@@ -18,12 +22,16 @@ interface Props {
 export default function CompetitionEditModal({
     name,
     sport,
+    country,
+    continent,
     startDate,
     endDate,
     loading,
     error,
     onNameChange,
     onSportChange,
+    onCountryChange,
+    onContinentChange,
     onStartDateChange,
     onEndDateChange,
     onClose,
@@ -108,6 +116,28 @@ export default function CompetitionEditModal({
                                 <option value="fotbal">Fotbal</option>
                                 <option value="tenis">Tenis</option>
                             </select>
+                        </div>
+                        <div style={{ flex: "1 1 180px" }}>
+                            <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Tara</label>
+                            <input
+                                required
+                                type="text"
+                                placeholder="ex: Romania"
+                                value={country}
+                                onChange={e => onCountryChange(e.target.value)}
+                                style={{ width: "100%", padding: "10px 12px", borderRadius: "4px", border: "1px solid #ccc" }}
+                            />
+                        </div>
+                        <div style={{ flex: "1 1 180px" }}>
+                            <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Continent</label>
+                            <input
+                                required
+                                type="text"
+                                placeholder="ex: Europa"
+                                value={continent}
+                                onChange={e => onContinentChange(e.target.value)}
+                                style={{ width: "100%", padding: "10px 12px", borderRadius: "4px", border: "1px solid #ccc" }}
+                            />
                         </div>
                         <div style={{ flex: "1 1 180px" }}>
                             <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Data inceput</label>

@@ -3,6 +3,7 @@
 type Team = {
     id: number
     name: string
+    country: string
 }
 
 type MatchFormData = {
@@ -120,7 +121,7 @@ export default function MatchCreateModal({ formData, teams, competitions, loadin
                             />
                         </div>
                         <div>
-                            <label style={{ display: "block", marginBottom: "5px" }}>Locatie</label>
+                            <label style={{ display: "block", marginBottom: "5px" }}>Stadion</label>
                             <input
                                 required
                                 type="text"

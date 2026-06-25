@@ -8,6 +8,8 @@ import { authOptions } from "@/lib/auth"
 type CompetitionPayload = {
     name: string
     sport: "fotbal" | "tenis"
+    country: string
+    continent: string
     startDate?: string
     endDate?: string
 }
@@ -48,8 +50,8 @@ export async function createCompetition(data: CompetitionPayload) {
         throw new Error("Unauthorized")
     }
 
-    if (!data.name || !data.sport) {
-        throw new Error("Numele si sportul sunt obligatorii.")
+    if (!data.name || !data.sport || !data.country || !data.continent) {
+        throw new Error("Numele, sportul, tara si continentul sunt obligatorii.")
     }
 
     const { startDate, endDate } = parseCompetitionDates(data)
@@ -59,6 +61,8 @@ export async function createCompetition(data: CompetitionPayload) {
             data: {
                 name: data.name,
                 sport: data.sport,
+                country: data.country,
+                continent: data.continent,
                 startDate,
                 endDate,
             }
@@ -70,7 +74,7 @@ export async function createCompetition(data: CompetitionPayload) {
                 action: "create",
                 tableAffected: "competitions",
                 recordId: comp.id,
-                details: { name: comp.name, sport: comp.sport, startDate: comp.startDate, endDate: comp.endDate },
+                details: { name: comp.name, sport: comp.sport, country: comp.country, continent: comp.continent, startDate: comp.startDate, endDate: comp.endDate },
             },
         })
 
@@ -91,8 +95,8 @@ export async function updateCompetition(id: number, data: CompetitionPayload) {
         throw new Error("Unauthorized")
     }
 
-    if (!data.name || !data.sport) {
-        throw new Error("Numele si sportul sunt obligatorii.")
+    if (!data.name || !data.sport || !data.country || !data.continent) {
+        throw new Error("Numele, sportul, tara si continentul sunt obligatorii.")
     }
 
     const { startDate, endDate } = parseCompetitionDates(data)
@@ -103,6 +107,8 @@ export async function updateCompetition(id: number, data: CompetitionPayload) {
             data: {
                 name: data.name,
                 sport: data.sport,
+                country: data.country,
+                continent: data.continent,
                 startDate,
                 endDate,
             },
@@ -114,7 +120,7 @@ export async function updateCompetition(id: number, data: CompetitionPayload) {
                 action: "update",
                 tableAffected: "competitions",
                 recordId: competition.id,
-                details: { name: competition.name, sport: competition.sport, startDate: competition.startDate, endDate: competition.endDate },
+                details: { name: competition.name, sport: competition.sport, country: competition.country, continent: competition.continent, startDate: competition.startDate, endDate: competition.endDate },
             },
         })
 
@@ -146,7 +152,7 @@ export async function deleteCompetition(id: number) {
                 action: "delete",
                 tableAffected: "competitions",
                 recordId: deletedCompetition.id,
-                details: { name: deletedCompetition.name, sport: deletedCompetition.sport, startDate: deletedCompetition.startDate, endDate: deletedCompetition.endDate },
+                details: { name: deletedCompetition.name, sport: deletedCompetition.sport, country: deletedCompetition.country, continent: deletedCompetition.continent, startDate: deletedCompetition.startDate, endDate: deletedCompetition.endDate },
             },
         })
 

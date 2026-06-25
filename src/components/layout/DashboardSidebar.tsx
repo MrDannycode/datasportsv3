@@ -15,18 +15,23 @@ const clasamentData = [
     { pos: 8, team: "Man United", played: 30, won: 11, drawn: 5, lost: 14, pts: 38 },
 ]
 
-const jucatoriData = [
-    { rank: 1, name: "Erling Haaland", team: "Man City", goals: 27, assists: 5 },
-    { rank: 2, name: "Cole Palmer", team: "Chelsea", goals: 22, assists: 11 },
-    { rank: 3, name: "Alexander Isak", team: "Newcastle", goals: 21, assists: 4 },
-    { rank: 4, name: "Mohamed Salah", team: "Liverpool", goals: 18, assists: 12 },
-    { rank: 5, name: "Bukayo Saka", team: "Arsenal", goals: 15, assists: 13 },
-    { rank: 6, name: "Son Heung-min", team: "Tottenham", goals: 14, assists: 8 },
-    { rank: 7, name: "Ollie Watkins", team: "Aston Villa", goals: 13, assists: 9 },
-    { rank: 8, name: "Phil Foden", team: "Man City", goals: 12, assists: 8 },
-]
+export type SidebarPlayer = {
+    id: number
+    name: string
+    team: string
+    atl: number | null
+    tsb: number | null
+}
 
-export default function DashboardSidebar() {
+type DashboardSidebarProps = {
+    players: SidebarPlayer[]
+}
+
+function formatMetric(value: number | null) {
+    return value === null ? "-" : value.toFixed(1)
+}
+
+export default function DashboardSidebar({ players }: DashboardSidebarProps) {
     const [activeTab, setActiveTab] = useState<SidebarTab>("clasament")
 
     return (
@@ -102,7 +107,7 @@ export default function DashboardSidebar() {
                 {activeTab === "jucatori" && (
                     <div className="dsb-panel" id="dsb-panel-jucatori">
                         <div className="dsb-panel-header">
-                            <span className="dsb-panel-title">Top Marcatori</span>
+                            <span className="dsb-panel-title">Jucatorii Echipei</span>
                             <span className="dsb-panel-season">2024/25</span>
                         </div>
                         <table className="dsb-table">
@@ -111,20 +116,26 @@ export default function DashboardSidebar() {
                                     <th>#</th>
                                     <th>Jucător</th>
                                     <th>Echipă</th>
-                                    <th title="Goluri">G</th>
-                                    <th title="Pase decisive">A</th>
+                                    <th title="Acute Training Load">ATL</th>
+                                    <th title="Training Stress Balance">TSB</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {jucatoriData.map((row) => (
-                                    <tr key={row.rank}>
-                                        <td className="dsb-pos">{row.rank}</td>
-                                        <td className="dsb-player-name">{row.name}</td>
-                                        <td className="dsb-team-small">{row.team}</td>
-                                        <td className="dsb-pts">{row.goals}</td>
-                                        <td>{row.assists}</td>
+                                {players.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={5}>Nu exista jucatori pentru echipa contului logat.</td>
                                     </tr>
-                                ))}
+                                ) : (
+                                    players.map((row, index) => (
+                                        <tr key={row.id}>
+                                            <td className="dsb-pos">{index + 1}</td>
+                                            <td className="dsb-player-name">{row.name}</td>
+                                            <td className="dsb-team-small">{row.team}</td>
+                                            <td className="dsb-pts">{formatMetric(row.atl)}</td>
+                                            <td>{formatMetric(row.tsb)}</td>
+                                        </tr>
+                                    ))
+                                )}
                             </tbody>
                         </table>
                     </div>

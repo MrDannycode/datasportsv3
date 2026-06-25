@@ -7,6 +7,7 @@ import { createMatch, updateMatch, deleteMatch } from "./actions"
 type Team = {
     id: number
     name: string
+    country: string
 }
 
 type Match = {
@@ -108,7 +109,14 @@ export default function MatchManager({
     }
 
     const updateField = (field: keyof MatchFormData, value: string) => {
-        setFormData(current => ({ ...current, [field]: value }))
+        setFormData(current => {
+            if (field !== "teamHomeId") {
+                return { ...current, [field]: value }
+            }
+
+            const homeTeam = teams.find(team => team.id === Number(value))
+            return { ...current, teamHomeId: value, location: homeTeam?.country ?? "" }
+        })
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -145,8 +153,8 @@ export default function MatchManager({
             }
             resetForm()
             setIsMatchModalOpen(false)
-        } catch (err: any) {
-            setError(err.message || "A aparut o eroare.")
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "A aparut o eroare.")
         } finally {
             setLoading(false)
         }
@@ -158,8 +166,8 @@ export default function MatchManager({
         try {
             await deleteMatch(id)
             setMatches(currentMatches => currentMatches.filter(match => match.id !== id))
-        } catch (err: any) {
-            alert(err.message || "A aparut o eroare.")
+        } catch (err: unknown) {
+            alert(err instanceof Error ? err.message : "A aparut o eroare.")
         } finally {
             setLoading(false)
         }
@@ -193,7 +201,7 @@ export default function MatchManager({
                         <input required type="datetime-local" value={formData.matchDate} onChange={e => updateField("matchDate", e.target.value)} style={{ width: "100%", padding: "5px", borderRadius: "3px", border: "1px solid #ccc" }} />
                     </div>
                     <div>
-                        <label style={{ display: "block", marginBottom: "5px" }}>Locatie</label>
+                        <label style={{ display: "block", marginBottom: "5px" }}>Stadion</label>
                         <input required type="text" value={formData.location} onChange={e => updateField("location", e.target.value)} style={{ width: "100%", padding: "5px", borderRadius: "3px", border: "1px solid #ccc" }} />
                     </div>
                     <div>
@@ -234,7 +242,7 @@ export default function MatchManager({
                                 <th>Meci</th>
                                 <th>Scor</th>
                                 <th>Competitie</th>
-                                <th>Locatie</th>
+                                <th>Stadion</th>
                                 <th>Actiuni</th>
                             </tr>
                         </thead>

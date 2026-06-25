@@ -10,10 +10,17 @@ type Team = {
     continent: string
 }
 
+type League = {
+    id: number
+    name: string
+}
+
 export default function TeamManager({ 
-    initialTeams 
+    initialTeams,
+    leagues,
 }: { 
     initialTeams: Team[]
+    leagues: League[]
 }) {
     const [isEditing, setIsEditing] = useState<number | null>(null)
     const [loading, setLoading] = useState(false)
@@ -57,8 +64,8 @@ export default function TeamManager({
                 await createTeam(formData)
             }
             resetForm()
-        } catch (err: any) {
-            setError(err.message || "A apărut o eroare.")
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "A apărut o eroare.")
         } finally {
             setLoading(false)
         }
@@ -69,8 +76,8 @@ export default function TeamManager({
         setLoading(true)
         try {
             await deleteTeam(id)
-        } catch (err: any) {
-            alert(err.message || "A apărut o eroare la ștergere. Posibil ca echipa să fie asociată cu alte înregistrări (meciuri, etc).")
+        } catch (err: unknown) {
+            alert(err instanceof Error ? err.message : "A apărut o eroare la ștergere. Posibil ca echipa să fie asociată cu alte înregistrări (meciuri, etc).")
         } finally {
             setLoading(false)
         }
@@ -97,7 +104,7 @@ export default function TeamManager({
                         />
                     </div>
                     <div>
-                        <label style={{ display: "block", marginBottom: "5px" }}>Țară</label>
+                        <label style={{ display: "block", marginBottom: "5px" }}>Stadion</label>
                         <input 
                             required 
                             type="text" 
@@ -107,14 +114,18 @@ export default function TeamManager({
                         />
                     </div>
                     <div>
-                        <label style={{ display: "block", marginBottom: "5px" }}>Continent</label>
-                        <input 
-                            required 
-                            type="text" 
-                            value={formData.continent} 
+                        <label style={{ display: "block", marginBottom: "5px" }}>Liga</label>
+                        <select
+                            required
+                            value={formData.continent}
                             onChange={e => setFormData({...formData, continent: e.target.value})}
                             style={{ width: "100%", padding: "5px", borderRadius: "3px", border: "1px solid #ccc" }}
-                        />
+                        >
+                            <option value="">Selecteaza liga</option>
+                            {leagues.map(league => (
+                                <option key={league.id} value={league.name}>{league.name}</option>
+                            ))}
+                        </select>
                     </div>
                     
                     <div style={{ gridColumn: "1 / -1", display: "flex", gap: "10px", marginTop: "10px" }}>
@@ -135,8 +146,8 @@ export default function TeamManager({
                             <tr>
                                 <th>ID</th>
                                 <th>Nume</th>
-                                <th>Țară</th>
-                                <th>Continent</th>
+                                <th>Stadion</th>
+                                <th>Liga</th>
                                 <th>Acțiuni</th>
                             </tr>
                         </thead>

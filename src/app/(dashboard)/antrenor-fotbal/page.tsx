@@ -11,16 +11,42 @@ export default async function AntrenorFotbalPage() {
         redirect("/login")
     }
 
-    // Statistici sumare
-    const totalPlans = await prisma.trainingPlan.count({
-        where: { createdBy: Number(session.user.id) },
-    })
+    const coachId = Number(session.user.id)
 
-    const recentPlans = await prisma.trainingPlan.findMany({
-        where: { createdBy: Number(session.user.id) },
-        orderBy: { date: "desc" },
-        take: 5,
-    })
+    // Statistici sumare
+    const [totalPlans, recentPlans, recentInjuries] = await Promise.all([
+        prisma.trainingPlan.count({
+            where: { createdBy: coachId },
+        }),
+        prisma.trainingPlan.findMany({
+            where: { createdBy: coachId },
+            orderBy: { date: "desc" },
+            take: 5,
+        }),
+        prisma.injury.findMany({
+            include: {
+                medicalRecord: {
+                    include: {
+                        athlete: {
+                            include: {
+                                user: {
+                                    include: {
+                                        profile: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+            orderBy: {
+                medicalRecord: {
+                    createdAt: "desc",
+                },
+            },
+            take: 3,
+        }),
+    ])
 
     return (
         <main>
@@ -31,15 +57,44 @@ export default async function AntrenorFotbalPage() {
             <div className="sd-metrics">
             <div className="sd-box sd-metric-box" style={{ flex: 1 }}>
                 <div className="sd-metric-title">Accidentari Recente</div>
-                    <div className="sd-metric-value">—</div>
+                    {recentInjuries.length === 0 ? (
+                        <div className="sd-metric-value">-</div>
+                    ) : (
+                        <div style={{ textAlign: "left", marginTop: "10px" }}>
+                            <div className="sd-metric-value" style={{ fontSize: "24px", marginBottom: "8px", textAlign: "center" }}>
+                                {recentInjuries.length}
+                            </div>
+                            <ul className="sd-list">
+                                {recentInjuries.map((injury) => {
+                                    const profile = injury.medicalRecord.athlete.user.profile
+                                    const athleteName = profile
+                                        ? [profile.firstName, profile.lastName].join(" ")
+                                        : injury.medicalRecord.athlete.user.email
+
+                                    return (
+                                        <li key={injury.id}>
+                                            <strong>{athleteName}</strong>
+                                            <br />
+                                            {injury.injuryType} - {injury.bodyPart}
+                                            <br />
+                                            <span style={{ color: "#666" }}>
+                                                {injury.severity} - {" "}
+                                                {new Date(injury.medicalRecord.createdAt).toLocaleDateString("ro-RO", {
+                                                    day: "2-digit",
+                                                    month: "2-digit",
+                                                    year: "numeric",
+                                                })}
+                                            </span>
+                                        </li>
+                                    )
+                                })}
+                            </ul>
+                        </div>
+                    )}
                 </div>
                 <div className="sd-box sd-metric-box">
                     <div className="sd-metric-title">Planuri de antrenament</div>
                     <div className="sd-metric-value">{totalPlans}</div>
-                </div>
-                <div className="sd-box sd-metric-box">
-                    <div className="sd-metric-title">Cartonase </div>
-                    <div className="sd-metric-value">-</div>
                 </div>
                 <Link href="/antrenor-fotbal/antrenamente" style={{ flex: 1, textDecoration: "none" }}>
                     <div className="sd-box sd-metric-box" style={{ cursor: "pointer" }}>

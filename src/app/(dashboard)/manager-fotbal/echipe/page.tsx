@@ -12,11 +12,18 @@ export default async function EchipePage() {
         redirect("/login")
     }
 
-    const teams = await prisma.team.findMany({
-        where: { sport: "fotbal" },
-        select: { id: true, name: true, country: true, continent: true },
-        orderBy: { name: "asc" },
-    })
+    const [teams, leagues] = await Promise.all([
+        prisma.team.findMany({
+            where: { sport: "fotbal" },
+            select: { id: true, name: true, country: true, continent: true },
+            orderBy: { name: "asc" },
+        }),
+        prisma.competition.findMany({
+            where: { sport: "fotbal" },
+            select: { id: true, name: true },
+            orderBy: { name: "asc" },
+        }),
+    ])
 
     return (
         <main>
@@ -24,7 +31,7 @@ export default async function EchipePage() {
                 <Link href="/manager-fotbal" className="sd-btn-secondary">Inapoi</Link>
                 <h1>Echipe fotbal</h1>
             </div>
-            <TeamManager initialTeams={teams} />
+            <TeamManager initialTeams={teams} leagues={leagues} />
         </main>
     )
 }

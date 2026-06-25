@@ -9,6 +9,8 @@ type Competition = {
     id: number
     name: string
     sport: "fotbal" | "tenis"
+    country: string
+    continent: string
     startDate: Date | string | null
     endDate: Date | string | null
     createdAt: Date
@@ -17,6 +19,8 @@ type Competition = {
 type CompetitionFormData = {
     name: string
     sport: "fotbal" | "tenis"
+    country: string
+    continent: string
     startDate: string
     endDate: string
 }
@@ -29,6 +33,8 @@ interface Props {
 const emptyFormData: CompetitionFormData = {
     name: "",
     sport: "fotbal",
+    country: "",
+    continent: "",
     startDate: "",
     endDate: "",
 }
@@ -84,6 +90,8 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
         setEditFormData({
             name: competition.name,
             sport: competition.sport,
+            country: competition.country,
+            continent: competition.continent,
             startDate: toDateInputValue(competition.startDate),
             endDate: toDateInputValue(competition.endDate),
         })
@@ -194,6 +202,28 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                         </select>
                     </div>
                     <div style={{ flex: "1 1 150px" }}>
+                        <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Tara</label>
+                        <input
+                            required
+                            type="text"
+                            placeholder="ex: Romania"
+                            value={formData.country}
+                            onChange={e => setFormData({ ...formData, country: e.target.value })}
+                            style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+                        />
+                    </div>
+                    <div style={{ flex: "1 1 150px" }}>
+                        <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Continent</label>
+                        <input
+                            required
+                            type="text"
+                            placeholder="ex: Europa"
+                            value={formData.continent}
+                            onChange={e => setFormData({ ...formData, continent: e.target.value })}
+                            style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+                        />
+                    </div>
+                    <div style={{ flex: "1 1 150px" }}>
                         <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Data inceput</label>
                         <input
                             type="date"
@@ -228,6 +258,8 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                                 <th>ID</th>
                                 <th>Nume Competitie</th>
                                 <th>Sport</th>
+                                <th>Tara</th>
+                                <th>Continent</th>
                                 <th>Durata</th>
                                 <th>Data Crearii</th>
                                 <th style={{ textAlign: "right" }}>Actiuni</th>
@@ -250,6 +282,8 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                                             {comp.sport === "fotbal" ? "Fotbal" : "Tenis"}
                                         </span>
                                     </td>
+                                    <td>{comp.country}</td>
+                                    <td>{comp.continent}</td>
                                     <td>{formatCompetitionDuration(comp.startDate, comp.endDate)}</td>
                                     <td>{new Date(comp.createdAt).toLocaleDateString("ro-RO")}</td>
                                     <td style={{ textAlign: "right" }}>
@@ -262,7 +296,7 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                             ))}
                             {competitions.length === 0 && (
                                 <tr>
-                                    <td colSpan={6} style={{ textAlign: "center", padding: "20px", color: "#666" }}>Nu exista nicio competitie adaugata.</td>
+                                    <td colSpan={8} style={{ textAlign: "center", padding: "20px", color: "#666" }}>Nu exista nicio competitie adaugata.</td>
                                 </tr>
                             )}
                         </tbody>
@@ -274,12 +308,16 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                 <CompetitionEditModal
                     name={editFormData.name}
                     sport={editFormData.sport}
+                    country={editFormData.country}
+                    continent={editFormData.continent}
                     startDate={editFormData.startDate}
                     endDate={editFormData.endDate}
                     loading={loading}
                     error={editError}
                     onNameChange={(value) => setEditFormData({ ...editFormData, name: value })}
                     onSportChange={(value) => setEditFormData({ ...editFormData, sport: value })}
+                    onCountryChange={(value) => setEditFormData({ ...editFormData, country: value })}
+                    onContinentChange={(value) => setEditFormData({ ...editFormData, continent: value })}
                     onStartDateChange={(value) => setEditFormData({ ...editFormData, startDate: value })}
                     onEndDateChange={(value) => setEditFormData({ ...editFormData, endDate: value })}
                     onClose={closeEditModal}
@@ -291,6 +329,8 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                 <CompetitionCreateModal
                     name={formData.name}
                     sport={formData.sport}
+                    country={formData.country}
+                    continent={formData.continent}
                     startDate={formData.startDate}
                     endDate={formData.endDate}
                     loading={loading}
@@ -298,6 +338,8 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                     success={success}
                     onNameChange={(value) => setFormData({ ...formData, name: value })}
                     onSportChange={(value) => setFormData({ ...formData, sport: value })}
+                    onCountryChange={(value) => setFormData({ ...formData, country: value })}
+                    onContinentChange={(value) => setFormData({ ...formData, continent: value })}
                     onStartDateChange={(value) => setFormData({ ...formData, startDate: value })}
                     onEndDateChange={(value) => setFormData({ ...formData, endDate: value })}
                     onClose={closeCreateModal}

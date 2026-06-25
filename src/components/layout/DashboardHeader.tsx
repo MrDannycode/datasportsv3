@@ -23,9 +23,23 @@ interface NavItem {
     href: string
 }
 
-type BasicTeam = { id: number; name: string }
+type BasicTeam = { id: number; name: string; country: string }
 type BasicCoach = { id: number; firstName: string; lastName: string; teamId: number | null; team: BasicTeam | null }
 type BasicCompetition = { id: number; name: string }
+type ProfileNavData = {
+    firstName: string
+    lastName: string
+    dateOfBirth: string | null
+    phone: string | null
+    restingHeartRate: number | null
+    maxHeartRate: number | null
+    gender: "MALE" | "FEMALE" | null
+    heightCm?: number | null
+    weightKg?: number | null
+    preferredFoot?: string | null
+    preferredHand?: string | null
+    sportType?: "fotbal" | "tenis" | null
+}
 
 interface DashboardHeaderProps {
     navItems?: NavItem[]
@@ -40,13 +54,9 @@ const defaultNavItems: NavItem[] = [
     { label: "Gestiune Antrenori", href: "#" },
     { label: "Adauga Meci", href: "#" },
     { label: "Adauga antrenament", href: "/antrenor-fotbal/antrenamente" },
-    { label: "Rapoarte Fitness", href: "#" },
     { label: "Adauga Sesiune Fitness", href: "/antrenor-fitness/trainfit?open=new" },
-    { label: "Adauga Sesiune Recuperare", href: "#" },
     { label: "Adauga Dosar", href: "/medic/dosar-medical?open=new" },
     { label: "Adauga Accidentare", href: "#" },
-    { label: "Disponibilitate atleti", href: "#" },
-    { label: "Istoric Accidentari", href: "#" },
     { label: "Dosar Medical", href: "#" },
     { label: "Adauga Activitate", href: "/atlet-fotbal/activity?open=new" },
     { label: "Profilul meu", href: "#" },
@@ -67,12 +77,12 @@ export default async function DashboardHeader({
     let footballCompetitions: BasicCompetition[] = []
     let athleteMedicalRecords: AthleteMedicalRecord[] = []
     let athleteHasCardiacData = false
-    let myProfileData: any = null
+    let myProfileData: ProfileNavData | null = null
 
     if (session?.user?.role === "manager_fotbal") {
         footballTeams = await prisma.team.findMany({
             where: { sport: "fotbal" },
-            select: { id: true, name: true },
+            select: { id: true, name: true, country: true },
             orderBy: { name: "asc" },
         })
 
@@ -86,7 +96,7 @@ export default async function DashboardHeader({
             where: { role: "antrenor_fotbal" },
             include: {
                 profile: {
-                    include: { team: { select: { id: true, name: true } } },
+                    include: { team: { select: { id: true, name: true, country: true } } },
                 },
             },
             orderBy: { email: "asc" },
@@ -230,11 +240,11 @@ export default async function DashboardHeader({
                 ? session?.user?.role === "admin_global"
                 : ["Adauga Atleti", "Gestiune Antrenori", "Adauga Meci"].includes(item.label)
                     ? session?.user?.role === "manager_fotbal"
-                    : ["Adauga antrenament", "Rapoarte Fitness"].includes(item.label)
+                    : ["Adauga antrenament"].includes(item.label)
                         ? session?.user?.role === "antrenor_fotbal"
-                        : ["Adauga Sesiune Fitness", "Adauga Sesiune Recuperare"].includes(item.label)
+                        : ["Adauga Sesiune Fitness"].includes(item.label)
                             ? session?.user?.role === "antrenor_fitness"
-                            : ["Adauga Dosar", "Adauga Accidentare", "Disponibilitate atleti", "Istoric Accidentari"].includes(item.label)
+                            : ["Adauga Dosar", "Adauga Accidentare"].includes(item.label)
                                 ? session?.user?.role === "medic"
                                 : ["Dosar Medical", "Adauga Activitate", "Profilul meu"].includes(item.label)
                                     ? session?.user?.role === "atlet_fotbal"

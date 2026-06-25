@@ -97,6 +97,7 @@ export async function createTeam(data: {
     })
     
     revalidatePath("/manager-fotbal")
+    revalidatePath("/manager-fotbal/echipe")
 }
 
 export async function updateTeam(id: number, data: {
@@ -119,6 +120,7 @@ export async function updateTeam(id: number, data: {
     })
     
     revalidatePath("/manager-fotbal")
+    revalidatePath("/manager-fotbal/echipe")
 }
 
 export async function deleteTeam(id: number) {
@@ -132,6 +134,7 @@ export async function deleteTeam(id: number) {
     })
     
     revalidatePath("/manager-fotbal")
+    revalidatePath("/manager-fotbal/echipe")
 }
 
 async function assignUserProfileToTeam(userId: number, teamId: string | null) {

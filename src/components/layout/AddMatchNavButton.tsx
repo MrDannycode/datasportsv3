@@ -4,7 +4,7 @@ import { useState } from "react"
 import MatchCreateModal from "@/app/(dashboard)/manager-fotbal/MatchCreateModal"
 import { createMatch } from "@/app/(dashboard)/manager-fotbal/actions"
 
-type Team = { id: number; name: string }
+type Team = { id: number; name: string; country: string }
 type MatchFormData = {
     teamHomeId: string
     teamAwayId: string
@@ -39,7 +39,14 @@ export default function AddMatchNavButton({ label, teams, competitions, isActive
     const [formData, setFormData] = useState<MatchFormData>(emptyForm)
 
     const updateField = (field: keyof MatchFormData, value: string) => {
-        setFormData(current => ({ ...current, [field]: value }))
+        setFormData(current => {
+            if (field !== "teamHomeId") {
+                return { ...current, [field]: value }
+            }
+
+            const homeTeam = teams.find(team => team.id === Number(value))
+            return { ...current, teamHomeId: value, location: homeTeam?.country ?? "" }
+        })
     }
 
     const closeModal = () => {
@@ -63,8 +70,8 @@ export default function AddMatchNavButton({ label, teams, competitions, isActive
             setFormData(emptyForm)
             setIsOpen(false)
             window.location.reload()
-        } catch (err: any) {
-            setError(err.message || "A aparut o eroare.")
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "A aparut o eroare.")
         } finally {
             setLoading(false)
         }

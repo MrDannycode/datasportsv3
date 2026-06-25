@@ -21,7 +21,7 @@ export default async function MeciuriPage({ searchParams }: MeciuriPageProps) {
     const [teams, competitions, matches] = await Promise.all([
         prisma.team.findMany({
             where: { sport: "fotbal" },
-            select: { id: true, name: true },
+            select: { id: true, name: true, country: true },
             orderBy: { name: "asc" },
         }),
         prisma.competition.findMany({
@@ -31,8 +31,8 @@ export default async function MeciuriPage({ searchParams }: MeciuriPageProps) {
         }),
         prisma.footballMatch.findMany({
             include: {
-                teamHome: { select: { id: true, name: true } },
-                teamAway: { select: { id: true, name: true } },
+                teamHome: { select: { id: true, name: true, country: true } },
+                teamAway: { select: { id: true, name: true, country: true } },
                 competition: { select: { id: true, name: true } },
             },
             orderBy: { matchDate: "desc" },
