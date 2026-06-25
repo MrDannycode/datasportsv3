@@ -137,7 +137,7 @@ export async function POST() {
     const session = await getServerSession(authOptions)
     if (
         !session ||
-        !["manager_tenis", "admin_global"].includes(session.user.role)
+        !["atlet_tenis", "admin_global"].includes(session.user.role)
     ) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }

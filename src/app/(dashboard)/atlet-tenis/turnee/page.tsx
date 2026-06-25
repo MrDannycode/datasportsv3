@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { calculateDifficulty } from "@/lib/tournament-difficulty"
 import TournamentCard from "@/components/tournament/TournamentCard"
+import TournamentSyncButton from "@/components/tournament/TournamentSyncButton"
 import type { TournamentWithDifficulty } from "@/app/api/tournaments/route"
 
 async function getUpcomingTournaments(): Promise<TournamentWithDifficulty[]> {
@@ -46,13 +47,34 @@ async function getUpcomingTournaments(): Promise<TournamentWithDifficulty[]> {
     })
 }
 
+async function getTournamentStats() {
+    const now = new Date()
+    const [total, greu, mediu, usor] = await Promise.all([
+        prisma.tournament.count({ where: { startDate: { gte: now } } }),
+        prisma.tournament.count({ where: { startDate: { gte: now } } }), // calculat dinamic mai jos
+        prisma.tournament.count({ where: { startDate: { gte: now } } }),
+        prisma.tournament.count({ where: { startDate: { gte: now } } }),
+    ])
+    return { total }
+}
+
 export default async function AtletTenisTurneePage() {
     const session = await getServerSession(authOptions)
     if (!session || session.user.role !== "atlet_tenis") {
         redirect("/login")
     }
 
-    const tournaments = await getUpcomingTournaments()
+    const [tournaments, stats] = await Promise.all([
+        getUpcomingTournaments(),
+        getTournamentStats(),
+    ])
+
+    const countByDifficulty = {
+        greu: tournaments.filter((t) => t.difficulty === "greu").length,
+        mediu: tournaments.filter((t) => t.difficulty === "mediu").length,
+        usor: tournaments.filter((t) => t.difficulty === "usor").length,
+        necunoscut: tournaments.filter((t) => t.difficulty === null).length,
+    }
 
     return (
         <main>
@@ -60,48 +82,83 @@ export default async function AtletTenisTurneePage() {
                 <h1>Turnee Viitoare</h1>
             </div>
 
-            {/* Legendă dificultate */}
-            <div className="sd-box" style={{ marginBottom: 16 }}>
-                <div className="sd-box-header">
-                    <h2>Cum se calculează dificultatea?</h2>
+            {/* Metrici rezumat */}
+            <div className="sd-metrics">
+                <div className="sd-box sd-metric-box">
+                    <div className="sd-metric-title">Total Turnee Viitoare</div>
+                    <div className="sd-metric-value">{tournaments.length}</div>
                 </div>
-                <div className="sd-box-content" style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
-                    <div>
-                        <span className="sd-difficulty-badge sd-difficulty-greu">🔴 Greu</span>
-                        <span style={{ marginLeft: 8, fontSize: 13, color: "#555" }}>
-                            Media ranking înscriși ≤ 50 (jucători de elită mondială)
-                        </span>
+                <div className="sd-box sd-metric-box">
+                    <div className="sd-metric-title">🔴 Turnee Grele</div>
+                    <div className="sd-metric-value" style={{ color: "#991b1b" }}>
+                        {countByDifficulty.greu}
                     </div>
-                    <div>
-                        <span className="sd-difficulty-badge sd-difficulty-mediu">🟡 Mediu</span>
-                        <span style={{ marginLeft: 8, fontSize: 13, color: "#555" }}>
-                            Media ranking 51–150 (jucători profesioniști)
-                        </span>
+                </div>
+                <div className="sd-box sd-metric-box">
+                    <div className="sd-metric-title">🟡 Turnee Medii</div>
+                    <div className="sd-metric-value" style={{ color: "#92400e" }}>
+                        {countByDifficulty.mediu}
                     </div>
-                    <div>
-                        <span className="sd-difficulty-badge sd-difficulty-usor">🟢 Ușor</span>
-                        <span style={{ marginLeft: 8, fontSize: 13, color: "#555" }}>
-                            Media ranking &gt; 150 (turnee Challenger / Futures)
-                        </span>
+                </div>
+                <div className="sd-box sd-metric-box">
+                    <div className="sd-metric-title">🟢 Turnee Ușoare</div>
+                    <div className="sd-metric-value" style={{ color: "#166534" }}>
+                        {countByDifficulty.usor}
                     </div>
                 </div>
             </div>
 
+            {/* Sync trigger */}
+            <TournamentSyncButton />
+
+            {/* Legendă algoritm */}
+            <div className="sd-box" style={{ marginBottom: 16 }}>
+                <div className="sd-box-header">
+                    <h2>Algoritm de calcul al dificultății</h2>
+                </div>
+                <div className="sd-box-content">
+                    <p style={{ fontSize: 13, color: "#555", marginBottom: 10 }}>
+                        Dificultatea fiecărui turneu este calculată <strong>dinamic</strong> la
+                        momentul citirii, pe baza mediei rankingului ATP/WTA al jucătorilor înscriși
+                        la acea oră. Nu este stocată static în baza de date.
+                    </p>
+                    <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+                        <div>
+                            <span className="sd-difficulty-badge sd-difficulty-greu">🔴 Greu</span>
+                            <span style={{ marginLeft: 8, fontSize: 12, color: "#555" }}>
+                                Media ranking ≤ 50 — Elită mondială (ex: Wimbledon, US Open)
+                            </span>
+                        </div>
+                        <div>
+                            <span className="sd-difficulty-badge sd-difficulty-mediu">🟡 Mediu</span>
+                            <span style={{ marginLeft: 8, fontSize: 12, color: "#555" }}>
+                                Media ranking 51–150 — Profesioniști (ex: ATP 250/500)
+                            </span>
+                        </div>
+                        <div>
+                            <span className="sd-difficulty-badge sd-difficulty-usor">🟢 Ușor</span>
+                            <span style={{ marginLeft: 8, fontSize: 12, color: "#555" }}>
+                                Media ranking &gt; 150 — Challenger / Futures
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Lista turnee */}
             {tournaments.length === 0 ? (
                 <div className="sd-box sd-empty-state">
-                    <p>Nu există turnee viitoare înregistrate momentan.</p>
-                    <p style={{ fontSize: 12, color: "#999" }}>
-                        Contactează managerul de tenis pentru actualizarea datelor.
-                    </p>
+                    <p>Nu există turnee viitoare. Apasă &ldquo;Actualizare date turnee&rdquo; pentru a importa datele.</p>
                 </div>
             ) : (
                 <>
                     <div style={{ marginBottom: 12, fontSize: 13, color: "#666" }}>
-                        {tournaments.length} turneu{tournaments.length !== 1 ? "e" : ""} viitoare găsite
+                        {tournaments.length} turneu{tournaments.length !== 1 ? "e" : ""} viitoare —
+                        jucătorii sunt afișați în ordinea rankingului
                     </div>
                     <div className="sd-tournament-grid">
                         {tournaments.map((t) => (
-                            <TournamentCard key={t.id} tournament={t} />
+                            <TournamentCard key={t.id} tournament={t} showPlayersDefault={false} />
                         ))}
                     </div>
                 </>

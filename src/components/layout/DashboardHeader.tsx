@@ -62,7 +62,6 @@ const defaultNavItems: NavItem[] = [
     { label: "Profilul meu", href: "#" },
     { label: "Toti Atletii", href: "#" },
     { label: "Turnee Tenis", href: "/atlet-tenis/turnee" },
-    { label: "Turnee Manager", href: "/manager-tenis/turnee" },
 ]
 
 export default async function DashboardHeader({
@@ -252,9 +251,7 @@ export default async function DashboardHeader({
                                     ? session?.user?.role === "atlet_fotbal"
                                     : item.label === "Turnee Tenis"
                                         ? session?.user?.role === "atlet_tenis"
-                                        : item.label === "Turnee Manager"
-                                            ? session?.user?.role === "manager_tenis"
-                                            : true
+                                        : true
     )
 
     return (
