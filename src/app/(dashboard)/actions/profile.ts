@@ -65,9 +65,13 @@ export async function updateMyProfile(formData: FormData): Promise<UpdateProfile
 
   try {
     // 1. Actualizare Profil
-    const updatedProfile = await prisma.profile.update({
+    const updatedProfile = await prisma.profile.upsert({
       where: { userId },
-      data: profileData
+      update: profileData,
+      create: {
+        userId,
+        ...profileData,
+      },
     })
 
     // 2. Verificare si actualizare atlet fotbal (daca e cazul)

@@ -196,40 +196,43 @@ export default async function DashboardHeader({
             }
         })
 
-        const athleteProfile = await prisma.profile.findUnique({
-            where: { userId: Number(session.user.id) },
+        const athleteUser = await prisma.user.findUnique({
+            where: { id: Number(session.user.id) },
             select: { 
-                firstName: true, lastName: true, phone: true, dateOfBirth: true, gender: true,
-                restingHeartRate: true, maxHeartRate: true,
-                user: {
+                email: true,
+                profile: {
                     select: {
-                        footballAthlete: {
-                            select: { heightCm: true, weightKg: true, preferredFoot: true }
-                        },
-                        tennisAthlete: {
-                            select: { heightCm: true, weightKg: true, preferredHand: true }
-                        }
-                    }
-                }
+                        firstName: true, lastName: true, phone: true, dateOfBirth: true, gender: true,
+                        restingHeartRate: true, maxHeartRate: true,
+                    },
+                },
+                footballAthlete: {
+                    select: { heightCm: true, weightKg: true, preferredFoot: true }
+                },
+                tennisAthlete: {
+                    select: { heightCm: true, weightKg: true, preferredHand: true }
+                },
             },
         })
 
+        const athleteProfile = athleteUser?.profile
         athleteHasCardiacData = !!(athleteProfile?.restingHeartRate && athleteProfile?.maxHeartRate)
         
-        if (athleteProfile) {
+        if (athleteUser) {
+           const fallbackName = athleteUser.email.split("@")[0]
            myProfileData = {
-              firstName: athleteProfile.firstName,
-              lastName: athleteProfile.lastName,
-              dateOfBirth: athleteProfile.dateOfBirth?.toISOString() || null,
-              phone: athleteProfile.phone,
-              restingHeartRate: athleteProfile.restingHeartRate,
-              maxHeartRate: athleteProfile.maxHeartRate,
-              gender: athleteProfile.gender,
-              heightCm: athleteProfile.user?.footballAthlete?.heightCm || athleteProfile.user?.tennisAthlete?.heightCm || null,
-              weightKg: athleteProfile.user?.footballAthlete?.weightKg || athleteProfile.user?.tennisAthlete?.weightKg || null,
-              preferredFoot: athleteProfile.user?.footballAthlete?.preferredFoot || null,
-              preferredHand: athleteProfile.user?.tennisAthlete?.preferredHand || null,
-              sportType: athleteProfile.user?.footballAthlete ? "fotbal" : athleteProfile.user?.tennisAthlete ? "tenis" : null
+              firstName: athleteProfile?.firstName ?? fallbackName,
+              lastName: athleteProfile?.lastName ?? "",
+              dateOfBirth: athleteProfile?.dateOfBirth?.toISOString() || null,
+              phone: athleteProfile?.phone ?? null,
+              restingHeartRate: athleteProfile?.restingHeartRate ?? null,
+              maxHeartRate: athleteProfile?.maxHeartRate ?? null,
+              gender: athleteProfile?.gender ?? null,
+              heightCm: athleteUser.footballAthlete?.heightCm || athleteUser.tennisAthlete?.heightCm || null,
+              weightKg: athleteUser.footballAthlete?.weightKg || athleteUser.tennisAthlete?.weightKg || null,
+              preferredFoot: athleteUser.footballAthlete?.preferredFoot || null,
+              preferredHand: athleteUser.tennisAthlete?.preferredHand || null,
+              sportType: athleteUser.footballAthlete ? "fotbal" : athleteUser.tennisAthlete ? "tenis" : null
            }
         }
     }
