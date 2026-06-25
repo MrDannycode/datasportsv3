@@ -61,6 +61,8 @@ const defaultNavItems: NavItem[] = [
     { label: "Adauga Activitate", href: "/atlet-fotbal/activity?open=new" },
     { label: "Profilul meu", href: "#" },
     { label: "Toti Atletii", href: "#" },
+    { label: "Turnee Tenis", href: "/atlet-tenis/turnee" },
+    { label: "Turnee Manager", href: "/manager-tenis/turnee" },
 ]
 
 export default async function DashboardHeader({
@@ -248,7 +250,11 @@ export default async function DashboardHeader({
                                 ? session?.user?.role === "medic"
                                 : ["Dosar Medical", "Adauga Activitate", "Profilul meu"].includes(item.label)
                                     ? session?.user?.role === "atlet_fotbal"
-                                    : true
+                                    : item.label === "Turnee Tenis"
+                                        ? session?.user?.role === "atlet_tenis"
+                                        : item.label === "Turnee Manager"
+                                            ? session?.user?.role === "manager_tenis"
+                                            : true
     )
 
     return (
