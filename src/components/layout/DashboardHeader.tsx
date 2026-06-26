@@ -212,7 +212,7 @@ export default async function DashboardHeader({
                     select: { heightCm: true, weightKg: true, preferredFoot: true }
                 },
                 tennisAthlete: {
-                    select: { heightCm: true, weightKg: true, preferredHand: true }
+                    select: { heightCm: true, weightKg: true, preferredHand: true, atpWtaRanking: true }
                 },
             },
         })
@@ -234,6 +234,7 @@ export default async function DashboardHeader({
               weightKg: athleteUser.footballAthlete?.weightKg || athleteUser.tennisAthlete?.weightKg || null,
               preferredFoot: athleteUser.footballAthlete?.preferredFoot || null,
               preferredHand: athleteUser.tennisAthlete?.preferredHand || null,
+              atpWtaRanking: athleteUser.tennisAthlete?.atpWtaRanking ?? null,
               sportType: athleteUser.footballAthlete ? "fotbal" : athleteUser.tennisAthlete ? "tenis" : null
            }
         }
@@ -353,3 +354,5 @@ export default async function DashboardHeader({
         </header>
     )
 }
+
+

@@ -30,6 +30,7 @@ export async function updateMyProfile(formData: FormData): Promise<UpdateProfile
   const weightKgStr = formData.get("weightKg") as string | null
   const preferredFoot = formData.get("preferredFoot") as string | null // pentru fotbalisti
   const preferredHand = formData.get("preferredHand") as string | null // pentru tenismani
+  const atpWtaRankingStr = formData.get("atpWtaRanking") as string | null // pentru tenismani
   
   if (!firstName || !lastName) {
     return { success: false, error: "Numele și prenumele sunt obligatorii" }
@@ -75,7 +76,7 @@ export async function updateMyProfile(formData: FormData): Promise<UpdateProfile
     })
 
     // 2. Verificare si actualizare atlet fotbal (daca e cazul)
-    if (heightCmStr || weightKgStr || preferredFoot || preferredHand) {
+    if (heightCmStr || weightKgStr || preferredFoot || preferredHand || atpWtaRankingStr !== null) {
       const footballAthlete = await prisma.footballAthlete.findUnique({ where: { userId } })
       if (footballAthlete) {
         const updateData: any = {}
@@ -98,6 +99,10 @@ export async function updateMyProfile(formData: FormData): Promise<UpdateProfile
         if (preferredHand === "stanga" || preferredHand === "dreapta") {
           updateData.preferredHand = preferredHand
         }
+        if (atpWtaRankingStr !== null) {
+          const ranking = parseInt(atpWtaRankingStr)
+          updateData.atpWtaRanking = !isNaN(ranking) && ranking > 0 ? ranking : null
+        }
         await prisma.tennisAthlete.update({
           where: { userId },
           data: updateData
@@ -111,3 +116,4 @@ export async function updateMyProfile(formData: FormData): Promise<UpdateProfile
     return { success: false, error: "A apărut o eroare la salvarea profilului" }
   }
 }
+

@@ -48,7 +48,7 @@ export async function GET() {
 
     const result: TournamentWithDifficulty[] = tournaments.map((t) => {
         const rankings = t.players.map((p) => p.atpWtaRanking)
-        const difficulty = calculateDifficulty(rankings)
+        const difficulty = calculateDifficulty(rankings, t.name)
         const validRankings = rankings.filter((r): r is number => r !== null && r > 0)
         const avgRanking =
             validRankings.length > 0

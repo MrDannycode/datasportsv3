@@ -15,6 +15,8 @@ const DIFFICULTY_ICONS: Record<Difficulty, string> = {
     usor: "🟢",
 }
 
+const MAX_VISIBLE_PLAYERS = 30
+
 const SURFACE_LABELS: Record<string, string> = {
     zgura: "Zgură",
     iarba: "Iarbă",
@@ -52,6 +54,7 @@ function SurfaceBadge({ surface }: { surface: string | null }) {
 
 export default function TournamentCard({ tournament, showPlayersDefault = false }: Props) {
     const [expanded, setExpanded] = useState(showPlayersDefault)
+    const visiblePlayers = tournament.players.slice(0, MAX_VISIBLE_PLAYERS)
 
     return (
         <div className="sd-tournament-card">
@@ -129,7 +132,7 @@ export default function TournamentCard({ tournament, showPlayersDefault = false 
                             </tr>
                         </thead>
                         <tbody>
-                            {tournament.players.map((p, idx) => (
+                            {visiblePlayers.map((p, idx) => (
                                 <tr key={p.id}>
                                     <td className="sd-pos">{idx + 1}</td>
                                     <td>{p.playerName}</td>
@@ -150,3 +153,4 @@ export default function TournamentCard({ tournament, showPlayersDefault = false 
         </div>
     )
 }
+

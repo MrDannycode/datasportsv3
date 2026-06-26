@@ -1,14 +1,9 @@
 /**
- * Calcul dinamic al dificultăţii turneului pe baza mediei
- * rankingului ATP/WTA al jucătorilor înscrişi.
+ * Calcul dinamic al dificultatii turneului pe baza mediei
+ * rankingului ATP/WTA al jucatorilor inscrisi.
  *
- * Convenţie ATP/WTA: ranking 1 = cel mai bun jucător.
- * Ranking mic → concurenţă mai puternică → dificultate mai mare.
- *
- * Praguri justificate academic:
- *  ≤ 50  → "greu"  (jucători de elită mondială, Top 50)
- *  ≤ 150 → "mediu" (jucători profesionişti, Top 50–150)
- *  > 150 → "usor"  (jucători challenger / futures)
+ * Conventie ATP/WTA: ranking 1 = cel mai bun jucator.
+ * Ranking mic -> concurenta mai puternica -> dificultate mai mare.
  */
 
 export type Difficulty = "usor" | "mediu" | "greu"
@@ -16,23 +11,43 @@ export type Difficulty = "usor" | "mediu" | "greu"
 export const DIFFICULTY_LABELS: Record<Difficulty, string> = {
     greu: "Greu",
     mediu: "Mediu",
-    usor: "Ușor",
+    usor: "Usor",
 }
 
 export const DIFFICULTY_THRESHOLDS = {
-    ELITE: 50,   // ≤ 50  → greu
-    MID: 150,    // ≤ 150 → mediu
+    ELITE: 50,
+    MID: 150,
 } as const
 
-/**
- * Calculează dificultatea unui turneu pe baza rankingurilor jucătorilor.
- * Returnează `null` dacă nu există jucători cu ranking cunoscut.
- */
-export function calculateDifficulty(rankings: (number | null | undefined)[]): Difficulty | null {
+function normalizeCategorySource(categorySource?: string | null) {
+    return categorySource?.trim().toUpperCase() ?? ""
+}
+
+export function estimateDifficultyFromCategory(categorySource?: string | null): Difficulty | null {
+    const value = normalizeCategorySource(categorySource)
+    const match = value.match(/([MW])(\d{2,3})/)
+
+    if (!match) return null
+
+    const amount = Number.parseInt(match[2], 10)
+    if (!Number.isFinite(amount)) return null
+
+    if (amount >= 60) return "greu"
+    if (amount >= 25) return "mediu"
+    return "usor"
+}
+
+export function calculateDifficulty(
+    rankings: (number | null | undefined)[],
+    categorySource?: string | null
+): Difficulty | null {
     const valid = rankings.filter(
         (r): r is number => typeof r === "number" && r > 0
     )
-    if (valid.length === 0) return null
+
+    if (valid.length === 0) {
+        return estimateDifficultyFromCategory(categorySource)
+    }
 
     const avg = valid.reduce((sum, r) => sum + r, 0) / valid.length
 
