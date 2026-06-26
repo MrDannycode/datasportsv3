@@ -6,7 +6,7 @@ import Link from "next/link"
 import SportScienceMetrics, { type SportScienceLoad } from "@/components/sport-science/SportScienceMetrics"
 import type { Prisma } from "@prisma/client"
 
-type UpcomingMatch = Prisma.FootballMatchGetPayload<{ include: { teamHome: true; teamAway: true } }>
+type UpcomingMatch = Prisma.FootballMatchGetPayload<{ include: { teamHome: true; teamAway: true; competition: true } }>
 type AssignedTrainingPlan = Prisma.TrainingPlanGetPayload<{ include: { creator: { include: { profile: true } } } }>
 type AssignedFitnessPlan = Prisma.FitnessPlanGetPayload<{ include: { creator: { include: { profile: true } } } }>
 
@@ -72,7 +72,8 @@ export default async function AtletFotbalPage() {
             },
             include: {
                 teamHome: true,
-                teamAway: true
+                teamAway: true,
+                competition: true
             },
             orderBy: {
                 matchDate: 'asc'
@@ -154,7 +155,7 @@ export default async function AtletFotbalPage() {
                                             })}
                                         </div>
                                         <div style={{ fontSize: "12px", color: "#666" }}>
-                                            {match.location} | {match.competition}
+                                            {match.location} | {match.competition.name}
                                         </div>
                                     </li>
                                 ))}

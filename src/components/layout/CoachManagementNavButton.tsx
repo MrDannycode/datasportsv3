@@ -11,6 +11,7 @@ type Team = {
 
 type Antrenor = {
     id: number
+    role: string
     firstName: string
     lastName: string
     teamId: number | null

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
+import { logAudit } from "@/lib/audit"
 
 export async function createMatch(data: {
     teamHomeId: string
@@ -19,7 +20,7 @@ export async function createMatch(data: {
         throw new Error("Unauthorized")
     }
 
-    await prisma.footballMatch.create({
+    const match = await prisma.footballMatch.create({
         data: {
             teamHomeId: parseInt(data.teamHomeId),
             teamAwayId: parseInt(data.teamAwayId),
@@ -31,6 +32,7 @@ export async function createMatch(data: {
         }
     })
     
+    await logAudit({ userId: session.user.id, action: "create", tableAffected: "football_matches", recordId: match.id, details: { location: match.location, matchDate: match.matchDate.toISOString() } })
     revalidatePath("/manager-fotbal")
 }
 
@@ -48,7 +50,7 @@ export async function updateMatch(id: number, data: {
         throw new Error("Unauthorized")
     }
 
-    await prisma.footballMatch.update({
+    const match = await prisma.footballMatch.update({
         where: { id },
         data: {
             teamHomeId: parseInt(data.teamHomeId),
@@ -61,6 +63,7 @@ export async function updateMatch(id: number, data: {
         }
     })
     
+    await logAudit({ userId: session.user.id, action: "update", tableAffected: "football_matches", recordId: match.id, details: { location: match.location, matchDate: match.matchDate.toISOString() } })
     revalidatePath("/manager-fotbal")
 }
 
@@ -70,10 +73,11 @@ export async function deleteMatch(id: number) {
         throw new Error("Unauthorized")
     }
 
-    await prisma.footballMatch.delete({
+    const match = await prisma.footballMatch.delete({
         where: { id }
     })
     
+    await logAudit({ userId: session.user.id, action: "delete", tableAffected: "football_matches", recordId: match.id, details: { location: match.location, matchDate: match.matchDate.toISOString() } })
     revalidatePath("/manager-fotbal")
 }
 
@@ -87,7 +91,7 @@ export async function createTeam(data: {
         throw new Error("Unauthorized")
     }
 
-    await prisma.team.create({
+    const team = await prisma.team.create({
         data: {
             name: data.name,
             sport: "fotbal",
@@ -96,6 +100,7 @@ export async function createTeam(data: {
         }
     })
     
+    await logAudit({ userId: session.user.id, action: "create", tableAffected: "teams", recordId: team.id, details: { name: team.name, sport: team.sport } })
     revalidatePath("/manager-fotbal")
     revalidatePath("/manager-fotbal/echipe")
 }
@@ -110,7 +115,7 @@ export async function updateTeam(id: number, data: {
         throw new Error("Unauthorized")
     }
 
-    await prisma.team.update({
+    const team = await prisma.team.update({
         where: { id },
         data: {
             name: data.name,
@@ -119,6 +124,7 @@ export async function updateTeam(id: number, data: {
         }
     })
     
+    await logAudit({ userId: session.user.id, action: "update", tableAffected: "teams", recordId: team.id, details: { name: team.name, sport: team.sport } })
     revalidatePath("/manager-fotbal")
     revalidatePath("/manager-fotbal/echipe")
 }
@@ -129,10 +135,11 @@ export async function deleteTeam(id: number) {
         throw new Error("Unauthorized")
     }
 
-    await prisma.team.delete({
+    const team = await prisma.team.delete({
         where: { id }
     })
     
+    await logAudit({ userId: session.user.id, action: "delete", tableAffected: "teams", recordId: team.id, details: { name: team.name, sport: team.sport } })
     revalidatePath("/manager-fotbal")
     revalidatePath("/manager-fotbal/echipe")
 }
@@ -164,6 +171,7 @@ async function assignUserProfileToTeam(userId: number, teamId: string | null) {
         })
     }
     
+    await logAudit({ userId: session.user.id, action: "update", tableAffected: "profiles", recordId: profile?.id ?? userId, details: { targetUserId: userId, teamId: tId } })
     revalidatePath("/manager-fotbal")
     revalidatePath("/manager-fotbal/antrenori")
 }

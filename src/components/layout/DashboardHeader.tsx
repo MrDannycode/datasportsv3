@@ -24,7 +24,7 @@ interface NavItem {
 }
 
 type BasicTeam = { id: number; name: string; country: string }
-type BasicCoach = { id: number; firstName: string; lastName: string; teamId: number | null; team: BasicTeam | null }
+type BasicCoach = { id: number; firstName: string; lastName: string; role: string; teamId: number | null; team: BasicTeam | null }
 type BasicCompetition = { id: number; name: string }
 type ProfileNavData = {
     firstName: string
@@ -38,6 +38,7 @@ type ProfileNavData = {
     weightKg?: number | null
     preferredFoot?: string | null
     preferredHand?: string | null
+    atpWtaRanking?: number | null
     sportType?: "fotbal" | "tenis" | null
 }
 
@@ -105,6 +106,7 @@ export default async function DashboardHeader({
 
         footballCoaches = coachUsers.map((user) => ({
             id: user.id,
+            role: user.role,
             firstName: user.profile?.firstName || user.email.split("@")[0],
             lastName: user.profile?.lastName || "",
             teamId: user.profile?.teamId || null,
@@ -199,7 +201,7 @@ export default async function DashboardHeader({
 
     if (["atlet_fotbal", "atlet_tenis"].includes(session?.user?.role ?? "")) {
         const athleteUser = await prisma.user.findUnique({
-            where: { id: Number(session.user.id) },
+            where: { id: Number(session?.user?.id) },
             select: { 
                 email: true,
                 profile: {
