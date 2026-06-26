@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import CompetitionCreateModal from "./CompetitionCreateModal"
 import CompetitionEditModal from "./CompetitionEditModal"
 import { createCompetition, deleteCompetition, updateCompetition } from "./actions"
@@ -15,6 +15,10 @@ type Competition = {
     endDate: Date | string | null
     createdAt: Date
 }
+
+type SortField = "name" | "sport" | "country" | "continent"
+type SortDirection = "asc" | "desc"
+type CompetitionFilter = "all" | string
 
 type CompetitionFormData = {
     name: string
@@ -44,6 +48,10 @@ function toDateInputValue(value: Date | string | null) {
     return new Date(value).toISOString().slice(0, 10)
 }
 
+function sportLabel(value: Competition["sport"]) {
+    return value === "fotbal" ? "Fotbal" : "Tenis"
+}
+
 function formatCompetitionDuration(startDate: Date | string | null, endDate: Date | string | null) {
     if (!startDate || !endDate) return "-"
 
@@ -63,6 +71,13 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
     const hasOpenedFromQueryRef = useRef(false)
     const [formData, setFormData] = useState<CompetitionFormData>(emptyFormData)
     const [editFormData, setEditFormData] = useState<CompetitionFormData>(emptyFormData)
+    const [sportFilter, setSportFilter] = useState<CompetitionFilter>("all")
+    const [countryFilter, setCountryFilter] = useState<CompetitionFilter>("all")
+    const [continentFilter, setContinentFilter] = useState<CompetitionFilter>("all")
+    const [sortConfig, setSortConfig] = useState<{ field: SortField, direction: SortDirection }>({
+        field: "name",
+        direction: "asc",
+    })
 
     useEffect(() => {
         if (!shouldOpenNewCompetitionModal || hasOpenedFromQueryRef.current) {
@@ -168,6 +183,54 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
         }
     }
 
+    const countryOptions = useMemo(() => {
+        return Array.from(new Set(competitions.map(competition => competition.country))).sort((a, b) => a.localeCompare(b, "ro", { sensitivity: "base" }))
+    }, [competitions])
+
+    const continentOptions = useMemo(() => {
+        return Array.from(new Set(competitions.map(competition => competition.continent))).sort((a, b) => a.localeCompare(b, "ro", { sensitivity: "base" }))
+    }, [competitions])
+
+    const filteredCompetitions = useMemo(() => {
+        return competitions.filter(competition => {
+            const matchesSport = sportFilter === "all" || competition.sport === sportFilter
+            const matchesCountry = countryFilter === "all" || competition.country === countryFilter
+            const matchesContinent = continentFilter === "all" || competition.continent === continentFilter
+
+            return matchesSport && matchesCountry && matchesContinent
+        })
+    }, [competitions, sportFilter, countryFilter, continentFilter])
+
+    const sortedCompetitions = useMemo(() => {
+        return [...filteredCompetitions].sort((a, b) => {
+            const getValue = (competition: Competition) => {
+                if (sortConfig.field === "sport") return sportLabel(competition.sport)
+                return competition[sortConfig.field]
+            }
+            const result = getValue(a).localeCompare(getValue(b), "ro", { sensitivity: "base" })
+
+            if (result !== 0) {
+                return sortConfig.direction === "asc" ? result : -result
+            }
+
+            return a.name.localeCompare(b.name, "ro", { sensitivity: "base" })
+        })
+    }, [filteredCompetitions, sortConfig])
+
+    const handleSort = (field: SortField) => {
+        setSortConfig((current) => ({
+            field,
+            direction: current.field === field && current.direction === "asc" ? "desc" : "asc",
+        }))
+    }
+
+    const renderSortIndicator = (field: SortField) => {
+        if (sortConfig.field !== field) {
+            return "Sort"
+        }
+
+        return sortConfig.direction === "asc" ? "A-Z" : "Z-A"
+    }
     return (
         <div className="sd-box">
             <div className="sd-box-header">
@@ -249,24 +312,80 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                     </div>
                 </form>
 
-                <h3 style={{ marginBottom: "15px", fontSize: "16px", borderBottom: "1px solid #eee", paddingBottom: "10px" }}>Competitii Existente</h3>
+                <h3 style={{ marginBottom: "15px", fontSize: "16px", borderBottom: "1px solid #eee", paddingBottom: "10px" }}>Competitii Existente ({sortedCompetitions.length}/{competitions.length})</h3>
+
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", marginBottom: "12px" }}>
+                    <label htmlFor="competition-sport-filter" style={{ fontSize: "12px", fontWeight: "bold" }}>Sport</label>
+                    <select
+                        id="competition-sport-filter"
+                        value={sportFilter}
+                        onChange={e => setSportFilter(e.target.value)}
+                        style={{ border: "1px solid #ccc", padding: "6px 10px", fontSize: "13px", backgroundColor: "#fff", minWidth: "150px" }}
+                    >
+                        <option value="all">Toate sporturile</option>
+                        <option value="fotbal">Fotbal</option>
+                        <option value="tenis">Tenis</option>
+                    </select>
+
+                    <label htmlFor="competition-country-filter" style={{ fontSize: "12px", fontWeight: "bold" }}>Tara</label>
+                    <select
+                        id="competition-country-filter"
+                        value={countryFilter}
+                        onChange={e => setCountryFilter(e.target.value)}
+                        style={{ border: "1px solid #ccc", padding: "6px 10px", fontSize: "13px", backgroundColor: "#fff", minWidth: "170px" }}
+                    >
+                        <option value="all">Toate tarile</option>
+                        {countryOptions.map(country => (
+                            <option key={country} value={country}>{country}</option>
+                        ))}
+                    </select>
+
+                    <label htmlFor="competition-continent-filter" style={{ fontSize: "12px", fontWeight: "bold" }}>Continent</label>
+                    <select
+                        id="competition-continent-filter"
+                        value={continentFilter}
+                        onChange={e => setContinentFilter(e.target.value)}
+                        style={{ border: "1px solid #ccc", padding: "6px 10px", fontSize: "13px", backgroundColor: "#fff", minWidth: "170px" }}
+                    >
+                        <option value="all">Toate continentele</option>
+                        {continentOptions.map(continent => (
+                            <option key={continent} value={continent}>{continent}</option>
+                        ))}
+                    </select>
+                </div>
 
                 <div style={{ overflowX: "auto" }}>
                     <table className="sd-table">
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Nume Competitie</th>
-                                <th>Sport</th>
-                                <th>Tara</th>
-                                <th>Continent</th>
+                                <th>
+                                    <button type="button" onClick={() => handleSort("name")} aria-label="Sorteaza dupa numele competitiei" style={{ background: "none", border: 0, padding: 0, color: "inherit", font: "inherit", fontWeight: 700, cursor: "pointer" }}>
+                                        Nume Competitie {renderSortIndicator("name")}
+                                    </button>
+                                </th>
+                                <th>
+                                    <button type="button" onClick={() => handleSort("sport")} aria-label="Sorteaza dupa sport" style={{ background: "none", border: 0, padding: 0, color: "inherit", font: "inherit", fontWeight: 700, cursor: "pointer" }}>
+                                        Sport {renderSortIndicator("sport")}
+                                    </button>
+                                </th>
+                                <th>
+                                    <button type="button" onClick={() => handleSort("country")} aria-label="Sorteaza dupa tara" style={{ background: "none", border: 0, padding: 0, color: "inherit", font: "inherit", fontWeight: 700, cursor: "pointer" }}>
+                                        Tara {renderSortIndicator("country")}
+                                    </button>
+                                </th>
+                                <th>
+                                    <button type="button" onClick={() => handleSort("continent")} aria-label="Sorteaza dupa continent" style={{ background: "none", border: 0, padding: 0, color: "inherit", font: "inherit", fontWeight: 700, cursor: "pointer" }}>
+                                        Continent {renderSortIndicator("continent")}
+                                    </button>
+                                </th>
                                 <th>Durata</th>
                                 <th>Data Crearii</th>
                                 <th style={{ textAlign: "right" }}>Actiuni</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {competitions.map(comp => (
+                            {sortedCompetitions.map(comp => (
                                 <tr key={comp.id}>
                                     <td>#{comp.id}</td>
                                     <td style={{ fontWeight: "bold" }}>{comp.name}</td>
@@ -279,7 +398,7 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                                             color: comp.sport === "fotbal" ? "#0050b3" : "#389e0d",
                                             border: `1px solid ${comp.sport === "fotbal" ? "#91d5ff" : "#b7eb8f"}`
                                         }}>
-                                            {comp.sport === "fotbal" ? "Fotbal" : "Tenis"}
+                                            {sportLabel(comp.sport)}
                                         </span>
                                     </td>
                                     <td>{comp.country}</td>
@@ -294,9 +413,9 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                                     </td>
                                 </tr>
                             ))}
-                            {competitions.length === 0 && (
+                            {sortedCompetitions.length === 0 && (
                                 <tr>
-                                    <td colSpan={8} style={{ textAlign: "center", padding: "20px", color: "#666" }}>Nu exista nicio competitie adaugata.</td>
+                                    <td colSpan={8} style={{ textAlign: "center", padding: "20px", color: "#666" }}>Nu exista nicio competitie pentru filtrele selectate.</td>
                                 </tr>
                             )}
                         </tbody>
