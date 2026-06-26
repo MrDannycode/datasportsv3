@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import UserCreateModal from "./UserCreateModal"
 import UserEditModal from "./UserEditModal"
 import { createUser, deleteUser, updateUser } from "./actions"
@@ -10,12 +10,22 @@ interface User {
     email: string
     role: string
     createdAt: Date | string
+    country?: string | null
+    continent?: string | null
 }
 
 interface Props {
     initialUsers: User[]
     shouldOpenNewUserModal?: boolean
 }
+
+type SortField = "email" | "role"
+type SortDirection = "asc" | "desc"
+type RoleFilter = "all" | string
+type LocationFilter = "all" | string
+
+const NO_COUNTRY_LABEL = "Fara tara"
+const NO_CONTINENT_LABEL = "Fara continent"
 
 const ALL_ROLES = [
     { value: "admin_global", label: "Admin Global" },
@@ -43,6 +53,13 @@ export default function UsersManager({ initialUsers, shouldOpenNewUserModal = fa
     const [editRole, setEditRole] = useState("atlet_fotbal")
     const [editing, setEditing] = useState(false)
     const [editError, setEditError] = useState("")
+    const [roleFilter, setRoleFilter] = useState<RoleFilter>("all")
+    const [countryFilter, setCountryFilter] = useState<LocationFilter>("all")
+    const [continentFilter, setContinentFilter] = useState<LocationFilter>("all")
+    const [sortConfig, setSortConfig] = useState<{ field: SortField, direction: SortDirection }>({
+        field: "email",
+        direction: "asc",
+    })
     const hasOpenedFromQueryRef = useRef(false)
 
     useEffect(() => {
@@ -133,6 +150,55 @@ export default function UsersManager({ initialUsers, shouldOpenNewUserModal = fa
     }
 
     const roleLabel = (value: string) => ALL_ROLES.find(currentRole => currentRole.value === value)?.label ?? value
+    const countryLabel = (user: User) => user.country || NO_COUNTRY_LABEL
+    const continentLabel = (user: User) => user.continent || NO_CONTINENT_LABEL
+
+    const countryOptions = useMemo(() => {
+        return Array.from(new Set(users.map(countryLabel))).sort((a, b) => a.localeCompare(b, "ro", { sensitivity: "base" }))
+    }, [users])
+
+    const continentOptions = useMemo(() => {
+        return Array.from(new Set(users.map(continentLabel))).sort((a, b) => a.localeCompare(b, "ro", { sensitivity: "base" }))
+    }, [users])
+
+    const filteredUsers = useMemo(() => {
+        return users.filter(user => {
+            const matchesRole = roleFilter === "all" || user.role === roleFilter
+            const matchesCountry = countryFilter === "all" || countryLabel(user) === countryFilter
+            const matchesContinent = continentFilter === "all" || continentLabel(user) === continentFilter
+
+            return matchesRole && matchesCountry && matchesContinent
+        })
+    }, [users, roleFilter, countryFilter, continentFilter])
+
+    const sortedUsers = useMemo(() => {
+        return [...filteredUsers].sort((a, b) => {
+            const aValue = sortConfig.field === "email" ? a.email : roleLabel(a.role)
+            const bValue = sortConfig.field === "email" ? b.email : roleLabel(b.role)
+            const result = aValue.localeCompare(bValue, "ro", { sensitivity: "base" })
+
+            if (result !== 0) {
+                return sortConfig.direction === "asc" ? result : -result
+            }
+
+            return a.email.localeCompare(b.email, "ro", { sensitivity: "base" })
+        })
+    }, [filteredUsers, sortConfig])
+
+    const handleSort = (field: SortField) => {
+        setSortConfig((current) => ({
+            field,
+            direction: current.field === field && current.direction === "asc" ? "desc" : "asc",
+        }))
+    }
+
+    const renderSortIndicator = (field: SortField) => {
+        if (sortConfig.field !== field) {
+            return "Sort"
+        }
+
+        return sortConfig.direction === "asc" ? "A-Z" : "Z-A"
+    }
 
     return (
         <>
@@ -212,21 +278,79 @@ export default function UsersManager({ initialUsers, shouldOpenNewUserModal = fa
 
             <div className="sd-box">
                 <div className="sd-box-header">
-                    <h2>Toti utilizatorii ({users.length})</h2>
+                    <h2>Toti utilizatorii ({sortedUsers.length}/{users.length})</h2>
                 </div>
                 <div className="sd-box-content" style={{ padding: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", padding: "12px 16px" }}>
+                        <label htmlFor="user-role-filter" style={{ fontSize: "12px", fontWeight: "bold" }}>Rol</label>
+                        <select
+                            id="user-role-filter"
+                            value={roleFilter}
+                            onChange={e => setRoleFilter(e.target.value)}
+                            style={{ border: "1px solid #ccc", padding: "6px 10px", fontSize: "13px", backgroundColor: "#fff", minWidth: "180px" }}
+                        >
+                            <option value="all">Toate rolurile</option>
+                            {ALL_ROLES.map(currentRole => (
+                                <option key={currentRole.value} value={currentRole.value}>{currentRole.label}</option>
+                            ))}
+                        </select>
+
+                        <label htmlFor="user-continent-filter" style={{ fontSize: "12px", fontWeight: "bold" }}>Continent</label>
+                        <select
+                            id="user-continent-filter"
+                            value={continentFilter}
+                            onChange={e => setContinentFilter(e.target.value)}
+                            style={{ border: "1px solid #ccc", padding: "6px 10px", fontSize: "13px", backgroundColor: "#fff", minWidth: "180px" }}
+                        >
+                            <option value="all">Toate continentele</option>
+                            {continentOptions.map(continent => (
+                                <option key={continent} value={continent}>{continent}</option>
+                            ))}
+                        </select>
+
+                        <label htmlFor="user-country-filter" style={{ fontSize: "12px", fontWeight: "bold" }}>Tara</label>
+                        <select
+                            id="user-country-filter"
+                            value={countryFilter}
+                            onChange={e => setCountryFilter(e.target.value)}
+                            style={{ border: "1px solid #ccc", padding: "6px 10px", fontSize: "13px", backgroundColor: "#fff", minWidth: "180px" }}
+                        >
+                            <option value="all">Toate tarile</option>
+                            {countryOptions.map(country => (
+                                <option key={country} value={country}>{country}</option>
+                            ))}
+                        </select>
+                    </div>
                     <table className="sd-table">
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>Email</th>
-                                <th>Rol</th>
+                                <th>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleSort("email")}
+                                        aria-label="Sorteaza dupa email"
+                                        style={{ background: "none", border: 0, padding: 0, color: "inherit", font: "inherit", fontWeight: 700, cursor: "pointer" }}
+                                    >
+                                        Email {renderSortIndicator("email")}
+                                    </button>
+                                </th>
+                                <th>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleSort("role")}
+                                        aria-label="Sorteaza dupa rol"
+                                        style={{ background: "none", border: 0, padding: 0, color: "inherit", font: "inherit", fontWeight: 700, cursor: "pointer" }}
+                                    >
+                                        Rol {renderSortIndicator("role")}
+                                    </button>
+                                </th>
                                 <th>Creat la</th>
                                 <th>Actiuni</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {users.map(user => (
+                            {sortedUsers.map(user => (
                                 <tr key={user.id}>
                                     <td style={{ color: "#999" }}>{user.id}</td>
                                     <td>{user.email}</td>
@@ -279,10 +403,10 @@ export default function UsersManager({ initialUsers, shouldOpenNewUserModal = fa
                                     </td>
                                 </tr>
                             ))}
-                            {users.length === 0 && (
+                            {sortedUsers.length === 0 && (
                                 <tr>
                                     <td colSpan={5} style={{ textAlign: "center", color: "#999", padding: "20px" }}>
-                                        Niciun utilizator gasit.
+                                        Niciun utilizator gasit pentru filtrul selectat.
                                     </td>
                                 </tr>
                             )}

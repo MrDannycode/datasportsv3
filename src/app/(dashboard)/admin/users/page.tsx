@@ -19,9 +19,30 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
     const resolvedSearchParams = searchParams ? await searchParams : undefined
 
     const users = await prisma.user.findMany({
-        select: { id: true, email: true, role: true, createdAt: true },
+        select: {
+            id: true,
+            email: true,
+            role: true,
+            createdAt: true,
+            profile: {
+                select: {
+                    team: {
+                        select: { country: true, continent: true },
+                    },
+                },
+            },
+        },
         orderBy: { createdAt: "desc" },
     })
+
+    const usersWithLocation = users.map((user) => ({
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt,
+        country: user.profile?.team?.country ?? null,
+        continent: user.profile?.team?.continent ?? null,
+    }))
 
     return (
         <main>
@@ -33,7 +54,7 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
             </div>
 
             <UsersManager
-                initialUsers={users}
+                initialUsers={usersWithLocation}
                 shouldOpenNewUserModal={resolvedSearchParams?.open === "new"}
             />
         </main>
