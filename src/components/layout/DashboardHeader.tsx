@@ -195,7 +195,9 @@ export default async function DashboardHeader({
                 })),
             }
         })
+    }
 
+    if (["atlet_fotbal", "atlet_tenis"].includes(session?.user?.role ?? "")) {
         const athleteUser = await prisma.user.findUnique({
             where: { id: Number(session.user.id) },
             select: { 
@@ -250,8 +252,12 @@ export default async function DashboardHeader({
                             ? session?.user?.role === "antrenor_fitness"
                             : ["Adauga Dosar", "Adauga Accidentare"].includes(item.label)
                                 ? session?.user?.role === "medic"
-                                : ["Dosar Medical", "Adauga Activitate", "Profilul meu"].includes(item.label)
+                                : item.label === "Dosar Medical"
                                     ? session?.user?.role === "atlet_fotbal"
+                                    : item.label === "Adauga Activitate"
+                                        ? ["atlet_fotbal", "atlet_tenis"].includes(session?.user?.role ?? "")
+                                    : item.label === "Profilul meu"
+                                        ? ["atlet_fotbal", "atlet_tenis"].includes(session?.user?.role ?? "")
                                     : item.label === "Turnee Tenis"
                                         ? session?.user?.role === "atlet_tenis"
                                         : true
@@ -306,7 +312,7 @@ export default async function DashboardHeader({
                     }
 
                     if (item.label === "Adauga Activitate") {
-                        return <AddActivityNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} hasCardiacData={athleteHasCardiacData} />
+                        return <AddActivityNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} hasCardiacData={athleteHasCardiacData} defaultSport={session?.user?.role === "atlet_tenis" ? "tenis" : "fotbal"} />
                     }
 
                     if (item.label === "Toti Atletii") {

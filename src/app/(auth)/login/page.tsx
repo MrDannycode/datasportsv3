@@ -228,7 +228,7 @@ export default function LoginPage() {
                     <button
                         id="demo-atlet-fotbal"
                             type="button"
-                            onClick={() => { setEmail("atenis@test.com"); setPassword("tenis") }}
+                            onClick={() => { setEmail("tenisdan@test.com"); setPassword("tenisdan") }}
                             style={{
                                 flex: 1,
                                 border: "1px solid #ccc",

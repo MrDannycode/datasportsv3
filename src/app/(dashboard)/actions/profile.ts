@@ -75,7 +75,7 @@ export async function updateMyProfile(formData: FormData): Promise<UpdateProfile
     })
 
     // 2. Verificare si actualizare atlet fotbal (daca e cazul)
-    if (heightCmStr || weightKgStr || preferredFoot) {
+    if (heightCmStr || weightKgStr || preferredFoot || preferredHand) {
       const footballAthlete = await prisma.footballAthlete.findUnique({ where: { userId } })
       if (footballAthlete) {
         const updateData: any = {}
