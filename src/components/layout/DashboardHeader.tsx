@@ -61,6 +61,7 @@ const defaultNavItems: NavItem[] = [
     { label: "Adauga Activitate", href: "/atlet-fotbal/activity?open=new" },
     { label: "Profilul meu", href: "#" },
     { label: "Toti Atletii", href: "#" },
+    { label: "Turnee Tenis", href: "/atlet-tenis/turnee" },
 ]
 
 export default async function DashboardHeader({
@@ -194,41 +195,47 @@ export default async function DashboardHeader({
                 })),
             }
         })
+    }
 
-        const athleteProfile = await prisma.profile.findUnique({
-            where: { userId: Number(session.user.id) },
+    if (["atlet_fotbal", "atlet_tenis"].includes(session?.user?.role ?? "")) {
+        const athleteUser = await prisma.user.findUnique({
+            where: { id: Number(session.user.id) },
             select: { 
-                firstName: true, lastName: true, phone: true, dateOfBirth: true, gender: true,
-                restingHeartRate: true, maxHeartRate: true,
-                user: {
+                email: true,
+                profile: {
                     select: {
-                        footballAthlete: {
-                            select: { heightCm: true, weightKg: true, preferredFoot: true }
-                        },
-                        tennisAthlete: {
-                            select: { heightCm: true, weightKg: true, preferredHand: true }
-                        }
-                    }
-                }
+                        firstName: true, lastName: true, phone: true, dateOfBirth: true, gender: true,
+                        restingHeartRate: true, maxHeartRate: true,
+                    },
+                },
+                footballAthlete: {
+                    select: { heightCm: true, weightKg: true, preferredFoot: true }
+                },
+                tennisAthlete: {
+                    select: { heightCm: true, weightKg: true, preferredHand: true, atpWtaRanking: true }
+                },
             },
         })
 
+        const athleteProfile = athleteUser?.profile
         athleteHasCardiacData = !!(athleteProfile?.restingHeartRate && athleteProfile?.maxHeartRate)
         
-        if (athleteProfile) {
+        if (athleteUser) {
+           const fallbackName = athleteUser.email.split("@")[0]
            myProfileData = {
-              firstName: athleteProfile.firstName,
-              lastName: athleteProfile.lastName,
-              dateOfBirth: athleteProfile.dateOfBirth?.toISOString() || null,
-              phone: athleteProfile.phone,
-              restingHeartRate: athleteProfile.restingHeartRate,
-              maxHeartRate: athleteProfile.maxHeartRate,
-              gender: athleteProfile.gender,
-              heightCm: athleteProfile.user?.footballAthlete?.heightCm || athleteProfile.user?.tennisAthlete?.heightCm || null,
-              weightKg: athleteProfile.user?.footballAthlete?.weightKg || athleteProfile.user?.tennisAthlete?.weightKg || null,
-              preferredFoot: athleteProfile.user?.footballAthlete?.preferredFoot || null,
-              preferredHand: athleteProfile.user?.tennisAthlete?.preferredHand || null,
-              sportType: athleteProfile.user?.footballAthlete ? "fotbal" : athleteProfile.user?.tennisAthlete ? "tenis" : null
+              firstName: athleteProfile?.firstName ?? fallbackName,
+              lastName: athleteProfile?.lastName ?? "",
+              dateOfBirth: athleteProfile?.dateOfBirth?.toISOString() || null,
+              phone: athleteProfile?.phone ?? null,
+              restingHeartRate: athleteProfile?.restingHeartRate ?? null,
+              maxHeartRate: athleteProfile?.maxHeartRate ?? null,
+              gender: athleteProfile?.gender ?? null,
+              heightCm: athleteUser.footballAthlete?.heightCm || athleteUser.tennisAthlete?.heightCm || null,
+              weightKg: athleteUser.footballAthlete?.weightKg || athleteUser.tennisAthlete?.weightKg || null,
+              preferredFoot: athleteUser.footballAthlete?.preferredFoot || null,
+              preferredHand: athleteUser.tennisAthlete?.preferredHand || null,
+              atpWtaRanking: athleteUser.tennisAthlete?.atpWtaRanking ?? null,
+              sportType: athleteUser.footballAthlete ? "fotbal" : athleteUser.tennisAthlete ? "tenis" : null
            }
         }
     }
@@ -246,9 +253,15 @@ export default async function DashboardHeader({
                             ? session?.user?.role === "antrenor_fitness"
                             : ["Adauga Dosar", "Adauga Accidentare"].includes(item.label)
                                 ? session?.user?.role === "medic"
-                                : ["Dosar Medical", "Adauga Activitate", "Profilul meu"].includes(item.label)
+                                : item.label === "Dosar Medical"
                                     ? session?.user?.role === "atlet_fotbal"
-                                    : true
+                                    : item.label === "Adauga Activitate"
+                                        ? ["atlet_fotbal", "atlet_tenis"].includes(session?.user?.role ?? "")
+                                    : item.label === "Profilul meu"
+                                        ? ["atlet_fotbal", "atlet_tenis"].includes(session?.user?.role ?? "")
+                                    : item.label === "Turnee Tenis"
+                                        ? session?.user?.role === "atlet_tenis"
+                                        : true
     )
 
     return (
@@ -300,7 +313,7 @@ export default async function DashboardHeader({
                     }
 
                     if (item.label === "Adauga Activitate") {
-                        return <AddActivityNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} hasCardiacData={athleteHasCardiacData} />
+                        return <AddActivityNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} hasCardiacData={athleteHasCardiacData} defaultSport={session?.user?.role === "atlet_tenis" ? "tenis" : "fotbal"} />
                     }
 
                     if (item.label === "Toti Atletii") {
@@ -341,3 +354,5 @@ export default async function DashboardHeader({
         </header>
     )
 }
+
+

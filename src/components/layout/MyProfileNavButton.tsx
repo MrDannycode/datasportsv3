@@ -16,6 +16,7 @@ type ProfileData = {
   weightKg?: number | null
   preferredFoot?: string | null
   preferredHand?: string | null
+  atpWtaRanking?: number | null
   sportType?: "fotbal" | "tenis" | null
 }
 
@@ -50,6 +51,7 @@ export default function MyProfileNavButton({
     if (data.weightKg) fd.append("weightKg", data.weightKg)
     if (data.preferredFoot) fd.append("preferredFoot", data.preferredFoot)
     if (data.preferredHand) fd.append("preferredHand", data.preferredHand)
+    if (data.atpWtaRanking !== undefined) fd.append("atpWtaRanking", data.atpWtaRanking)
 
     startTransition(async () => {
       const result = await updateMyProfile(fd)
@@ -99,3 +101,5 @@ export default function MyProfileNavButton({
     </>
   )
 }
+
+

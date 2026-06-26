@@ -22,17 +22,19 @@ export default function AddActivityNavButton({
   label,
   isActive = false,
   hasCardiacData,
+  defaultSport = "fotbal",
 }: {
   label: string
   isActive?: boolean
   hasCardiacData: boolean
+  defaultSport?: string
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [date, setDate] = useState(today())
   const [durationMin, setDurationMin] = useState("")
   const [avgHeartRate, setAvgHeartRate] = useState("")
-  const [sport, setSport] = useState("fotbal")
+  const [sport, setSport] = useState(defaultSport)
   const [notes, setNotes] = useState("")
   const [formError, setFormError] = useState<string | null>(null)
   const [formSuccess, setFormSuccess] = useState<string | null>(null)
@@ -41,7 +43,7 @@ export default function AddActivityNavButton({
     setDate(today())
     setDurationMin("")
     setAvgHeartRate("")
-    setSport("fotbal")
+    setSport(defaultSport)
     setNotes("")
     setFormError(null)
     setFormSuccess(null)

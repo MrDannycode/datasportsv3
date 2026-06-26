@@ -224,6 +224,23 @@ export default function LoginPage() {
                         >
                             Atlet Fotbal
                         </button>
+
+                    <button
+                        id="demo-atlet-fotbal"
+                            type="button"
+                            onClick={() => { setEmail("tenisdan@test.com"); setPassword("tenisdan") }}
+                            style={{
+                                flex: 1,
+                                border: "1px solid #ccc",
+                                backgroundColor: "#f5f5f5",
+                                padding: "5px 8px",
+                                fontSize: "12px",
+                                cursor: "pointer",
+                                textAlign: "center",
+                            }}
+                        >
+                            Atlet tenis
+                        </button>
                 </div>
             </div>
         </div>

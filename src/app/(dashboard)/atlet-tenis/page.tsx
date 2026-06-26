@@ -1,12 +1,40 @@
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
+import { prisma } from "@/lib/prisma"
+import SportScienceMetrics, { type SportScienceLoad } from "@/components/sport-science/SportScienceMetrics"
+import Link from "next/link"
 
 export default async function AtletTenisPage() {
     const session = await getServerSession(authOptions)
 
     if (!session || session.user.role !== "atlet_tenis") {
         redirect("/login")
+    }
+
+    const userId = Number(session.user.id)
+    const profile = await prisma.profile.findUnique({
+        where: { userId },
+        select: { id: true },
+    })
+
+    let latestLoad: SportScienceLoad | null = null
+
+    if (profile) {
+        latestLoad = await prisma.dailyLoad.findFirst({
+            where: { athleteId: profile.id },
+            orderBy: { date: "desc" },
+            select: {
+                date: true,
+                trimp: true,
+                atl: true,
+                ctl: true,
+                tsb: true,
+                acRatio: true,
+                monotony: true,
+                strain: true,
+            },
+        })
     }
 
     return (
@@ -28,7 +56,7 @@ export default async function AtletTenisPage() {
                 <div className="sd-box sd-activities">
                     <div className="sd-box-header">
                         <h2>Recent Activities</h2>
-                        <a href="#">View All</a>
+                        <Link href="/atlet-tenis/activity">View All</Link>
                     </div>
                     <div className="sd-box-content">
                         <table className="sd-table">
@@ -86,18 +114,10 @@ export default async function AtletTenisPage() {
 
                     <div className="sd-box">
                         <div className="sd-box-header">
-                            <h2>Data Science</h2>
+                            <h2>Sport Science</h2>
                         </div>
                         <div className="sd-box-content">
-                            <ul className="sd-list">
-                                <li>VO2Max</li>
-                                <li>Fitness level</li>
-                                <li>Fatigue</li>
-                                <li>Stress Balance</li>
-                                <li>Workload ratio</li>
-                                <li>Monotony</li>
-                                <li>Recovery</li>
-                            </ul>
+                            <SportScienceMetrics latestLoad={latestLoad} />
                         </div>
                     </div>
                 </div>

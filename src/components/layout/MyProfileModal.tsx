@@ -14,6 +14,7 @@ type ProfileData = {
   weightKg?: number | null
   preferredFoot?: string | null
   preferredHand?: string | null
+  atpWtaRanking?: number | null
   sportType?: "fotbal" | "tenis" | null
 }
 
@@ -70,6 +71,7 @@ export default function MyProfileModal({
   const [weightKg, setWeightKg] = useState(initialData.weightKg?.toString() || "")
   const [preferredFoot, setPreferredFoot] = useState(initialData.preferredFoot || "")
   const [preferredHand, setPreferredHand] = useState(initialData.preferredHand || "")
+  const [atpWtaRanking, setAtpWtaRanking] = useState(initialData.atpWtaRanking?.toString() || "")
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -85,6 +87,7 @@ export default function MyProfileModal({
       weightKg,
       preferredFoot,
       preferredHand,
+      atpWtaRanking,
     })
   }
 
@@ -184,6 +187,7 @@ export default function MyProfileModal({
                 )}
 
                 {initialData.sportType === "tenis" && (
+                  <>
                   <div style={{ ...FIELD_STYLE }}>
                     <label style={LABEL_STYLE}>Mână Preferată</label>
                     <select value={preferredHand} onChange={e => setPreferredHand(e.target.value)} style={{ ...INPUT_STYLE, backgroundColor: "#fff" }}>
@@ -192,6 +196,11 @@ export default function MyProfileModal({
                       <option value="stanga">Stânga</option>
                     </select>
                   </div>
+                  <div style={{ ...FIELD_STYLE }}>
+                    <label style={LABEL_STYLE}>Clasament ATP/WTA</label>
+                    <input type="number" value={atpWtaRanking} onChange={e => setAtpWtaRanking(e.target.value)} min="1" max="3000" step="1" placeholder="ex. 850" style={INPUT_STYLE} />
+                  </div>
+                  </>
                 )}
               </>
             )}
@@ -213,3 +222,4 @@ export default function MyProfileModal({
     </div>
   )
 }
+
