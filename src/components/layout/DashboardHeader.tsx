@@ -247,7 +247,7 @@ export default async function DashboardHeader({
               preferredFoot: athleteUser.footballAthlete?.preferredFoot || null,
               preferredHand: athleteUser.tennisAthlete?.preferredHand || null,
               atpWtaRanking: athleteUser.tennisAthlete?.atpWtaRanking ?? null,
-              sportType: athleteUser.footballAthlete ? "fotbal" : athleteUser.tennisAthlete ? "tenis" : null
+              sportType: session.user.role === "atlet_fotbal" ? "fotbal" : session.user.role === "atlet_tenis" ? "tenis" : athleteUser.footballAthlete ? "fotbal" : athleteUser.tennisAthlete ? "tenis" : null
            }
         }
     }
@@ -366,5 +366,6 @@ export default async function DashboardHeader({
         </header>
     )
 }
+
 
 

@@ -91,8 +91,7 @@ export async function updateMyProfile(formData: FormData): Promise<UpdateProfile
         })
       }
       
-      const tennisAthlete = await prisma.tennisAthlete.findUnique({ where: { userId } })
-      if (tennisAthlete) {
+      if (session.user.role === "atlet_tenis") {
         const updateData: any = {}
         if (heightCmStr) updateData.heightCm = parseFloat(heightCmStr)
         if (weightKgStr) updateData.weightKg = parseFloat(weightKgStr)
@@ -103,9 +102,16 @@ export async function updateMyProfile(formData: FormData): Promise<UpdateProfile
           const ranking = parseInt(atpWtaRankingStr)
           updateData.atpWtaRanking = !isNaN(ranking) && ranking > 0 ? ranking : null
         }
-        await prisma.tennisAthlete.update({
+
+        await prisma.tennisAthlete.upsert({
           where: { userId },
-          data: updateData
+          update: updateData,
+          create: {
+            userId,
+            preferredHand: preferredHand === "stanga" || preferredHand === "dreapta" ? preferredHand : "dreapta",
+            playingStyle: "baseline",
+            ...updateData,
+          },
         })
       }
     }
@@ -116,4 +122,5 @@ export async function updateMyProfile(formData: FormData): Promise<UpdateProfile
     return { success: false, error: "A apărut o eroare la salvarea profilului" }
   }
 }
+
 

@@ -26,24 +26,53 @@ function formatNumber(value: number | null | undefined, digits = 1) {
   return value.toFixed(digits)
 }
 
+function clampPercent(value: number) {
+  return Math.max(0, Math.min(100, value))
+}
+
+function scaleValue(value: number | null | undefined, min: number, max: number) {
+  if (value == null || max === min) return 0
+  return clampPercent(((value - min) / (max - min)) * 100)
+}
+
+function getBarColor(percent: number) {
+  if (percent >= 80) return "#166534"
+  if (percent >= 60) return "#65a30d"
+  if (percent >= 40) return "#d97706"
+  return "#dc2626"
+}
+
 export default function SportScienceMetrics({ latestLoad }: Props) {
   const metrics = [
-    { label: "Data(ziua)", value: latestLoad ? formatDate(latestLoad.date) : "-" },
-    { label: "TRIMP", value: formatNumber(latestLoad?.trimp) },
-    { label: "CTL(Fitness)", value: formatNumber(latestLoad?.ctl) },
-    { label: "ATL(Fatigue)", value: formatNumber(latestLoad?.atl) },
-    { label: "TSB(Form)", value: formatNumber(latestLoad?.tsb) },
-    { label: "A:C Ratio", value: formatNumber(latestLoad?.acRatio, 2) },
-    { label: "Monotony", value: formatNumber(latestLoad?.monotony, 2) },
-    { label: "Strain", value: formatNumber(latestLoad?.strain) },
+    { label: "Data(ziua)", value: latestLoad ? formatDate(latestLoad.date) : "-", percent: null },
+    { label: "TRIMP", value: formatNumber(latestLoad?.trimp), percent: scaleValue(latestLoad?.trimp, 0, 300) },
+    { label: "CTL(Fitness)", value: formatNumber(latestLoad?.ctl), percent: scaleValue(latestLoad?.ctl, 0, 120) },
+    { label: "ATL(Fatigue)", value: formatNumber(latestLoad?.atl), percent: scaleValue(latestLoad?.atl, 0, 120) },
+    { label: "TSB(Form)", value: formatNumber(latestLoad?.tsb), percent: scaleValue(latestLoad?.tsb, -30, 30) },
+    { label: "A:C Ratio", value: formatNumber(latestLoad?.acRatio, 2), percent: scaleValue(latestLoad?.acRatio, 0.5, 1.8) },
+    { label: "Monotony", value: formatNumber(latestLoad?.monotony, 2), percent: scaleValue(latestLoad?.monotony, 0, 3) },
+    { label: "Strain", value: formatNumber(latestLoad?.strain), percent: scaleValue(latestLoad?.strain, 0, 1000) },
   ]
 
   return (
     <ul className="sd-list">
       {metrics.map((metric) => (
-        <li key={metric.label} style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
-          <span>{metric.label}</span>
-          <strong>{metric.value}</strong>
+        <li key={metric.label} style={{ display: "grid", gap: "6px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
+            <span>{metric.label}</span>
+            <strong>{metric.value}</strong>
+          </div>
+          {metric.percent !== null && (
+            <div style={{ height: "8px", background: "#e5e7eb", borderRadius: "999px", overflow: "hidden" }}>
+              <div
+                style={{
+                  width: `${metric.percent}%`,
+                  height: "100%",
+                  background: getBarColor(metric.percent),
+                }}
+              />
+            </div>
+          )}
         </li>
       ))}
     </ul>
