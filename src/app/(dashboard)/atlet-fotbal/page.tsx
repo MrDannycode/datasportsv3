@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import SportScienceMetrics, { type SportScienceLoad } from "@/components/sport-science/SportScienceMetrics"
+import TrainingLoadChart from "@/components/sport-science/TrainingLoadChart"
 import type { Prisma } from "@prisma/client"
 
 type UpcomingMatch = Prisma.FootballMatchGetPayload<{ include: { teamHome: true; teamAway: true; competition: true } }>
@@ -41,11 +42,22 @@ export default async function AtletFotbalPage() {
     let assignedTrainingPlans: AssignedTrainingPlan[] = [];
     let assignedFitnessPlans: AssignedFitnessPlan[] = [];
     let latestLoad: SportScienceLoad | null = null;
+    let trainingLoads: SportScienceLoad[] = [];
 
     if (profile) {
-        latestLoad = await prisma.dailyLoad.findFirst({
-            where: { athleteId: profile.id },
-            orderBy: { date: "desc" },
+        const loadFromDate = new Date();
+        loadFromDate.setUTCDate(loadFromDate.getUTCDate() - 90);
+        loadFromDate.setUTCHours(0, 0, 0, 0);
+
+        trainingLoads = await prisma.dailyLoad.findMany({
+            where: {
+                athleteId: profile.id,
+                date: {
+                    gte: loadFromDate,
+                },
+            },
+            orderBy: { date: "asc" },
+            take: 100,
             select: {
                 date: true,
                 trimp: true,
@@ -57,6 +69,7 @@ export default async function AtletFotbalPage() {
                 strain: true,
             },
         });
+        latestLoad = trainingLoads[trainingLoads.length - 1] ?? null;
     }
 
     if (profile?.teamId) {
@@ -251,6 +264,12 @@ export default async function AtletFotbalPage() {
                         </div>
                     </div>
                 </Link>
+            </div>
+
+            <div className="sd-box" id="performance-management-chart">
+                <div className="sd-box-content">
+                    <TrainingLoadChart loads={trainingLoads} />
+                </div>
             </div>
 
             <div className="sd-panels">

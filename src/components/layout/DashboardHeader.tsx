@@ -69,6 +69,7 @@ const defaultNavItems: NavItem[] = [
     { label: "Adauga Dosar", href: "/medic/dosar-medical?open=new" },
     { label: "Adauga Accidentare", href: "#" },
     { label: "Dosar Medical", href: "#" },
+    { label: "PMC", href: "/atlet-fotbal#performance-management-chart" },
     { label: "Adauga Activitate", href: "/atlet-fotbal/activity?open=new" },
     { label: "Profilul meu", href: "#" },
     { label: "Toti Atletii", href: "#" },
@@ -307,6 +308,8 @@ export default async function DashboardHeader({
                                 ? session?.user?.role === "medic"
                                 : item.label === "Dosar Medical"
                                     ? session?.user?.role === "atlet_fotbal"
+                                    : item.label === "PMC"
+                                        ? session?.user?.role === "atlet_fotbal"
                                     : item.label === "Adauga Activitate"
                                         ? ["atlet_fotbal", "atlet_tenis"].includes(session?.user?.role ?? "")
                                     : item.label === "Profilul meu"
