@@ -1279,3 +1279,163 @@
 .dark.sd-table-mode-normal .sd-user-info a {
     color: #93c5fd;
 }
+
+/* ---- Dark focus/base dashboard refinements -------------- */
+.dark .sd-container {
+    background-color: #0a0f1a;
+    color: #e5edf7;
+}
+
+.dark .sd-header,
+.dark .sd-box,
+.dark .sd-modal,
+.dark .dsb-sidebar,
+.dark .sd-tournament-card {
+    background-color: #151b26;
+    border-color: #2a3444;
+    color: #e5edf7;
+}
+
+.dark .sd-logo strong,
+.dark .sd-page-title h1,
+.dark .sd-box-header h2,
+.dark .sd-metric-value,
+.dark .sd-label,
+.dark .sd-tournament-card-name {
+    color: #e5edf7;
+}
+
+.dark .sd-nav a,
+.dark .sd-user-info,
+.dark .sd-hint,
+.dark .sd-empty-state,
+.dark .sd-progress-text,
+.dark .sd-modal p,
+.dark .sd-description-cell,
+.dark .sd-tournament-meta,
+.dark .dsb-panel-season,
+.dark .dsb-legend {
+    color: #aebdd0;
+}
+
+.dark .sd-nav a.active,
+.dark .sd-nav a:hover,
+.dark .sd-user-info a,
+.dark .sd-container a {
+    color: #93c5fd;
+}
+
+.dark .sd-box-header,
+.dark .sd-table th,
+.dark .sd-filter-btn,
+.dark .sd-tournament-card-header,
+.dark .sd-sync-bar {
+    background-color: #1d2533;
+    border-color: #2a3444;
+    color: #dbe7f5;
+}
+
+.dark .sd-box-content,
+.dark .sd-tournament-card-body,
+.dark .sd-tournament-card-footer {
+    background-color: #151b26;
+}
+
+.dark .sd-table th,
+.dark .sd-table td {
+    border-color: #2a3444;
+}
+
+.dark .sd-table tr:nth-child(even) {
+    background-color: #121824;
+}
+
+.dark .sd-table tr:hover {
+    background-color: #1b2738;
+}
+
+.dark .sd-list li,
+.dark .sd-form-actions,
+.dark .sd-tournament-card-footer {
+    border-color: #2a3444;
+}
+
+.dark .sd-input {
+    background: #101826;
+    border-color: #2a3444;
+    color: #e5edf7;
+}
+
+.dark .sd-input:focus {
+    border-color: #60a5fa;
+    outline-color: #60a5fa;
+}
+
+.dark .sd-filter-btn:hover,
+.dark .sd-btn-secondary:hover {
+    background: #243044;
+}
+
+.dark .sd-filter-btn.active {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #fff;
+}
+
+.dark .sd-btn-secondary {
+    background: #151b26;
+    border-color: #2a3444;
+    color: #dbe7f5;
+}
+
+.dark .sd-progress-bar {
+    background-color: #101826;
+    border-color: #2a3444;
+}
+
+.dark .sd-error-banner {
+    background: rgba(248, 113, 113, 0.14);
+    border-color: #7f1d1d;
+    color: #fca5a5;
+}
+
+.dark .sd-badge-tehnic,
+.dark .sd-surface-hard {
+    background-color: #172554;
+    color: #bfdbfe;
+    border-color: #1e3a8a;
+}
+
+.dark .sd-badge-fizic,
+.dark .sd-surface-iarba,
+.dark .sd-tournament-register-btn.is-registered {
+    background-color: #052e1a;
+    color: #bbf7d0;
+    border-color: #166534;
+}
+
+.dark .sd-badge-tactic,
+.dark .sd-surface-zgura,
+.dark .sd-difficulty-mediu {
+    background-color: #422006;
+    color: #fde68a;
+    border-color: #92400e;
+}
+
+.dark .sd-difficulty-greu {
+    background-color: #450a0a;
+    color: #fecaca;
+    border-color: #991b1b;
+}
+
+.dark .sd-difficulty-usor {
+    background-color: #052e1a;
+    color: #bbf7d0;
+    border-color: #166534;
+}
+
+.dark .sd-difficulty-unknown {
+    background-color: #1f2937;
+    color: #d1d5db;
+    border-color: #374151;
+}

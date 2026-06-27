@@ -17,6 +17,7 @@ import TeamAthletesNavButton, { type TeamAthlete } from "@/components/layout/Tea
 import MedicalRecordNavButton, { type AthleteMedicalRecord } from "@/components/layout/MedicalRecordNavButton"
 import ExportAuditNavButton from "@/components/layout/ExportAuditNavButton"
 import MyProfileNavButton from "@/components/layout/MyProfileNavButton"
+import AccountSettingsButton from "@/components/layout/AccountSettingsButton"
 import { prisma } from "@/lib/prisma"
 
 interface NavItem {
@@ -27,6 +28,13 @@ interface NavItem {
 type BasicTeam = { id: number; name: string; country: string }
 type BasicCoach = { id: number; firstName: string; lastName: string; role: string; teamId: number | null; team: BasicTeam | null }
 type BasicCompetition = { id: number; name: string }
+type AccountSettingsData = {
+    firstName: string
+    lastName: string
+    email: string
+    phone: string
+}
+
 type ProfileNavData = {
     firstName: string
     lastName: string
@@ -83,6 +91,27 @@ export default async function DashboardHeader({
     let athleteMedicalRecords: AthleteMedicalRecord[] = []
     let athleteHasCardiacData = false
     let myProfileData: ProfileNavData | null = null
+    let accountSettingsData: AccountSettingsData | null = null
+
+    if (session?.user?.id) {
+        const accountUser = await prisma.user.findUnique({
+            where: { id: Number(session.user.id) },
+            select: {
+                email: true,
+                profile: {
+                    select: { firstName: true, lastName: true, phone: true },
+                },
+            },
+        })
+
+        const fallbackName = accountUser?.email.split("@")[0] ?? ""
+        accountSettingsData = {
+            firstName: accountUser?.profile?.firstName ?? fallbackName,
+            lastName: accountUser?.profile?.lastName ?? "",
+            email: accountUser?.email ?? session.user.email ?? "",
+            phone: accountUser?.profile?.phone ?? "",
+        }
+    }
 
     if (session?.user?.role === "manager_fotbal") {
         const managerAssignment = await prisma.managerAssignment.findUnique({
@@ -365,11 +394,11 @@ export default async function DashboardHeader({
                 {session?.user ? (
                     <>
                         Logged in as{" "}
-                        <strong>{session.user.email}</strong>
+                        <strong>{accountSettingsData?.email ?? session.user.email}</strong>
                         {" | "}
                         <Link href="/signout">Logout</Link>
                         {" "}
-                        <Link href="#">Account settings</Link>
+                        {accountSettingsData && <AccountSettingsButton account={accountSettingsData} />}
                     </>
                 ) : (
                     <Link href="/login">Login</Link>
