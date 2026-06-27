@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import Link from "next/link"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { TableModeToggle } from "@/components/table-mode-toggle"
 import AddMedicalRecordNavButton from "@/components/layout/AddMedicalRecordNavButton"
 import AddInjuryNavButton from "@/components/layout/AddInjuryNavButton"
 import AddUserNavButton from "@/components/layout/AddUserNavButton"
@@ -360,12 +361,13 @@ export default async function DashboardHeader({
 
             <div className="sd-user-info" style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <ThemeToggle />
+                <TableModeToggle />
                 {session?.user ? (
                     <>
                         Logged in as{" "}
                         <strong>{session.user.email}</strong>
                         {" | "}
-                        <Link href="/api/auth/signout">Logout</Link>
+                        <Link href="/signout">Logout</Link>
                         {" "}
                         <Link href="#">Account settings</Link>
                     </>
@@ -376,6 +378,8 @@ export default async function DashboardHeader({
         </header>
     )
 }
+
+
 
 
 

@@ -17,6 +17,10 @@ export async function middleware(req: NextRequest) {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
     const { pathname } = req.nextUrl
 
+    if (pathname === "/signout") {
+        return NextResponse.next()
+    }
+
     // Nerautentificat → redirect la login
     if (!token && pathname !== "/login") {
         return NextResponse.redirect(new URL("/login", req.url))
