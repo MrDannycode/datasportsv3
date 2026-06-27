@@ -25,6 +25,34 @@ const FITNESS_TYPE_LABELS: Record<string, string> = {
     coordonare: "Coordonare",
 }
 
+const WEEKDAY_LABELS = ["L", "M", "M", "J", "V", "S", "D"]
+
+function formatDateKey(date: Date) {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, "0")
+    const day = String(date.getDate()).padStart(2, "0")
+    return `${year}-${month}-${day}`
+}
+
+function buildMonthDays(monthDate: Date) {
+    const year = monthDate.getFullYear()
+    const month = monthDate.getMonth()
+    const firstDay = new Date(year, month, 1)
+    const mondayStartOffset = (firstDay.getDay() + 6) % 7
+    const daysInMonth = new Date(year, month + 1, 0).getDate()
+    const totalCells = Math.ceil((mondayStartOffset + daysInMonth) / 7) * 7
+
+    return Array.from({ length: totalCells }, (_, index) => {
+        const date = new Date(year, month, index - mondayStartOffset + 1)
+        return {
+            date,
+            key: formatDateKey(date),
+            day: date.getDate(),
+            isCurrentMonth: date.getMonth() === month,
+        }
+    })
+}
+
 export default async function AtletFotbalPage() {
     const session = await getServerSession(authOptions)
 
@@ -139,9 +167,19 @@ export default async function AtletFotbalPage() {
             orderBy: {
                 date: "asc",
             },
-            take: 5,
+            take: 30,
         });
     }
+
+    const today = new Date()
+    const nextFitnessPlan = assignedFitnessPlans.find((plan) => plan.date >= today)
+    const activityCalendarMonth = nextFitnessPlan?.date ?? assignedFitnessPlans[0]?.date ?? today
+    const activityCalendarDays = buildMonthDays(activityCalendarMonth)
+    const activityPlansByDate = assignedFitnessPlans.reduce<Record<string, AssignedFitnessPlan[]>>((acc, plan) => {
+        const key = formatDateKey(plan.date)
+        acc[key] = [...(acc[key] ?? []), plan]
+        return acc
+    }, {})
 
     return (
         <main>
@@ -182,37 +220,82 @@ export default async function AtletFotbalPage() {
                         {assignedFitnessPlans.length === 0 ? (
                             <p style={{ fontSize: "14px", color: "#666" }}>Nu exista activitati alocate de antrenorul de fitness.</p>
                         ) : (
-                            <ul style={{ listStyle: "none", padding: 0, margin: 0, fontSize: "14px" }}>
-                                {assignedFitnessPlans.map((plan) => {
-                                    const coachName = plan.creator.profile
-                                        ? `${plan.creator.profile.firstName} ${plan.creator.profile.lastName}`.trim()
-                                        : plan.creator.email
+                            <div>
+                                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px", marginBottom: "10px" }}>
+                                    <strong style={{ fontSize: "13px", color: "#333", textTransform: "capitalize" }}>
+                                        {activityCalendarMonth.toLocaleDateString("ro-RO", { month: "long", year: "numeric" })}
+                                    </strong>
+                                    <span style={{ fontSize: "12px", color: "#666" }}>
+                                        {assignedFitnessPlans.length} activitati
+                                    </span>
+                                </div>
+                                <div style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(28px, 1fr))", gap: "4px", marginBottom: "4px" }}>
+                                    {WEEKDAY_LABELS.map((label, index) => (
+                                        <div key={`${label}-${index}`} style={{ fontSize: "11px", color: "#777", fontWeight: "bold", textAlign: "center" }}>
+                                            {label}
+                                        </div>
+                                    ))}
+                                </div>
+                                <div style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(28px, 1fr))", gap: "4px" }}>
+                                    {activityCalendarDays.map((day) => {
+                                        const dayPlans = activityPlansByDate[day.key] ?? []
+                                        const dayTitle = dayPlans
+                                            .map((plan) => {
+                                                const coachName = plan.creator.profile
+                                                    ? `${plan.creator.profile.firstName} ${plan.creator.profile.lastName}`.trim()
+                                                    : plan.creator.email
+                                                return `${plan.title} - ${FITNESS_TYPE_LABELS[plan.type] ?? plan.type} - ${coachName || "Nespecificat"}`
+                                            })
+                                            .join("\n")
 
-                                    return (
-                                        <li key={plan.id} style={{ marginBottom: "10px", paddingBottom: "10px", borderBottom: "1px solid #eee" }}>
-                                            <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center" }}>
-                                                <span style={{ fontWeight: "bold" }}>{plan.title}</span>
-                                                <span style={{ backgroundColor: "#eef7ed", color: "#2a7a2a", padding: "2px 8px", fontSize: "11px", fontWeight: "bold", borderRadius: "2px", whiteSpace: "nowrap" }}>
-                                                    {FITNESS_TYPE_LABELS[plan.type]}
+                                        return (
+                                            <div
+                                                key={day.key}
+                                                title={dayTitle || undefined}
+                                                style={{
+                                                    minHeight: "46px",
+                                                    border: "1px solid #e2e2e2",
+                                                    backgroundColor: dayPlans.length > 0 ? "#eef7ed" : day.isCurrentMonth ? "#fff" : "#f7f7f7",
+                                                    color: day.isCurrentMonth ? "#333" : "#aaa",
+                                                    padding: "4px",
+                                                    display: "flex",
+                                                    flexDirection: "column",
+                                                    gap: "3px",
+                                                    overflow: "hidden",
+                                                }}
+                                            >
+                                                <span style={{ fontSize: "11px", fontWeight: dayPlans.length > 0 ? "bold" : "normal", lineHeight: 1 }}>
+                                                    {day.day}
                                                 </span>
+                                                {dayPlans.slice(0, 2).map((plan) => (
+                                                    <span
+                                                        key={plan.id}
+                                                        style={{
+                                                            display: "block",
+                                                            backgroundColor: "#2a7a2a",
+                                                            color: "#fff",
+                                                            fontSize: "10px",
+                                                            fontWeight: "bold",
+                                                            lineHeight: "12px",
+                                                            padding: "1px 3px",
+                                                            overflow: "hidden",
+                                                            textOverflow: "ellipsis",
+                                                            whiteSpace: "nowrap",
+                                                        }}
+                                                    >
+                                                        {FITNESS_TYPE_LABELS[plan.type] ?? plan.type}
+                                                    </span>
+                                                ))}
+                                                {dayPlans.length > 2 && (
+                                                    <span style={{ fontSize: "10px", color: "#2a7a2a", fontWeight: "bold", lineHeight: 1 }}>
+                                                        +{dayPlans.length - 2}
+                                                    </span>
+                                                )}
                                             </div>
-                                            <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
-                                                {new Date(plan.date).toLocaleDateString("ro-RO", {
-                                                    weekday: "short", day: "numeric", month: "short",
-                                                })}
-                                            </div>
-                                            <div style={{ fontSize: "12px", color: "#666" }}>
-                                                Antrenor fitness: {coachName || "Nespecificat"}
-                                            </div>
-                                            {plan.description && (
-                                                <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
-                                                    {plan.description}
-                                                </div>
-                                            )}
-                                        </li>
-                                    )
-                                })}
-                            </ul>
+                                        )
+                                    })}
+                                </div>
+                            </div>
                         )}
                     </div>
                 </div>
