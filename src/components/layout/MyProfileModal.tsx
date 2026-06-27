@@ -18,12 +18,27 @@ type ProfileData = {
   sportType?: "fotbal" | "tenis" | null
 }
 
+
+type ProfileSubmitData = {
+  firstName: string
+  lastName: string
+  dateOfBirth: string
+  phone: string
+  gender: string
+  restingHeartRate: string
+  maxHeartRate: string
+  heightCm: string
+  weightKg: string
+  preferredFoot: string
+  preferredHand: string
+  atpWtaRanking: string
+}
 type Props = {
   initialData: ProfileData
   isPending: boolean
   formError: string | null
   formSuccess: string | null
-  onSubmit: (e: React.FormEvent, data: any) => void
+  onSubmit: (e: React.FormEvent, data: ProfileSubmitData) => void
   onClose: () => void
 }
 
@@ -222,4 +237,5 @@ export default function MyProfileModal({
     </div>
   )
 }
+
 
