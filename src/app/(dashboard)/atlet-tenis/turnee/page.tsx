@@ -8,6 +8,7 @@ import { matchesTournamentDate, matchesTournamentRegion, normalizeTournamentFilt
 import { getItfCalendarOptions } from "@/lib/itf-tournaments"
 import TournamentCard from "@/components/tournament/TournamentCard"
 import TournamentSyncButton from "@/components/tournament/TournamentSyncButton"
+import { registerForTournament } from "./actions"
 import type { TournamentWithDifficulty } from "@/app/api/tournaments/route"
 
 interface AtletTenisTurneePageProps {
@@ -17,7 +18,8 @@ interface AtletTenisTurneePageProps {
 async function getUpcomingTournaments(
     gender: "MALE" | "FEMALE" | null,
     filters: { country?: string; continent?: string; dateFrom?: string },
-    userRanking?: number | null
+    userRanking?: number | null,
+    athleteId?: number | null
 ): Promise<TournamentWithDifficulty[]> {
     const normalizedFilters = normalizeTournamentFilters(filters)
     const minDate = normalizedFilters.dateFrom ? new Date(`${normalizedFilters.dateFrom}T00:00:00`) : new Date()
@@ -25,6 +27,10 @@ async function getUpcomingTournaments(
         where: { startDate: { gte: minDate } },
         include: {
             players: { orderBy: { atpWtaRanking: "asc" } },
+            registrations: {
+                where: { athleteId: athleteId ?? -1 },
+                select: { id: true, status: true },
+            },
         },
         orderBy: { startDate: "asc" },
     })
@@ -56,6 +62,7 @@ async function getUpcomingTournaments(
                 avgRanking,
                 playerCount: t.players.length,
                 lastSyncAt: t.lastSyncAt?.toISOString() ?? null,
+                isRegistered: t.registrations.some((registration) => registration.status === "inscris"),
                 players: t.players.map((p) => ({
                     id: p.id,
                     playerName: p.playerName,
@@ -86,11 +93,11 @@ export default async function AtletTenisTurneePage({ searchParams }: AtletTenisT
 
     const athlete = await prisma.tennisAthlete.findUnique({
         where: { userId: Number(session.user.id) },
-        select: { atpWtaRanking: true },
+        select: { id: true, atpWtaRanking: true },
     })
 
     const [tournaments, liveOptions] = await Promise.all([
-        getUpcomingTournaments(profile?.gender ?? null, filters, athlete?.atpWtaRanking ?? null),
+        getUpcomingTournaments(profile?.gender ?? null, filters, athlete?.atpWtaRanking ?? null, athlete?.id ?? null),
         getItfCalendarOptions(profile?.gender ?? null, filters.dateFrom).catch(() => ({ countries: [], continents: [] })),
     ])
 
@@ -165,7 +172,12 @@ export default async function AtletTenisTurneePage({ searchParams }: AtletTenisT
                     </div>
                     <div className="sd-tournament-grid">
                         {tournaments.map((t) => (
-                            <TournamentCard key={t.id} tournament={t} showPlayersDefault={false} />
+                            <TournamentCard
+                                key={t.id}
+                                tournament={t}
+                                showPlayersDefault={false}
+                                onRegister={registerForTournament}
+                            />
                         ))}
                     </div>
                 </>

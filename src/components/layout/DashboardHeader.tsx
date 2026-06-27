@@ -64,6 +64,7 @@ const defaultNavItems: NavItem[] = [
     { label: "Profilul meu", href: "#" },
     { label: "Toti Atletii", href: "#" },
     { label: "Turnee Tenis", href: "/atlet-tenis/turnee" },
+    { label: "Turneele mele", href: "/atlet-tenis/turnee/inscrieri" },
 ]
 
 export default async function DashboardHeader({

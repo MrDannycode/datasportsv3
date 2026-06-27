@@ -96,34 +96,36 @@ model FootballAthlete {
 }
 
 model TennisAthlete {
-  id            Int           @id @default(autoincrement())
-  userId        Int           @unique @map("user_id")
-  heightCm      Float?        @map("height_cm")
-  weightKg      Float?        @map("weight_kg")
-  preferredHand PreferredHand @map("preferred_hand")
-  playingStyle  PlayingStyle  @map("playing_style")
-  atpWtaRanking Int?          @map("atp_wta_ranking")
-  contractUntil DateTime?     @map("contract_until")
-  user          User          @relation(fields: [userId], references: [id])
+  id            Int                      @id @default(autoincrement())
+  userId        Int                      @unique @map("user_id")
+  heightCm      Float?                   @map("height_cm")
+  weightKg      Float?                   @map("weight_kg")
+  preferredHand PreferredHand            @map("preferred_hand")
+  playingStyle  PlayingStyle             @map("playing_style")
+  atpWtaRanking Int?                     @map("atp_wta_ranking")
+  contractUntil DateTime?                @map("contract_until")
+  user          User                     @relation(fields: [userId], references: [id])
   matches       TennisMatch[]
+  registrations TournamentRegistration[]
   stats         TennisStat[]
 
   @@map("tennis_athletes")
 }
 
 model Tournament {
-  id         Int                @id @default(autoincrement())
-  name       String
-  location   String?
-  surface    Surface?
-  startDate  DateTime           @map("start_date")
-  endDate    DateTime?          @map("end_date")
-  externalId String?            @unique @map("external_id")
-  sourceUrl  String?            @map("source_url")
-  lastSyncAt DateTime?          @map("last_sync_at")
-  createdAt  DateTime           @default(now()) @map("created_at")
-  updatedAt  DateTime           @updatedAt @map("updated_at")
-  players    TournamentPlayer[]
+  id            Int                      @id @default(autoincrement())
+  name          String
+  location      String?
+  surface       Surface?
+  startDate     DateTime                 @map("start_date")
+  endDate       DateTime?                @map("end_date")
+  externalId    String?                  @unique @map("external_id")
+  sourceUrl     String?                  @map("source_url")
+  lastSyncAt    DateTime?                @map("last_sync_at")
+  createdAt     DateTime                 @default(now()) @map("created_at")
+  updatedAt     DateTime                 @updatedAt @map("updated_at")
+  players       TournamentPlayer[]
+  registrations TournamentRegistration[]
 
   @@map("tournaments")
 }
@@ -138,6 +140,21 @@ model TournamentPlayer {
   tournament    Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
 
   @@map("tournament_players")
+}
+
+model TournamentRegistration {
+  id           Int                @id @default(autoincrement())
+  tournamentId Int                @map("tournament_id")
+  athleteId    Int                @map("athlete_id")
+  status       RegistrationStatus @default(inscris)
+  createdAt    DateTime           @default(now()) @map("created_at")
+  updatedAt    DateTime           @updatedAt @map("updated_at")
+  tournament   Tournament         @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  athlete      TennisAthlete      @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+
+  @@unique([tournamentId, athleteId])
+  @@index([athleteId])
+  @@map("tournament_registrations")
 }
 
 model FootballStat {
@@ -405,6 +422,11 @@ enum Surface {
 enum MatchResult {
   victorie
   infrangere
+}
+
+enum RegistrationStatus {
+  inscris
+  retras
 }
 
 enum Severity {
