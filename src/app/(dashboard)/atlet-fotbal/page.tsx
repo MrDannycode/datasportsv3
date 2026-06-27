@@ -233,8 +233,20 @@ export default async function AtletFotbalPage() {
 
 
     return (
-        <main>
-            <div className="sd-page-title">
+        <main className="sd-athlete-dashboard-layout">
+            <aside className="sd-athlete-left-sidebar sd-sticky-sidebar">
+                <div className="sd-box">
+                    <div className="sd-box-header">
+                        <h2>Sport Science</h2>
+                    </div>
+                    <div className="sd-box-content">
+                        <SportScienceMetrics latestLoad={latestLoad} />
+                    </div>
+                </div>
+            </aside>
+
+            <div className="sd-athlete-main-content">
+                <div className="sd-page-title">
                 <h1>Dashboard overview</h1>
             </div>
 
@@ -380,32 +392,17 @@ export default async function AtletFotbalPage() {
                         </table>
                     </div>
                 </div>
-
-                <div className="sd-sidebar">
-                    <div className="sd-box">
-                        <div className="sd-box-header">
-                            <h2>Next Match Analysis</h2>
-                        </div>
-                        <div className="sd-box-content">
-                            <p>Next match: Liverpool</p>
-                            <p>Difficulty: —</p>
-                            <p>Weather: —</p>
-                        </div>
-                    </div>
-
-                    <div className="sd-box">
-                        <div className="sd-box-header">
-                            <h2>Sport Science</h2>
-                        </div>
-                        <div className="sd-box-content">
-                            <SportScienceMetrics latestLoad={latestLoad} />
-                        </div>
-                    </div>
-                </div>
+            </div>
             </div>
         </main>
     )
 }
+
+
+
+
+
+
 
 
 
