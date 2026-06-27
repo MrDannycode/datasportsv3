@@ -141,7 +141,15 @@ export default async function DashboardHeader({
                                     select: {
                                         email: true,
                                         footballAthlete: {
-                                            select: { id: true, position: true, jerseyNumber: true },
+                                            select: {
+                                                id: true,
+                                                position: true,
+                                                jerseyNumber: true,
+                                                medicalRecords: {
+                                                    where: { isAvailable: false },
+                                                    select: { id: true },
+                                                },
+                                            },
                                         },
                                     },
                                 },
@@ -165,6 +173,7 @@ export default async function DashboardHeader({
                 email: athleteProfile.user.email,
                 position: footballAthlete.position,
                 jerseyNumber: footballAthlete.jerseyNumber,
+                isAvailable: footballAthlete.medicalRecords.length === 0,
             }]
         }) ?? []
     }
