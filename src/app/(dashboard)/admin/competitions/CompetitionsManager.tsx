@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import CompetitionCreateModal from "./CompetitionCreateModal"
 import CompetitionEditModal from "./CompetitionEditModal"
 import { createCompetition, deleteCompetition, updateCompetition } from "./actions"
+import { MANAGER_LOCATION_OPTIONS } from "@/lib/manager-locations"
 
 type Competition = {
     id: number
@@ -32,7 +33,11 @@ type CompetitionFormData = {
 interface Props {
     initialCompetitions: Competition[]
     shouldOpenNewCompetitionModal?: boolean
+    initialSportFilter?: string
+    initialContinentFilter?: string
 }
+
+const locationContinentOptions = Array.from(new Set(MANAGER_LOCATION_OPTIONS.map(option => option.continent)))
 
 const emptyFormData: CompetitionFormData = {
     name: "",
@@ -60,7 +65,9 @@ function formatCompetitionDuration(startDate: Date | string | null, endDate: Dat
     return `${start} - ${end}`
 }
 
-export default function CompetitionsManager({ initialCompetitions, shouldOpenNewCompetitionModal = false }: Props) {
+export default function CompetitionsManager({ initialCompetitions, shouldOpenNewCompetitionModal = false, initialSportFilter, initialContinentFilter }: Props) {
+    const defaultSportFilter: CompetitionFilter = initialSportFilter === "fotbal" || initialSportFilter === "tenis" ? initialSportFilter : "all"
+    const defaultContinentFilter: CompetitionFilter = initialCompetitions.some(competition => competition.continent === initialContinentFilter) ? initialContinentFilter ?? "all" : "all"
     const [competitions, setCompetitions] = useState<Competition[]>(initialCompetitions)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
@@ -71,13 +78,22 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
     const hasOpenedFromQueryRef = useRef(false)
     const [formData, setFormData] = useState<CompetitionFormData>(emptyFormData)
     const [editFormData, setEditFormData] = useState<CompetitionFormData>(emptyFormData)
-    const [sportFilter, setSportFilter] = useState<CompetitionFilter>("all")
+    const [sportFilter, setSportFilter] = useState<CompetitionFilter>(defaultSportFilter)
     const [countryFilter, setCountryFilter] = useState<CompetitionFilter>("all")
-    const [continentFilter, setContinentFilter] = useState<CompetitionFilter>("all")
+    const [continentFilter, setContinentFilter] = useState<CompetitionFilter>(defaultContinentFilter)
     const [sortConfig, setSortConfig] = useState<{ field: SortField, direction: SortDirection }>({
         field: "name",
         direction: "asc",
     })
+    const createCountryOptions = MANAGER_LOCATION_OPTIONS.filter(option => option.continent === formData.continent)
+
+    const handleCreateContinentChange = (value: string) => {
+        setFormData(current => ({
+            ...current,
+            continent: value,
+            country: MANAGER_LOCATION_OPTIONS.some(option => option.continent === value && option.country === current.country) ? current.country : "",
+        }))
+    }
 
     useEffect(() => {
         if (!shouldOpenNewCompetitionModal || hasOpenedFromQueryRef.current) {
@@ -183,13 +199,13 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
         }
     }
 
-    const countryOptions = useMemo(() => {
-        return Array.from(new Set(competitions.map(competition => competition.country))).sort((a, b) => a.localeCompare(b, "ro", { sensitivity: "base" }))
-    }, [competitions])
+    const filterCountryOptions = useMemo(() => {
+        if (continentFilter === "all") {
+            return MANAGER_LOCATION_OPTIONS
+        }
 
-    const continentOptions = useMemo(() => {
-        return Array.from(new Set(competitions.map(competition => competition.continent))).sort((a, b) => a.localeCompare(b, "ro", { sensitivity: "base" }))
-    }, [competitions])
+        return MANAGER_LOCATION_OPTIONS.filter(option => option.continent === continentFilter)
+    }, [continentFilter])
 
     const filteredCompetitions = useMemo(() => {
         return competitions.filter(competition => {
@@ -265,26 +281,33 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                         </select>
                     </div>
                     <div style={{ flex: "1 1 150px" }}>
-                        <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Tara</label>
-                        <input
+                        <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Continent</label>
+                        <select
                             required
-                            type="text"
-                            placeholder="ex: Romania"
-                            value={formData.country}
-                            onChange={e => setFormData({ ...formData, country: e.target.value })}
+                            value={formData.continent}
+                            onChange={e => handleCreateContinentChange(e.target.value)}
                             style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
-                        />
+                        >
+                            <option value="">Selecteaza continent</option>
+                            {locationContinentOptions.map(option => (
+                                <option key={option} value={option}>{option}</option>
+                            ))}
+                        </select>
                     </div>
                     <div style={{ flex: "1 1 150px" }}>
-                        <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Continent</label>
-                        <input
+                        <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Tara</label>
+                        <select
                             required
-                            type="text"
-                            placeholder="ex: Europa"
-                            value={formData.continent}
-                            onChange={e => setFormData({ ...formData, continent: e.target.value })}
-                            style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
-                        />
+                            value={formData.country}
+                            onChange={e => setFormData({ ...formData, country: e.target.value })}
+                            disabled={!formData.continent}
+                            style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc", backgroundColor: !formData.continent ? "#f3f4f6" : "#fff" }}
+                        >
+                            <option value="">Selecteaza tara</option>
+                            {createCountryOptions.map(option => (
+                                <option key={option.country} value={option.country}>{option.country}</option>
+                            ))}
+                        </select>
                     </div>
                     <div style={{ flex: "1 1 150px" }}>
                         <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Data inceput</label>
@@ -327,6 +350,22 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                         <option value="tenis">Tenis</option>
                     </select>
 
+                    <label htmlFor="competition-continent-filter" style={{ fontSize: "12px", fontWeight: "bold" }}>Continent</label>
+                    <select
+                        id="competition-continent-filter"
+                        value={continentFilter}
+                        onChange={e => {
+                            setContinentFilter(e.target.value)
+                            setCountryFilter("all")
+                        }}
+                        style={{ border: "1px solid #ccc", padding: "6px 10px", fontSize: "13px", backgroundColor: "#fff", minWidth: "170px" }}
+                    >
+                        <option value="all">Toate continentele</option>
+                        {locationContinentOptions.map(continent => (
+                            <option key={continent} value={continent}>{continent}</option>
+                        ))}
+                    </select>
+
                     <label htmlFor="competition-country-filter" style={{ fontSize: "12px", fontWeight: "bold" }}>Tara</label>
                     <select
                         id="competition-country-filter"
@@ -335,21 +374,8 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                         style={{ border: "1px solid #ccc", padding: "6px 10px", fontSize: "13px", backgroundColor: "#fff", minWidth: "170px" }}
                     >
                         <option value="all">Toate tarile</option>
-                        {countryOptions.map(country => (
-                            <option key={country} value={country}>{country}</option>
-                        ))}
-                    </select>
-
-                    <label htmlFor="competition-continent-filter" style={{ fontSize: "12px", fontWeight: "bold" }}>Continent</label>
-                    <select
-                        id="competition-continent-filter"
-                        value={continentFilter}
-                        onChange={e => setContinentFilter(e.target.value)}
-                        style={{ border: "1px solid #ccc", padding: "6px 10px", fontSize: "13px", backgroundColor: "#fff", minWidth: "170px" }}
-                    >
-                        <option value="all">Toate continentele</option>
-                        {continentOptions.map(continent => (
-                            <option key={continent} value={continent}>{continent}</option>
+                        {Array.from(new Map(filterCountryOptions.map(option => [option.country, option])).values()).map(option => (
+                            <option key={`${option.continent}-${option.country}`} value={option.country}>{option.country}</option>
                         ))}
                     </select>
                 </div>

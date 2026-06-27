@@ -6,6 +6,37 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { logAudit } from "@/lib/audit"
 
+async function requireFootballManagerAssignment() {
+    const session = await getServerSession(authOptions)
+    if (!session || session.user.role !== 'manager_fotbal') {
+        throw new Error('Unauthorized')
+    }
+
+    const assignment = await prisma.managerAssignment.findUnique({
+        where: { userId: Number(session.user.id) },
+        select: { country: true, continent: true },
+    })
+
+    const assignedCountry = assignment?.country?.trim()
+    const assignedContinent = assignment?.continent?.trim()
+
+    if (!assignedCountry || !assignedContinent) {
+        throw new Error('Managerul nu are o tara si un continent asignate.')
+    }
+
+    return { session, assignedCountry, assignedContinent }
+}
+
+function validateAssignedTeamLocation(data: { country: string; continent: string }, assignedCountry: string) {
+    if (data.country.trim() !== assignedCountry) {
+        throw new Error('Poti administra echipe doar in tara la care ai fost asignat.')
+    }
+
+    if (!data.continent.trim()) {
+        throw new Error('Selecteaza liga echipei.')
+    }
+}
+
 export async function createMatch(data: {
     teamHomeId: string
     teamAwayId: string
@@ -86,17 +117,15 @@ export async function createTeam(data: {
     country: string
     continent: string
 }) {
-    const session = await getServerSession(authOptions)
-    if (!session || session.user.role !== "manager_fotbal") {
-        throw new Error("Unauthorized")
-    }
+    const { session, assignedCountry } = await requireFootballManagerAssignment()
+    validateAssignedTeamLocation(data, assignedCountry)
 
     const team = await prisma.team.create({
         data: {
-            name: data.name,
+            name: data.name.trim(),
             sport: "fotbal",
-            country: data.country,
-            continent: data.continent
+            country: assignedCountry,
+            continent: data.continent.trim()
         }
     })
     
@@ -110,17 +139,24 @@ export async function updateTeam(id: number, data: {
     country: string
     continent: string
 }) {
-    const session = await getServerSession(authOptions)
-    if (!session || session.user.role !== "manager_fotbal") {
-        throw new Error("Unauthorized")
+    const { session, assignedCountry } = await requireFootballManagerAssignment()
+    validateAssignedTeamLocation(data, assignedCountry)
+
+    const existingTeam = await prisma.team.findFirst({
+        where: { id, sport: 'fotbal', country: assignedCountry },
+        select: { id: true },
+    })
+
+    if (!existingTeam) {
+        throw new Error('Poti modifica doar echipe din tara ta.')
     }
 
     const team = await prisma.team.update({
         where: { id },
         data: {
-            name: data.name,
-            country: data.country,
-            continent: data.continent
+            name: data.name.trim(),
+            country: assignedCountry,
+            continent: data.continent.trim()
         }
     })
     
@@ -130,9 +166,15 @@ export async function updateTeam(id: number, data: {
 }
 
 export async function deleteTeam(id: number) {
-    const session = await getServerSession(authOptions)
-    if (!session || session.user.role !== "manager_fotbal") {
-        throw new Error("Unauthorized")
+    const { session, assignedCountry } = await requireFootballManagerAssignment()
+
+    const existingTeam = await prisma.team.findFirst({
+        where: { id, sport: 'fotbal', country: assignedCountry },
+        select: { id: true },
+    })
+
+    if (!existingTeam) {
+        throw new Error('Poti sterge doar echipe din tara ta.')
     }
 
     const team = await prisma.team.delete({
@@ -145,12 +187,20 @@ export async function deleteTeam(id: number) {
 }
 
 async function assignUserProfileToTeam(userId: number, teamId: string | null) {
-    const session = await getServerSession(authOptions)
-    if (!session || session.user.role !== "manager_fotbal") {
-        throw new Error("Unauthorized")
-    }
+    const { session, assignedCountry } = await requireFootballManagerAssignment()
 
     const tId = teamId ? parseInt(teamId) : null;
+
+    if (tId !== null) {
+        const team = await prisma.team.findFirst({
+            where: { id: tId, sport: 'fotbal', country: assignedCountry },
+            select: { id: true },
+        })
+
+        if (!team) {
+            throw new Error('Poti aloca utilizatori doar la echipe din tara ta.')
+        }
+    }
 
     const profile = await prisma.profile.findUnique({ where: { userId } })
 

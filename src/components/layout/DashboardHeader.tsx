@@ -49,6 +49,7 @@ interface DashboardHeaderProps {
 
 const defaultNavItems: NavItem[] = [
     { label: "Adauga Utilizator", href: "#" },
+    { label: "Gestiune Manageri", href: "/admin/manageri" },
     { label: "Adauga Competitie", href: "#" },
     { label: "Export Audit Curent", href: "#" },
     { label: "Adauga Atleti", href: "#" },
@@ -82,14 +83,23 @@ export default async function DashboardHeader({
     let myProfileData: ProfileNavData | null = null
 
     if (session?.user?.role === "manager_fotbal") {
+        const managerAssignment = await prisma.managerAssignment.findUnique({
+            where: { userId: Number(session.user.id) },
+            select: { country: true, continent: true },
+        })
+
         footballTeams = await prisma.team.findMany({
-            where: { sport: "fotbal" },
+            where: managerAssignment
+                ? { sport: "fotbal", country: managerAssignment.country }
+                : { sport: "fotbal", id: -1 },
             select: { id: true, name: true, country: true },
             orderBy: { name: "asc" },
         })
 
         footballCompetitions = await prisma.competition.findMany({
-            where: { sport: "fotbal" },
+            where: managerAssignment
+                ? { sport: "fotbal", country: managerAssignment.country }
+                : { sport: "fotbal", id: -1 },
             select: { id: true, name: true },
             orderBy: { name: "asc" },
         })
@@ -245,7 +255,7 @@ export default async function DashboardHeader({
     const visibleNavItems = navItems.filter((item) =>
         item.label === "Toti Atletii"
             ? canViewTeamAthletes
-            : ["Adauga Utilizator", "Adauga Competitie", "Export Audit Curent"].includes(item.label)
+            : ["Adauga Utilizator", "Gestiune Manageri", "Adauga Competitie", "Export Audit Curent"].includes(item.label)
                 ? session?.user?.role === "admin_global"
                 : ["Adauga Atleti", "Gestiune Antrenori", "Adauga Meci"].includes(item.label)
                     ? session?.user?.role === "manager_fotbal"

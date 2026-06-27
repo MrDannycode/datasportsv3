@@ -7,20 +7,21 @@ datasource db {
 }
 
 model User {
-  id              Int              @id @default(autoincrement())
-  email           String           @unique
-  passwordHash    String           @map("password_hash")
-  role            Role
-  createdAt       DateTime         @default(now()) @map("created_at")
-  updatedAt       DateTime         @updatedAt @map("updated_at")
-  auditLogs       AuditLog[]
-  fitnessPlans    FitnessPlan[]
-  footballAthlete FootballAthlete?
-  medicalRecords  MedicalRecord[]  @relation("MedicRecords")
-  notifications   Notification[]
-  profile         Profile?
-  tennisAthlete   TennisAthlete?
-  trainingPlans   TrainingPlan[]
+  id                Int                @id @default(autoincrement())
+  email             String             @unique
+  passwordHash      String             @map("password_hash")
+  role              Role
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+  auditLogs         AuditLog[]
+  fitnessPlans      FitnessPlan[]
+  footballAthlete   FootballAthlete?
+  managerAssignment ManagerAssignment?
+  medicalRecords    MedicalRecord[]    @relation("MedicRecords")
+  notifications     Notification[]
+  profile           Profile?
+  tennisAthlete     TennisAthlete?
+  trainingPlans     TrainingPlan[]
 
   @@map("users")
 }
@@ -341,6 +342,18 @@ model DailyLoad {
   @@unique([athleteId, date])
   @@index([athleteId])
   @@map("daily_loads")
+}
+
+model ManagerAssignment {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique @map("user_id")
+  country   String
+  continent String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("manager_assignments")
 }
 
 enum Role {

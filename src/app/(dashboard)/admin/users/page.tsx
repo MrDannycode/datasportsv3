@@ -6,7 +6,7 @@ import UsersManager from "./UsersManager"
 import Link from "next/link"
 
 interface AdminUsersPageProps {
-    searchParams?: Promise<{ open?: string }>
+    searchParams?: Promise<{ open?: string; role?: string }>
 }
 
 export default async function AdminUsersPage({ searchParams }: AdminUsersPageProps) {
@@ -24,6 +24,9 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
             email: true,
             role: true,
             createdAt: true,
+            managerAssignment: {
+                select: { country: true, continent: true },
+            },
             profile: {
                 select: {
                     team: {
@@ -40,8 +43,8 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
         email: user.email,
         role: user.role,
         createdAt: user.createdAt,
-        country: user.profile?.team?.country ?? null,
-        continent: user.profile?.team?.continent ?? null,
+        country: user.role === "manager_fotbal" ? user.managerAssignment?.country ?? null : user.profile?.team?.country ?? null,
+        continent: user.role === "manager_fotbal" ? user.managerAssignment?.continent ?? null : user.profile?.team?.continent ?? null,
     }))
 
     return (
@@ -56,6 +59,7 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
             <UsersManager
                 initialUsers={usersWithLocation}
                 shouldOpenNewUserModal={resolvedSearchParams?.open === "new"}
+                initialRoleFilter={resolvedSearchParams?.role}
             />
         </main>
     )

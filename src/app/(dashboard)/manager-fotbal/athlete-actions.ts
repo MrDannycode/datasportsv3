@@ -30,13 +30,22 @@ export type AthleteInviteResult = {
     error?: string
 }
 
-async function requireFootballManager() {
+async function requireFootballManagerAssignment() {
     const session = await getServerSession(authOptions)
     if (!session || session.user.role !== "manager_fotbal") {
         throw new Error("Nu ai permisiunea de a administra atleti.")
     }
 
-    return session
+    const assignment = await prisma.managerAssignment.findUnique({
+        where: { userId: Number(session.user.id) },
+        select: { country: true, continent: true },
+    })
+
+    if (!assignment?.country || !assignment.continent) {
+        throw new Error("Managerul nu are o tara si un continent asignata.")
+    }
+
+    return { session, assignment }
 }
 
 function normalizeInvite(data: AthleteInviteInput) {
@@ -60,15 +69,23 @@ function normalizeInvite(data: AthleteInviteInput) {
     return { email, firstName, lastName, position, preferredFoot, teamId, jerseyNumber }
 }
 
-async function createAthlete(data: AthleteInviteInput, createdByUserId: string | number): Promise<AthleteInviteResult> {
+async function createAthlete(data: AthleteInviteInput, createdByUserId: string | number, assignment: { country: string; continent: string }): Promise<AthleteInviteResult> {
     const athlete = normalizeInvite(data)
     if (await prisma.user.findUnique({ where: { email: athlete.email }, select: { id: true } })) {
         return { email: athlete.email, success: false, error: "Email-ul este deja inregistrat." }
     }
 
     if (athlete.teamId !== null) {
-        const team = await prisma.team.findFirst({ where: { id: athlete.teamId, sport: "fotbal" }, select: { id: true } })
-        if (!team) return { email: athlete.email, success: false, error: "Echipa nu exista sau nu este de fotbal." }
+        const team = await prisma.team.findFirst({
+            where: {
+                id: athlete.teamId,
+                sport: "fotbal",
+                country: assignment.country,
+                continent: assignment.continent,
+            },
+            select: { id: true },
+        })
+        if (!team) return { email: athlete.email, success: false, error: "Echipa nu exista in tara si continent managerului." }
     }
 
     const temporaryPassword = `Ds!${randomBytes(6).toString("base64url")}`
@@ -94,9 +111,9 @@ async function createAthlete(data: AthleteInviteInput, createdByUserId: string |
 }
 
 export async function inviteAthlete(data: AthleteInviteInput): Promise<AthleteInviteResult> {
-    const session = await requireFootballManager()
+    const { session, assignment } = await requireFootballManagerAssignment()
     try {
-        const result = await createAthlete(data, session.user.id)
+        const result = await createAthlete(data, session.user.id, assignment)
         if (result.success) revalidatePath("/manager-fotbal")
         return result
     } catch (error) {
@@ -105,14 +122,14 @@ export async function inviteAthlete(data: AthleteInviteInput): Promise<AthleteIn
 }
 
 export async function importAthletes(rows: AthleteInviteInput[]) {
-    const session = await requireFootballManager()
+    const { session, assignment } = await requireFootballManagerAssignment()
     if (!Array.isArray(rows) || rows.length === 0) return { results: [] as AthleteInviteResult[] }
     if (rows.length > 250) throw new Error("Un import poate contine maximum 250 de atleti.")
 
     const results: AthleteInviteResult[] = []
     for (const [index, row] of rows.entries()) {
         try {
-            results.push({ ...await createAthlete(row, session.user.id), row: index + 2 })
+            results.push({ ...await createAthlete(row, session.user.id, assignment), row: index + 2 })
         } catch (error) {
             results.push({ row: index + 2, email: row.email?.trim().toLowerCase() || "", success: false, error: error instanceof Error ? error.message : "Randul nu a putut fi importat." })
         }

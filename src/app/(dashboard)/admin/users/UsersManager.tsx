@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import UserCreateModal from "./UserCreateModal"
 import UserEditModal from "./UserEditModal"
 import { createUser, deleteUser, updateUser } from "./actions"
+import { MANAGER_LOCATION_OPTIONS } from "@/lib/manager-locations"
 
 interface User {
     id: number
@@ -17,6 +18,7 @@ interface User {
 interface Props {
     initialUsers: User[]
     shouldOpenNewUserModal?: boolean
+    initialRoleFilter?: string
 }
 
 type SortField = "email" | "role"
@@ -26,6 +28,7 @@ type LocationFilter = "all" | string
 
 const NO_COUNTRY_LABEL = "Fara tara"
 const NO_CONTINENT_LABEL = "Fara continent"
+const locationContinentOptions = Array.from(new Set(MANAGER_LOCATION_OPTIONS.map(option => option.continent)))
 
 const ALL_ROLES = [
     { value: "admin_global", label: "Admin Global" },
@@ -38,7 +41,8 @@ const ALL_ROLES = [
     { value: "atlet_tenis", label: "Atlet Tenis" },
 ]
 
-export default function UsersManager({ initialUsers, shouldOpenNewUserModal = false }: Props) {
+export default function UsersManager({ initialUsers, shouldOpenNewUserModal = false, initialRoleFilter }: Props) {
+    const defaultRoleFilter: RoleFilter = ALL_ROLES.some(currentRole => currentRole.value === initialRoleFilter) ? initialRoleFilter ?? "all" : "all"
     const [users, setUsers] = useState<User[]>(initialUsers)
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
@@ -53,7 +57,7 @@ export default function UsersManager({ initialUsers, shouldOpenNewUserModal = fa
     const [editRole, setEditRole] = useState("atlet_fotbal")
     const [editing, setEditing] = useState(false)
     const [editError, setEditError] = useState("")
-    const [roleFilter, setRoleFilter] = useState<RoleFilter>("all")
+    const [roleFilter, setRoleFilter] = useState<RoleFilter>(defaultRoleFilter)
     const [countryFilter, setCountryFilter] = useState<LocationFilter>("all")
     const [continentFilter, setContinentFilter] = useState<LocationFilter>("all")
     const [sortConfig, setSortConfig] = useState<{ field: SortField, direction: SortDirection }>({
@@ -153,13 +157,13 @@ export default function UsersManager({ initialUsers, shouldOpenNewUserModal = fa
     const countryLabel = (user: User) => user.country || NO_COUNTRY_LABEL
     const continentLabel = (user: User) => user.continent || NO_CONTINENT_LABEL
 
-    const countryOptions = useMemo(() => {
-        return Array.from(new Set(users.map(countryLabel))).sort((a, b) => a.localeCompare(b, "ro", { sensitivity: "base" }))
-    }, [users])
+    const filterCountryOptions = useMemo(() => {
+        const locationOptions = continentFilter === "all"
+            ? MANAGER_LOCATION_OPTIONS
+            : MANAGER_LOCATION_OPTIONS.filter(option => option.continent === continentFilter)
 
-    const continentOptions = useMemo(() => {
-        return Array.from(new Set(users.map(continentLabel))).sort((a, b) => a.localeCompare(b, "ro", { sensitivity: "base" }))
-    }, [users])
+        return [NO_COUNTRY_LABEL, ...Array.from(new Set(locationOptions.map(option => option.country)))]
+    }, [continentFilter])
 
     const filteredUsers = useMemo(() => {
         return users.filter(user => {
@@ -299,11 +303,15 @@ export default function UsersManager({ initialUsers, shouldOpenNewUserModal = fa
                         <select
                             id="user-continent-filter"
                             value={continentFilter}
-                            onChange={e => setContinentFilter(e.target.value)}
+                            onChange={e => {
+                                setContinentFilter(e.target.value)
+                                setCountryFilter("all")
+                            }}
                             style={{ border: "1px solid #ccc", padding: "6px 10px", fontSize: "13px", backgroundColor: "#fff", minWidth: "180px" }}
                         >
                             <option value="all">Toate continentele</option>
-                            {continentOptions.map(continent => (
+                            <option value={NO_CONTINENT_LABEL}>{NO_CONTINENT_LABEL}</option>
+                            {locationContinentOptions.map(continent => (
                                 <option key={continent} value={continent}>{continent}</option>
                             ))}
                         </select>
@@ -316,7 +324,7 @@ export default function UsersManager({ initialUsers, shouldOpenNewUserModal = fa
                             style={{ border: "1px solid #ccc", padding: "6px 10px", fontSize: "13px", backgroundColor: "#fff", minWidth: "180px" }}
                         >
                             <option value="all">Toate tarile</option>
-                            {countryOptions.map(country => (
+                            {filterCountryOptions.map(country => (
                                 <option key={country} value={country}>{country}</option>
                             ))}
                         </select>

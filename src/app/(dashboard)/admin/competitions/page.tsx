@@ -6,7 +6,7 @@ import CompetitionsManager from "./CompetitionsManager"
 import Link from "next/link"
 
 interface AdminCompetitionsPageProps {
-    searchParams?: Promise<{ open?: string }>
+    searchParams?: Promise<{ open?: string; sport?: string; continent?: string }>
 }
 
 export default async function AdminCompetitionsPage({ searchParams }: AdminCompetitionsPageProps) {
@@ -34,6 +34,8 @@ export default async function AdminCompetitionsPage({ searchParams }: AdminCompe
             <CompetitionsManager
                 initialCompetitions={competitions}
                 shouldOpenNewCompetitionModal={resolvedSearchParams?.open === "new"}
+                initialSportFilter={resolvedSearchParams?.sport}
+                initialContinentFilter={resolvedSearchParams?.continent}
             />
         </main>
     )

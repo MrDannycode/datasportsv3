@@ -17,10 +17,16 @@ export default async function AntrenoriPage({ searchParams }: AntrenoriPageProps
     }
 
     const resolvedSearchParams = searchParams ? await searchParams : undefined
+    const managerAssignment = await prisma.managerAssignment.findUnique({
+        where: { userId: Number(session.user.id) },
+        select: { country: true, continent: true },
+    })
 
     const [teams, users] = await Promise.all([
         prisma.team.findMany({
-            where: { sport: "fotbal" },
+            where: managerAssignment
+                ? { sport: "fotbal", country: managerAssignment.country }
+                : { sport: "fotbal", id: -1 },
             select: { id: true, name: true, country: true, continent: true },
             orderBy: { name: "asc" },
         }),

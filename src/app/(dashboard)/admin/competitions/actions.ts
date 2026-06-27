@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
+import { isValidManagerLocation } from "@/lib/manager-locations"
 
 type CompetitionPayload = {
     name: string
@@ -44,16 +45,23 @@ function parseCompetitionDates(data: CompetitionPayload) {
     return { startDate, endDate }
 }
 
+function validateCompetitionLocation(data: CompetitionPayload) {
+    if (!data.name || !data.sport || !data.country || !data.continent) {
+        throw new Error("Numele, sportul, tara si continentul sunt obligatorii.")
+    }
+
+    if (!isValidManagerLocation(data.country, data.continent)) {
+        throw new Error("Selecteaza o tara si un continent valide.")
+    }
+}
+
 export async function createCompetition(data: CompetitionPayload) {
     const session = await getServerSession(authOptions)
     if (!session || session.user.role !== "admin_global") {
         throw new Error("Unauthorized")
     }
 
-    if (!data.name || !data.sport || !data.country || !data.continent) {
-        throw new Error("Numele, sportul, tara si continentul sunt obligatorii.")
-    }
-
+    validateCompetitionLocation(data)
     const { startDate, endDate } = parseCompetitionDates(data)
 
     try {
@@ -95,10 +103,7 @@ export async function updateCompetition(id: number, data: CompetitionPayload) {
         throw new Error("Unauthorized")
     }
 
-    if (!data.name || !data.sport || !data.country || !data.continent) {
-        throw new Error("Numele, sportul, tara si continentul sunt obligatorii.")
-    }
-
+    validateCompetitionLocation(data)
     const { startDate, endDate } = parseCompetitionDates(data)
 
     try {
