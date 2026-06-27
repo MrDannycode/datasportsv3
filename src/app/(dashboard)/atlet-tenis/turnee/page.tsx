@@ -16,7 +16,8 @@ interface AtletTenisTurneePageProps {
 
 async function getUpcomingTournaments(
     gender: "MALE" | "FEMALE" | null,
-    filters: { country?: string; continent?: string; dateFrom?: string }
+    filters: { country?: string; continent?: string; dateFrom?: string },
+    userRanking?: number | null
 ): Promise<TournamentWithDifficulty[]> {
     const normalizedFilters = normalizeTournamentFilters(filters)
     const minDate = normalizedFilters.dateFrom ? new Date(`${normalizedFilters.dateFrom}T00:00:00`) : new Date()
@@ -37,7 +38,7 @@ async function getUpcomingTournaments(
         )
         .map((t) => {
             const rankings = t.players.map((p) => p.atpWtaRanking)
-            const difficulty = calculateDifficulty(rankings, t.name)
+            const difficulty = calculateDifficulty(rankings, t.name, userRanking)
             const validRankings = rankings.filter((r): r is number => r !== null && r > 0)
             const avgRanking =
                 validRankings.length > 0
@@ -83,8 +84,13 @@ export default async function AtletTenisTurneePage({ searchParams }: AtletTenisT
         select: { gender: true },
     })
 
+    const athlete = await prisma.tennisAthlete.findUnique({
+        where: { userId: Number(session.user.id) },
+        select: { atpWtaRanking: true },
+    })
+
     const [tournaments, liveOptions] = await Promise.all([
-        getUpcomingTournaments(profile?.gender ?? null, filters),
+        getUpcomingTournaments(profile?.gender ?? null, filters, athlete?.atpWtaRanking ?? null),
         getItfCalendarOptions(profile?.gender ?? null, filters.dateFrom).catch(() => ({ countries: [], continents: [] })),
     ])
 
@@ -143,7 +149,7 @@ export default async function AtletTenisTurneePage({ searchParams }: AtletTenisT
                 <div className="sd-box-content">
                     <p style={{ fontSize: 13, color: "#555", marginBottom: 10 }}>
                         Dificultatea fiecarui turneu este calculata dinamic la momentul citirii,
-                        pe baza mediei rankingului ATP/WTA al jucatorilor inscrisi la acea ora.
+                        pe baza mediei rankingului ATP/WTA al jucatorilor inscrisi in comparatie cu clasamentul tau actual.
                     </p>
                 </div>
             </div>

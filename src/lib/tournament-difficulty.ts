@@ -39,7 +39,8 @@ export function estimateDifficultyFromCategory(categorySource?: string | null): 
 
 export function calculateDifficulty(
     rankings: (number | null | undefined)[],
-    categorySource?: string | null
+    categorySource?: string | null,
+    userRanking?: number | null
 ): Difficulty | null {
     const valid = rankings.filter(
         (r): r is number => typeof r === "number" && r > 0
@@ -50,6 +51,12 @@ export function calculateDifficulty(
     }
 
     const avg = valid.reduce((sum, r) => sum + r, 0) / valid.length
+
+    if (userRanking && userRanking > 0) {
+        if (avg < userRanking - 300) return "greu"
+        if (avg > userRanking + 300) return "usor"
+        return "mediu"
+    }
 
     if (avg <= DIFFICULTY_THRESHOLDS.ELITE) return "greu"
     if (avg <= DIFFICULTY_THRESHOLDS.MID) return "mediu"
