@@ -53,6 +53,28 @@ export const authOptions: NextAuthOptions = {
             },
         }),
     ],
+    events: {
+        async signOut(message) {
+            if (!("token" in message) || !message.token?.id) {
+                return
+            }
+
+            const userId = Number(message.token.id)
+            if (!Number.isFinite(userId)) {
+                return
+            }
+
+            await prisma.auditLog.create({
+                data: {
+                    userId,
+                    action: "logout",
+                    tableAffected: "users",
+                    recordId: userId,
+                    details: { email: message.token.email ?? null, role: message.token.role ?? null },
+                },
+            })
+        },
+    },
     callbacks: {
         async jwt({ token, user }) {
             if (user) {

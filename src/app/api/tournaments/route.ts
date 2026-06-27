@@ -15,6 +15,7 @@ export type TournamentWithDifficulty = {
     avgRanking: number | null
     playerCount: number
     lastSyncAt: string | null
+    isRegistered?: boolean
     players: {
         id: number
         playerName: string

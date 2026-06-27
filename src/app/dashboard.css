@@ -969,4 +969,473 @@
     .sd-tournament-grid {
         grid-template-columns: 1fr;
     }
-}
+}
+.sd-tournament-register-btn {
+    border: 1px solid #15803d;
+    background: #16a34a;
+    color: #fff;
+    border-radius: 6px;
+    padding: 7px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.sd-tournament-register-btn:hover:not(:disabled) {
+    background: #15803d;
+    border-color: #166534;
+}
+
+.sd-tournament-register-btn:disabled {
+    cursor: default;
+    opacity: 0.75;
+}
+
+.sd-tournament-register-btn.is-registered {
+    background: #f0fdf4;
+    border-color: #86efac;
+    color: #166534;
+}
+
+.sd-tournament-register-message {
+    margin: 0 14px 12px;
+    font-size: 12px;
+    color: #92400e;
+}
+
+.sd-tournament-register-message.success {
+    color: #166534;
+}
+
+.sd-tournament-withdraw-btn {
+    border: 1px solid #b91c1c;
+    background: #dc2626;
+    color: #fff;
+    border-radius: 6px;
+    padding: 7px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.sd-tournament-withdraw-btn:hover:not(:disabled) {
+    background: #b91c1c;
+    border-color: #991b1b;
+}
+
+.sd-tournament-withdraw-btn:disabled {
+    cursor: default;
+    opacity: 0.75;
+}
+
+/* ---- Normal table mode ---------------------------------- */
+.sd-table-mode-normal .sd-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--sd-border) 78%, transparent);
+    border-radius: 12px;
+    background: var(--sd-box-bg);
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.07);
+}
+
+.sd-table-mode-normal .sd-table th,
+.sd-table-mode-normal .sd-table td {
+    border: 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--sd-border) 62%, transparent);
+    padding: 10px 14px;
+}
+
+.sd-table-mode-normal .sd-table th {
+    background: linear-gradient(180deg, #f8fafc 0%, #eef4fb 100%);
+    color: #243447;
+    font-size: 12px;
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+.sd-table-mode-normal .sd-table tbody tr:nth-child(even) {
+    background: rgba(0, 86, 179, 0.025);
+}
+
+.sd-table-mode-normal .sd-table tbody tr:hover {
+    background: rgba(0, 86, 179, 0.075);
+}
+
+.sd-table-mode-normal .sd-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.dark.sd-table-mode-normal .sd-table {
+    border-color: #2f3a4a;
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.22);
+}
+
+.dark.sd-table-mode-normal .sd-table th {
+    background: linear-gradient(180deg, #202a3a 0%, #182232 100%);
+    color: #dbe7f5;
+}
+
+.dark.sd-table-mode-normal .sd-table td {
+    border-bottom-color: #283344;
+}
+
+.dark.sd-table-mode-normal .sd-table tbody tr:nth-child(even) {
+    background: rgba(96, 165, 250, 0.045);
+}
+
+.dark.sd-table-mode-normal .sd-table tbody tr:hover {
+    background: rgba(96, 165, 250, 0.11);
+}
+
+.sd-table-mode-normal .dsb-table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.sd-table-mode-normal .dsb-table th {
+    background: #f4f7fb;
+    color: #536273;
+}
+
+.sd-table-mode-normal .dsb-table td {
+    border-bottom-color: color-mix(in srgb, var(--sd-border) 60%, transparent);
+}
+
+.sd-table-mode-normal .dsb-table tr:hover td {
+    background: rgba(0, 86, 179, 0.075);
+}
+
+.dark.sd-table-mode-normal .dsb-table th {
+    background: #202a3a;
+    color: #aebdd0;
+}
+
+.dark.sd-table-mode-normal .dsb-table tr:hover td {
+    background: rgba(96, 165, 250, 0.11);
+}
+
+.sd-table-mode-normal .sd-badge,
+.sd-table-mode-normal .sd-difficulty-badge,
+.sd-table-mode-normal .sd-surface-badge,
+.sd-table-mode-normal .sd-avg-ranking {
+    border-radius: 999px;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+}
+
+
+/* ---- Normal table mode containers ----------------------- */
+.sd-table-mode-normal .sd-box {
+    border-color: color-mix(in srgb, var(--sd-border) 70%, transparent);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+}
+
+.sd-table-mode-normal .sd-box-header {
+    background: linear-gradient(180deg, #ffffff 0%, #f4f7fb 100%);
+    border-bottom-color: color-mix(in srgb, var(--sd-border) 68%, transparent);
+    padding: 12px 16px;
+}
+
+.sd-table-mode-normal .sd-box-header h2 {
+    color: #243447;
+    letter-spacing: 0;
+}
+
+.sd-table-mode-normal .sd-box-content {
+    background: linear-gradient(180deg, color-mix(in srgb, var(--sd-box-bg) 96%, #eef4fb) 0%, var(--sd-box-bg) 100%);
+}
+
+.sd-table-mode-normal .sd-box-content > .sd-table,
+.sd-table-mode-normal .sd-box-content > div > .sd-table {
+    margin-top: 2px;
+}
+
+.sd-table-mode-normal .sd-players-table-wrap {
+    border-top-color: color-mix(in srgb, var(--sd-border) 65%, transparent);
+    background: color-mix(in srgb, var(--sd-box-bg) 96%, #eef4fb);
+    margin-top: 10px;
+    padding-top: 10px;
+}
+
+.sd-table-mode-normal .dsb-sidebar {
+    border-color: color-mix(in srgb, var(--sd-border) 70%, transparent);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+}
+
+.sd-table-mode-normal .dsb-panel-header {
+    background: linear-gradient(180deg, #ffffff 0%, #f4f7fb 100%);
+    border-bottom-color: color-mix(in srgb, var(--sd-border) 68%, transparent);
+}
+
+.dark.sd-table-mode-normal .sd-box,
+.dark.sd-table-mode-normal .dsb-sidebar {
+    border-color: #2f3a4a;
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.2);
+}
+
+.dark.sd-table-mode-normal .sd-box-header,
+.dark.sd-table-mode-normal .dsb-panel-header {
+    background: linear-gradient(180deg, #202a3a 0%, #182232 100%);
+    border-bottom-color: #2f3a4a;
+}
+
+.dark.sd-table-mode-normal .sd-box-header h2 {
+    color: #e5edf7;
+}
+
+.dark.sd-table-mode-normal .sd-box-content {
+    background: linear-gradient(180deg, #171d27 0%, var(--sd-box-bg) 100%);
+}
+
+.dark.sd-table-mode-normal .sd-players-table-wrap {
+    border-top-color: #2f3a4a;
+    background: #171d27;
+}
+
+/* ---- Normal table mode dashboard header ----------------- */
+.sd-table-mode-normal .sd-header {
+    background: linear-gradient(180deg, #ffffff 0%, #f4f7fb 100%);
+    border-color: color-mix(in srgb, var(--sd-border) 70%, transparent);
+    border-radius: 14px;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+}
+
+.sd-table-mode-normal .sd-logo strong {
+    color: #1f2d3d;
+    letter-spacing: 0;
+}
+
+.sd-table-mode-normal .sd-nav a {
+    color: #536273;
+    border-radius: 999px;
+    padding: 5px 10px;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sd-table-mode-normal .sd-nav a:hover {
+    background: rgba(0, 86, 179, 0.075);
+    color: #0056b3;
+    text-decoration: none;
+}
+
+.sd-table-mode-normal .sd-nav a.active {
+    background: rgba(0, 86, 179, 0.12);
+    color: #004494;
+    text-decoration: none;
+}
+
+.sd-table-mode-normal .sd-user-info {
+    color: #536273;
+}
+
+.sd-table-mode-normal .sd-user-info strong {
+    color: #243447;
+}
+
+.sd-table-mode-normal .sd-user-info a {
+    color: #0056b3;
+    border-radius: 999px;
+    padding: 3px 8px;
+}
+
+.sd-table-mode-normal .sd-user-info a:hover {
+    background: rgba(0, 86, 179, 0.075);
+    text-decoration: none;
+}
+
+.dark.sd-table-mode-normal .sd-header {
+    background: linear-gradient(180deg, #202a3a 0%, #182232 100%);
+    border-color: #2f3a4a;
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.2);
+}
+
+.dark.sd-table-mode-normal .sd-logo strong,
+.dark.sd-table-mode-normal .sd-user-info strong {
+    color: #e5edf7;
+}
+
+.dark.sd-table-mode-normal .sd-nav a,
+.dark.sd-table-mode-normal .sd-user-info {
+    color: #aebdd0;
+}
+
+.dark.sd-table-mode-normal .sd-nav a:hover,
+.dark.sd-table-mode-normal .sd-user-info a:hover {
+    background: rgba(96, 165, 250, 0.11);
+    color: #93c5fd;
+}
+
+.dark.sd-table-mode-normal .sd-nav a.active {
+    background: rgba(96, 165, 250, 0.16);
+    color: #bfdbfe;
+}
+
+.dark.sd-table-mode-normal .sd-user-info a {
+    color: #93c5fd;
+}
+
+/* ---- Dark focus/base dashboard refinements -------------- */
+.dark .sd-container {
+    background-color: #0a0f1a;
+    color: #e5edf7;
+}
+
+.dark .sd-header,
+.dark .sd-box,
+.dark .sd-modal,
+.dark .dsb-sidebar,
+.dark .sd-tournament-card {
+    background-color: #151b26;
+    border-color: #2a3444;
+    color: #e5edf7;
+}
+
+.dark .sd-logo strong,
+.dark .sd-page-title h1,
+.dark .sd-box-header h2,
+.dark .sd-metric-value,
+.dark .sd-label,
+.dark .sd-tournament-card-name {
+    color: #e5edf7;
+}
+
+.dark .sd-nav a,
+.dark .sd-user-info,
+.dark .sd-hint,
+.dark .sd-empty-state,
+.dark .sd-progress-text,
+.dark .sd-modal p,
+.dark .sd-description-cell,
+.dark .sd-tournament-meta,
+.dark .dsb-panel-season,
+.dark .dsb-legend {
+    color: #aebdd0;
+}
+
+.dark .sd-nav a.active,
+.dark .sd-nav a:hover,
+.dark .sd-user-info a,
+.dark .sd-container a {
+    color: #93c5fd;
+}
+
+.dark .sd-box-header,
+.dark .sd-table th,
+.dark .sd-filter-btn,
+.dark .sd-tournament-card-header,
+.dark .sd-sync-bar {
+    background-color: #1d2533;
+    border-color: #2a3444;
+    color: #dbe7f5;
+}
+
+.dark .sd-box-content,
+.dark .sd-tournament-card-body,
+.dark .sd-tournament-card-footer {
+    background-color: #151b26;
+}
+
+.dark .sd-table th,
+.dark .sd-table td {
+    border-color: #2a3444;
+}
+
+.dark .sd-table tr:nth-child(even) {
+    background-color: #121824;
+}
+
+.dark .sd-table tr:hover {
+    background-color: #1b2738;
+}
+
+.dark .sd-list li,
+.dark .sd-form-actions,
+.dark .sd-tournament-card-footer {
+    border-color: #2a3444;
+}
+
+.dark .sd-input {
+    background: #101826;
+    border-color: #2a3444;
+    color: #e5edf7;
+}
+
+.dark .sd-input:focus {
+    border-color: #60a5fa;
+    outline-color: #60a5fa;
+}
+
+.dark .sd-filter-btn:hover,
+.dark .sd-btn-secondary:hover {
+    background: #243044;
+}
+
+.dark .sd-filter-btn.active {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #fff;
+}
+
+.dark .sd-btn-secondary {
+    background: #151b26;
+    border-color: #2a3444;
+    color: #dbe7f5;
+}
+
+.dark .sd-progress-bar {
+    background-color: #101826;
+    border-color: #2a3444;
+}
+
+.dark .sd-error-banner {
+    background: rgba(248, 113, 113, 0.14);
+    border-color: #7f1d1d;
+    color: #fca5a5;
+}
+
+.dark .sd-badge-tehnic,
+.dark .sd-surface-hard {
+    background-color: #172554;
+    color: #bfdbfe;
+    border-color: #1e3a8a;
+}
+
+.dark .sd-badge-fizic,
+.dark .sd-surface-iarba,
+.dark .sd-tournament-register-btn.is-registered {
+    background-color: #052e1a;
+    color: #bbf7d0;
+    border-color: #166534;
+}
+
+.dark .sd-badge-tactic,
+.dark .sd-surface-zgura,
+.dark .sd-difficulty-mediu {
+    background-color: #422006;
+    color: #fde68a;
+    border-color: #92400e;
+}
+
+.dark .sd-difficulty-greu {
+    background-color: #450a0a;
+    color: #fecaca;
+    border-color: #991b1b;
+}
+
+.dark .sd-difficulty-usor {
+    background-color: #052e1a;
+    color: #bbf7d0;
+    border-color: #166534;
+}
+
+.dark .sd-difficulty-unknown {
+    background-color: #1f2937;
+    color: #d1d5db;
+    border-color: #374151;
+}

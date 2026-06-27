@@ -36,7 +36,7 @@ export async function updateMyProfile(formData: FormData): Promise<UpdateProfile
     return { success: false, error: "Numele și prenumele sunt obligatorii" }
   }
 
-  const profileData: any = {
+  const profileData: Record<string, string | Date | null> = {
     firstName: firstName.trim(),
     lastName: lastName.trim(),
     phone: phone ? phone.trim() : null,
@@ -66,7 +66,7 @@ export async function updateMyProfile(formData: FormData): Promise<UpdateProfile
 
   try {
     // 1. Actualizare Profil
-    const updatedProfile = await prisma.profile.upsert({
+    await prisma.profile.upsert({
       where: { userId },
       update: profileData,
       create: {
@@ -79,7 +79,7 @@ export async function updateMyProfile(formData: FormData): Promise<UpdateProfile
     if (heightCmStr || weightKgStr || preferredFoot || preferredHand || atpWtaRankingStr !== null) {
       const footballAthlete = await prisma.footballAthlete.findUnique({ where: { userId } })
       if (footballAthlete) {
-        const updateData: any = {}
+        const updateData: Record<string, string | number | null> = {}
         if (heightCmStr) updateData.heightCm = parseFloat(heightCmStr)
         if (weightKgStr) updateData.weightKg = parseFloat(weightKgStr)
         if (preferredFoot === "stanga" || preferredFoot === "dreapta" || preferredFoot === "ambele") {
@@ -91,9 +91,8 @@ export async function updateMyProfile(formData: FormData): Promise<UpdateProfile
         })
       }
       
-      const tennisAthlete = await prisma.tennisAthlete.findUnique({ where: { userId } })
-      if (tennisAthlete) {
-        const updateData: any = {}
+      if (session.user.role === "atlet_tenis") {
+        const updateData: Record<string, string | number | null> = {}
         if (heightCmStr) updateData.heightCm = parseFloat(heightCmStr)
         if (weightKgStr) updateData.weightKg = parseFloat(weightKgStr)
         if (preferredHand === "stanga" || preferredHand === "dreapta") {
@@ -103,17 +102,26 @@ export async function updateMyProfile(formData: FormData): Promise<UpdateProfile
           const ranking = parseInt(atpWtaRankingStr)
           updateData.atpWtaRanking = !isNaN(ranking) && ranking > 0 ? ranking : null
         }
-        await prisma.tennisAthlete.update({
+
+        await prisma.tennisAthlete.upsert({
           where: { userId },
-          data: updateData
+          update: updateData,
+          create: {
+            userId,
+            preferredHand: preferredHand === "stanga" || preferredHand === "dreapta" ? preferredHand : "dreapta",
+            playingStyle: "baseline",
+            ...updateData,
+          },
         })
       }
     }
 
     return { success: true }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Eroare update profil:", error)
     return { success: false, error: "A apărut o eroare la salvarea profilului" }
   }
 }
+
+
 

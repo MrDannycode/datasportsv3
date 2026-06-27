@@ -9,6 +9,7 @@ export interface TeamAthlete {
     email: string
     position: string
     jerseyNumber: number | null
+    isAvailable: boolean
 }
 
 interface Props {
@@ -85,6 +86,7 @@ export default function TeamAthletesNavButton({ label, teamName, athletes }: Pro
                                                     <th>Atlet</th>
                                                     <th>Pozitie</th>
                                                     <th>Nr.</th>
+                                                    <th>Disponibilitate</th>
                                                     <th>Email</th>
                                                 </tr>
                                             </thead>
@@ -94,6 +96,9 @@ export default function TeamAthletesNavButton({ label, teamName, athletes }: Pro
                                                         <td>{athlete.firstName} {athlete.lastName}</td>
                                                         <td>{athlete.position}</td>
                                                         <td>{athlete.jerseyNumber ?? "-"}</td>
+                                                        <td aria-label={athlete.isAvailable ? "Disponibil" : "Indisponibil"}>
+                                                            {athlete.isAvailable ? "✓" : "x"}
+                                                        </td>
                                                         <td>{athlete.email}</td>
                                                     </tr>
                                                 ))}

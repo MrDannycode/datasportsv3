@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { calculateTRIMP, recalculateDailyLoads } from "@/lib/trimp"
+import { logAudit } from "@/lib/audit"
 
 export type ActivityFormResult =
   | { success: true; activityId: number; trimp: number | null }
@@ -74,6 +75,8 @@ export async function addActivity(formData: FormData): Promise<ActivityFormResul
 
   await recalculateDailyLoads(prisma, profile.id, activityDate)
 
+  await logAudit({ userId: session.user.id, action: "create", tableAffected: "activities", recordId: activity.id, details: { date: activity.date.toISOString(), durationMin, sport, trimp } })
+
   return { success: true, activityId: activity.id, trimp }
 }
 
@@ -94,6 +97,8 @@ export async function deleteActivity(activityId: number): Promise<{ success: boo
 
   await prisma.activity.delete({ where: { id: activityId } })
   await recalculateDailyLoads(prisma, profile.id, activity.date)
+
+  await logAudit({ userId: session.user.id, action: "delete", tableAffected: "activities", recordId: activity.id, details: { date: activity.date.toISOString() } })
 
   return { success: true }
 }

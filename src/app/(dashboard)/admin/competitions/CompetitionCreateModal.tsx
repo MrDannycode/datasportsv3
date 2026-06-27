@@ -1,5 +1,7 @@
 "use client"
 
+import { MANAGER_LOCATION_OPTIONS } from "@/lib/manager-locations"
+
 interface Props {
     name: string
     sport: "fotbal" | "tenis"
@@ -20,6 +22,8 @@ interface Props {
     onSubmit: (e: React.FormEvent) => Promise<void>
 }
 
+const continentOptions = Array.from(new Set(MANAGER_LOCATION_OPTIONS.map(option => option.continent)))
+
 export default function CompetitionCreateModal({
     name,
     sport,
@@ -39,6 +43,15 @@ export default function CompetitionCreateModal({
     onClose,
     onSubmit,
 }: Props) {
+    const countryOptions = MANAGER_LOCATION_OPTIONS.filter(option => option.continent === continent)
+
+    const handleContinentChange = (value: string) => {
+        onContinentChange(value)
+        if (!MANAGER_LOCATION_OPTIONS.some(option => option.continent === value && option.country === country)) {
+            onCountryChange("")
+        }
+    }
+
     return (
         <div
             role="dialog"
@@ -121,26 +134,33 @@ export default function CompetitionCreateModal({
                             </select>
                         </div>
                         <div style={{ flex: "1 1 180px" }}>
-                            <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Tara</label>
-                            <input
+                            <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Continent</label>
+                            <select
                                 required
-                                type="text"
-                                placeholder="ex: Romania"
-                                value={country}
-                                onChange={e => onCountryChange(e.target.value)}
+                                value={continent}
+                                onChange={e => handleContinentChange(e.target.value)}
                                 style={{ width: "100%", padding: "10px 12px", borderRadius: "4px", border: "1px solid #ccc" }}
-                            />
+                            >
+                                <option value="">Selecteaza continent</option>
+                                {continentOptions.map(option => (
+                                    <option key={option} value={option}>{option}</option>
+                                ))}
+                            </select>
                         </div>
                         <div style={{ flex: "1 1 180px" }}>
-                            <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Continent</label>
-                            <input
+                            <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Tara</label>
+                            <select
                                 required
-                                type="text"
-                                placeholder="ex: Europa"
-                                value={continent}
-                                onChange={e => onContinentChange(e.target.value)}
-                                style={{ width: "100%", padding: "10px 12px", borderRadius: "4px", border: "1px solid #ccc" }}
-                            />
+                                value={country}
+                                onChange={e => onCountryChange(e.target.value)}
+                                disabled={!continent}
+                                style={{ width: "100%", padding: "10px 12px", borderRadius: "4px", border: "1px solid #ccc", backgroundColor: !continent ? "#f3f4f6" : "#fff" }}
+                            >
+                                <option value="">Selecteaza tara</option>
+                                {countryOptions.map(option => (
+                                    <option key={option.country} value={option.country}>{option.country}</option>
+                                ))}
+                            </select>
                         </div>
                         <div style={{ flex: "1 1 180px" }}>
                             <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Data inceput</label>

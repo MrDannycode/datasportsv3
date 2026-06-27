@@ -13,6 +13,8 @@ export default function AddCompetitionNavButton({ label, isActive = false }: Pro
     const [isOpen, setIsOpen] = useState(false)
     const [name, setName] = useState("")
     const [sport, setSport] = useState<"fotbal" | "tenis">("fotbal")
+    const [country, setCountry] = useState("")
+    const [continent, setContinent] = useState("")
     const [startDate, setStartDate] = useState("")
     const [endDate, setEndDate] = useState("")
     const [loading, setLoading] = useState(false)
@@ -32,10 +34,12 @@ export default function AddCompetitionNavButton({ label, isActive = false }: Pro
         setSuccess("")
 
         try {
-            const result = await createCompetition({ name, sport, startDate, endDate })
+            const result = await createCompetition({ name, sport, country, continent, startDate, endDate })
             if (result?.competition) {
                 setName("")
                 setSport("fotbal")
+                setCountry("")
+                setContinent("")
                 setStartDate("")
                 setEndDate("")
                 setIsOpen(false)
@@ -72,6 +76,8 @@ export default function AddCompetitionNavButton({ label, isActive = false }: Pro
                 <CompetitionCreateModal
                     name={name}
                     sport={sport}
+                    country={country}
+                    continent={continent}
                     startDate={startDate}
                     endDate={endDate}
                     loading={loading}
@@ -79,6 +85,8 @@ export default function AddCompetitionNavButton({ label, isActive = false }: Pro
                     success={success}
                     onNameChange={setName}
                     onSportChange={setSport}
+                    onCountryChange={setCountry}
+                    onContinentChange={setContinent}
                     onStartDateChange={setStartDate}
                     onEndDateChange={setEndDate}
                     onClose={closeModal}

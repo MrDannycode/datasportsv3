@@ -1,6 +1,7 @@
 "use server"
 
 import { prisma as db } from "@/lib/prisma"
+import { logAudit } from "@/lib/audit"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { Severity } from "@prisma/client"
@@ -105,11 +106,21 @@ export async function saveMedicalRecord(data: {
                 });
             }
 
+            await tx.auditLog.create({
+                data: {
+                    userId: Number(session.user.id),
+                    action: "update",
+                    tableAffected: "medical_records",
+                    recordId: updatedRecord.id,
+                    details: { athleteId, diagnosis, injuriesCount: injuries.length },
+                },
+            });
+
             return updatedRecord;
         });
     } else {
         // Create
-        return db.medicalRecord.create({
+        const record = await db.medicalRecord.create({
             data: {
                 athleteId,
                 medicId: Number(session.user.id),
@@ -129,5 +140,15 @@ export async function saveMedicalRecord(data: {
                 }
             }
         });
+
+        await logAudit({
+            userId: session.user.id,
+            action: "create",
+            tableAffected: "medical_records",
+            recordId: record.id,
+            details: { athleteId, diagnosis, injuriesCount: injuries.length },
+        });
+
+        return record;
     }
 }

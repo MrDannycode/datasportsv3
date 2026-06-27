@@ -6,7 +6,7 @@ import UsersManager from "./UsersManager"
 import Link from "next/link"
 
 interface AdminUsersPageProps {
-    searchParams?: Promise<{ open?: string }>
+    searchParams?: Promise<{ open?: string; role?: string }>
 }
 
 export default async function AdminUsersPage({ searchParams }: AdminUsersPageProps) {
@@ -19,9 +19,33 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
     const resolvedSearchParams = searchParams ? await searchParams : undefined
 
     const users = await prisma.user.findMany({
-        select: { id: true, email: true, role: true, createdAt: true },
+        select: {
+            id: true,
+            email: true,
+            role: true,
+            createdAt: true,
+            managerAssignment: {
+                select: { country: true, continent: true },
+            },
+            profile: {
+                select: {
+                    team: {
+                        select: { country: true, continent: true },
+                    },
+                },
+            },
+        },
         orderBy: { createdAt: "desc" },
     })
+
+    const usersWithLocation = users.map((user) => ({
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt,
+        country: user.role === "manager_fotbal" ? user.managerAssignment?.country ?? null : user.profile?.team?.country ?? null,
+        continent: user.role === "manager_fotbal" ? user.managerAssignment?.continent ?? null : user.profile?.team?.continent ?? null,
+    }))
 
     return (
         <main>
@@ -33,8 +57,9 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
             </div>
 
             <UsersManager
-                initialUsers={users}
+                initialUsers={usersWithLocation}
                 shouldOpenNewUserModal={resolvedSearchParams?.open === "new"}
+                initialRoleFilter={resolvedSearchParams?.role}
             />
         </main>
     )

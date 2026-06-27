@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
+import { TableModeProvider } from "@/components/table-mode-provider";
 import { Providers } from "@/components/providers";
 import "./globals.css";
 
@@ -38,7 +39,7 @@ export default function RootLayout({
             enableSystem={false}
             disableTransitionOnChange
           >
-            {children}
+            <TableModeProvider>{children}</TableModeProvider>
           </ThemeProvider>
         </Providers>
       </body>

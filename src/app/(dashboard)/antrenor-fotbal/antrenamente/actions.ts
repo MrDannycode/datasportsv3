@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { revalidatePath } from "next/cache"
+import { logAudit } from "@/lib/audit"
 
 type PlanType = "tehnic" | "fizic" | "tactic"
 
@@ -38,6 +39,8 @@ export async function createPlan(payload: PlanPayload) {
             createdBy: Number(session.user.id),
         },
     })
+
+    await logAudit({ userId: session.user.id, action: "create", tableAffected: "training_plans", recordId: plan.id, details: { title: plan.title, type: plan.type, date: plan.date.toISOString() } })
 
     revalidatePath("/antrenor-fotbal/antrenamente")
     return { plan }
@@ -77,6 +80,8 @@ export async function updatePlan(id: number, payload: PlanPayload) {
         },
     })
 
+    await logAudit({ userId: session.user.id, action: "update", tableAffected: "training_plans", recordId: plan.id, details: { title: plan.title, type: plan.type, date: plan.date.toISOString() } })
+
     revalidatePath("/antrenor-fotbal/antrenamente")
     return { plan }
 }
@@ -100,6 +105,8 @@ export async function deletePlan(id: number) {
     }
 
     await prisma.trainingPlan.delete({ where: { id } })
+
+    await logAudit({ userId: session.user.id, action: "delete", tableAffected: "training_plans", recordId: existing.id, details: { title: existing.title, type: existing.type, date: existing.date.toISOString() } })
 
     revalidatePath("/antrenor-fotbal/antrenamente")
     return { success: true }

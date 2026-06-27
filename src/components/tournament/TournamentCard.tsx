@@ -1,12 +1,18 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import type { TournamentWithDifficulty } from "@/app/api/tournaments/route"
 import { DIFFICULTY_LABELS, type Difficulty } from "@/lib/tournament-difficulty"
+
+type TournamentActionResult = { ok: boolean; message: string }
 
 type Props = {
     tournament: TournamentWithDifficulty
     showPlayersDefault?: boolean
+    onRegister?: (tournamentId: number) => Promise<TournamentActionResult>
+    onWithdraw?: (tournamentId: number) => Promise<TournamentActionResult>
+    showRegistrationBadge?: boolean
+    showAllPlayers?: boolean
 }
 
 const DIFFICULTY_ICONS: Record<Difficulty, string> = {
@@ -52,9 +58,42 @@ function SurfaceBadge({ surface }: { surface: string | null }) {
     return <span className={cls}>{SURFACE_LABELS[surface] ?? surface}</span>
 }
 
-export default function TournamentCard({ tournament, showPlayersDefault = false }: Props) {
+export default function TournamentCard({ tournament, showPlayersDefault = false, onRegister, onWithdraw, showRegistrationBadge = false, showAllPlayers = false }: Props) {
     const [expanded, setExpanded] = useState(showPlayersDefault)
-    const visiblePlayers = tournament.players.slice(0, MAX_VISIBLE_PLAYERS)
+    const [isPending, startTransition] = useTransition()
+    const [isRegistered, setIsRegistered] = useState(Boolean(tournament.isRegistered))
+    const [registerMessage, setRegisterMessage] = useState<string | null>(null)
+    const [isWithdrawn, setIsWithdrawn] = useState(false)
+    const visiblePlayers = showAllPlayers ? tournament.players : tournament.players.slice(0, MAX_VISIBLE_PLAYERS)
+
+    function handleRegister() {
+        if (!onRegister || isRegistered) return
+
+        setRegisterMessage(null)
+        startTransition(async () => {
+            const result = await onRegister(tournament.id)
+            setRegisterMessage(result.message)
+            if (result.ok) {
+                setIsRegistered(true)
+            }
+        })
+    }
+
+    function handleWithdraw() {
+        if (!onWithdraw || isWithdrawn) return
+
+        setRegisterMessage(null)
+        startTransition(async () => {
+            const result = await onWithdraw(tournament.id)
+            setRegisterMessage(result.message)
+            if (result.ok) {
+                setIsRegistered(false)
+                setIsWithdrawn(true)
+            }
+        })
+    }
+
+    if (isWithdrawn) return null
 
     return (
         <div className="sd-tournament-card">
@@ -109,8 +148,31 @@ export default function TournamentCard({ tournament, showPlayersDefault = false 
                     </button>
                 ) : (
                     <span style={{ fontSize: 12, color: "#aaa" }}>
-                        Nicio încriere încă
+                        Nicio înscriere încă
                     </span>
+                )}
+                {showRegistrationBadge && isRegistered && !onWithdraw && (
+                    <span className="sd-tournament-register-btn is-registered">Înscris</span>
+                )}
+                {onWithdraw && (
+                    <button
+                        type="button"
+                        className="sd-tournament-withdraw-btn"
+                        onClick={handleWithdraw}
+                        disabled={isPending}
+                    >
+                        {isPending ? "Se retrage..." : "Retragere"}
+                    </button>
+                )}
+                {onRegister && (
+                    <button
+                        type="button"
+                        className={isRegistered ? "sd-tournament-register-btn is-registered" : "sd-tournament-register-btn"}
+                        onClick={handleRegister}
+                        disabled={isPending || isRegistered}
+                    >
+                        {isPending ? "Se înscrie..." : isRegistered ? "Înscris" : "Înscrie-te"}
+                    </button>
                 )}
                 {tournament.lastSyncAt && (
                     <span style={{ fontSize: 11, color: "#aaa" }}>
@@ -118,6 +180,12 @@ export default function TournamentCard({ tournament, showPlayersDefault = false 
                     </span>
                 )}
             </div>
+
+            {registerMessage && (
+                <div className={isRegistered ? "sd-tournament-register-message success" : "sd-tournament-register-message"}>
+                    {registerMessage}
+                </div>
+            )}
 
             {/* Tabel jucători (expandabil) */}
             {expanded && tournament.players.length > 0 && (

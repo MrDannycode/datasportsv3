@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import Link from "next/link"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { TableModeToggle } from "@/components/table-mode-toggle"
 import AddMedicalRecordNavButton from "@/components/layout/AddMedicalRecordNavButton"
 import AddInjuryNavButton from "@/components/layout/AddInjuryNavButton"
 import AddUserNavButton from "@/components/layout/AddUserNavButton"
@@ -16,6 +17,7 @@ import TeamAthletesNavButton, { type TeamAthlete } from "@/components/layout/Tea
 import MedicalRecordNavButton, { type AthleteMedicalRecord } from "@/components/layout/MedicalRecordNavButton"
 import ExportAuditNavButton from "@/components/layout/ExportAuditNavButton"
 import MyProfileNavButton from "@/components/layout/MyProfileNavButton"
+import AccountSettingsButton from "@/components/layout/AccountSettingsButton"
 import { prisma } from "@/lib/prisma"
 
 interface NavItem {
@@ -24,8 +26,15 @@ interface NavItem {
 }
 
 type BasicTeam = { id: number; name: string; country: string }
-type BasicCoach = { id: number; firstName: string; lastName: string; teamId: number | null; team: BasicTeam | null }
+type BasicCoach = { id: number; firstName: string; lastName: string; role: string; teamId: number | null; team: BasicTeam | null }
 type BasicCompetition = { id: number; name: string }
+type AccountSettingsData = {
+    firstName: string
+    lastName: string
+    email: string
+    phone: string
+}
+
 type ProfileNavData = {
     firstName: string
     lastName: string
@@ -38,6 +47,7 @@ type ProfileNavData = {
     weightKg?: number | null
     preferredFoot?: string | null
     preferredHand?: string | null
+    atpWtaRanking?: number | null
     sportType?: "fotbal" | "tenis" | null
 }
 
@@ -48,6 +58,7 @@ interface DashboardHeaderProps {
 
 const defaultNavItems: NavItem[] = [
     { label: "Adauga Utilizator", href: "#" },
+    { label: "Gestiune Manageri", href: "/admin/manageri" },
     { label: "Adauga Competitie", href: "#" },
     { label: "Export Audit Curent", href: "#" },
     { label: "Adauga Atleti", href: "#" },
@@ -58,10 +69,12 @@ const defaultNavItems: NavItem[] = [
     { label: "Adauga Dosar", href: "/medic/dosar-medical?open=new" },
     { label: "Adauga Accidentare", href: "#" },
     { label: "Dosar Medical", href: "#" },
+    { label: "PMC", href: "/atlet-fotbal#performance-management-chart" },
     { label: "Adauga Activitate", href: "/atlet-fotbal/activity?open=new" },
     { label: "Profilul meu", href: "#" },
     { label: "Toti Atletii", href: "#" },
     { label: "Turnee Tenis", href: "/atlet-tenis/turnee" },
+    { label: "Turneele mele", href: "/atlet-tenis/turnee/inscrieri" },
 ]
 
 export default async function DashboardHeader({
@@ -79,16 +92,46 @@ export default async function DashboardHeader({
     let athleteMedicalRecords: AthleteMedicalRecord[] = []
     let athleteHasCardiacData = false
     let myProfileData: ProfileNavData | null = null
+    let accountSettingsData: AccountSettingsData | null = null
+
+    if (session?.user?.id) {
+        const accountUser = await prisma.user.findUnique({
+            where: { id: Number(session.user.id) },
+            select: {
+                email: true,
+                profile: {
+                    select: { firstName: true, lastName: true, phone: true },
+                },
+            },
+        })
+
+        const fallbackName = accountUser?.email.split("@")[0] ?? ""
+        accountSettingsData = {
+            firstName: accountUser?.profile?.firstName ?? fallbackName,
+            lastName: accountUser?.profile?.lastName ?? "",
+            email: accountUser?.email ?? session.user.email ?? "",
+            phone: accountUser?.profile?.phone ?? "",
+        }
+    }
 
     if (session?.user?.role === "manager_fotbal") {
+        const managerAssignment = await prisma.managerAssignment.findUnique({
+            where: { userId: Number(session.user.id) },
+            select: { country: true, continent: true },
+        })
+
         footballTeams = await prisma.team.findMany({
-            where: { sport: "fotbal" },
+            where: managerAssignment
+                ? { sport: "fotbal", country: managerAssignment.country }
+                : { sport: "fotbal", id: -1 },
             select: { id: true, name: true, country: true },
             orderBy: { name: "asc" },
         })
 
         footballCompetitions = await prisma.competition.findMany({
-            where: { sport: "fotbal" },
+            where: managerAssignment
+                ? { sport: "fotbal", country: managerAssignment.country }
+                : { sport: "fotbal", id: -1 },
             select: { id: true, name: true },
             orderBy: { name: "asc" },
         })
@@ -105,6 +148,7 @@ export default async function DashboardHeader({
 
         footballCoaches = coachUsers.map((user) => ({
             id: user.id,
+            role: user.role,
             firstName: user.profile?.firstName || user.email.split("@")[0],
             lastName: user.profile?.lastName || "",
             teamId: user.profile?.teamId || null,
@@ -128,7 +172,15 @@ export default async function DashboardHeader({
                                     select: {
                                         email: true,
                                         footballAthlete: {
-                                            select: { id: true, position: true, jerseyNumber: true },
+                                            select: {
+                                                id: true,
+                                                position: true,
+                                                jerseyNumber: true,
+                                                medicalRecords: {
+                                                    where: { isAvailable: false },
+                                                    select: { id: true },
+                                                },
+                                            },
                                         },
                                     },
                                 },
@@ -152,6 +204,7 @@ export default async function DashboardHeader({
                 email: athleteProfile.user.email,
                 position: footballAthlete.position,
                 jerseyNumber: footballAthlete.jerseyNumber,
+                isAvailable: footballAthlete.medicalRecords.length === 0,
             }]
         }) ?? []
     }
@@ -199,7 +252,7 @@ export default async function DashboardHeader({
 
     if (["atlet_fotbal", "atlet_tenis"].includes(session?.user?.role ?? "")) {
         const athleteUser = await prisma.user.findUnique({
-            where: { id: Number(session.user.id) },
+            where: { id: Number(session?.user?.id) },
             select: { 
                 email: true,
                 profile: {
@@ -235,7 +288,7 @@ export default async function DashboardHeader({
               preferredFoot: athleteUser.footballAthlete?.preferredFoot || null,
               preferredHand: athleteUser.tennisAthlete?.preferredHand || null,
               atpWtaRanking: athleteUser.tennisAthlete?.atpWtaRanking ?? null,
-              sportType: athleteUser.footballAthlete ? "fotbal" : athleteUser.tennisAthlete ? "tenis" : null
+              sportType: session.user.role === "atlet_fotbal" ? "fotbal" : session.user.role === "atlet_tenis" ? "tenis" : athleteUser.footballAthlete ? "fotbal" : athleteUser.tennisAthlete ? "tenis" : null
            }
         }
     }
@@ -243,7 +296,7 @@ export default async function DashboardHeader({
     const visibleNavItems = navItems.filter((item) =>
         item.label === "Toti Atletii"
             ? canViewTeamAthletes
-            : ["Adauga Utilizator", "Adauga Competitie", "Export Audit Curent"].includes(item.label)
+            : ["Adauga Utilizator", "Gestiune Manageri", "Adauga Competitie", "Export Audit Curent"].includes(item.label)
                 ? session?.user?.role === "admin_global"
                 : ["Adauga Atleti", "Gestiune Antrenori", "Adauga Meci"].includes(item.label)
                     ? session?.user?.role === "manager_fotbal"
@@ -255,6 +308,8 @@ export default async function DashboardHeader({
                                 ? session?.user?.role === "medic"
                                 : item.label === "Dosar Medical"
                                     ? session?.user?.role === "atlet_fotbal"
+                                    : item.label === "PMC"
+                                        ? session?.user?.role === "atlet_fotbal"
                                     : item.label === "Adauga Activitate"
                                         ? ["atlet_fotbal", "atlet_tenis"].includes(session?.user?.role ?? "")
                                     : item.label === "Profilul meu"
@@ -338,14 +393,15 @@ export default async function DashboardHeader({
 
             <div className="sd-user-info" style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <ThemeToggle />
+                <TableModeToggle />
                 {session?.user ? (
                     <>
                         Logged in as{" "}
-                        <strong>{session.user.email}</strong>
+                        <strong>{accountSettingsData?.email ?? session.user.email}</strong>
                         {" | "}
-                        <Link href="/api/auth/signout">Logout</Link>
+                        <Link href="/signout">Logout</Link>
                         {" "}
-                        <Link href="#">Account settings</Link>
+                        {accountSettingsData && <AccountSettingsButton account={accountSettingsData} />}
                     </>
                 ) : (
                     <Link href="/login">Login</Link>
@@ -354,5 +410,8 @@ export default async function DashboardHeader({
         </header>
     )
 }
+
+
+
 
 

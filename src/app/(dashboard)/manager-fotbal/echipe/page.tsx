@@ -12,18 +12,29 @@ export default async function EchipePage() {
         redirect("/login")
     }
 
-    const [teams, leagues] = await Promise.all([
-        prisma.team.findMany({
-            where: { sport: "fotbal" },
-            select: { id: true, name: true, country: true, continent: true },
-            orderBy: { name: "asc" },
-        }),
-        prisma.competition.findMany({
-            where: { sport: "fotbal" },
-            select: { id: true, name: true },
-            orderBy: { name: "asc" },
-        }),
-    ])
+    const managerAssignment = await prisma.managerAssignment.findUnique({
+        where: { userId: Number(session.user.id) },
+        select: { country: true, continent: true },
+    })
+
+    const assignedCountry = managerAssignment?.country ?? null
+    const assignedContinent = managerAssignment?.continent ?? null
+
+    const [teams, leagues] = assignedCountry && assignedContinent
+        ? await Promise.all([
+            prisma.team.findMany({
+                where: { sport: 'fotbal', country: assignedCountry },
+                select: { id: true, name: true, country: true, continent: true },
+                orderBy: { name: 'asc' },
+            }),
+            prisma.competition.findMany({
+                where: { sport: 'fotbal', country: assignedCountry },
+                select: { id: true, name: true },
+                orderBy: { name: 'asc' },
+            }),
+        ])
+        : [[], []]
+
 
     return (
         <main>
@@ -31,7 +42,7 @@ export default async function EchipePage() {
                 <Link href="/manager-fotbal" className="sd-btn-secondary">Inapoi</Link>
                 <h1>Echipe fotbal</h1>
             </div>
-            <TeamManager initialTeams={teams} leagues={leagues} />
+            <TeamManager initialTeams={teams} leagues={leagues} assignedCountry={assignedCountry} assignedContinent={null} />
         </main>
     )
 }

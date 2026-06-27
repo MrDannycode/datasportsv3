@@ -18,9 +18,13 @@ type League = {
 export default function TeamManager({ 
     initialTeams,
     leagues,
+    assignedCountry,
+    assignedContinent,
 }: { 
     initialTeams: Team[]
     leagues: League[]
+    assignedCountry: string | null
+    assignedContinent: string | null
 }) {
     const [isEditing, setIsEditing] = useState<number | null>(null)
     const [loading, setLoading] = useState(false)
@@ -28,15 +32,15 @@ export default function TeamManager({
 
     const [formData, setFormData] = useState({
         name: "",
-        country: "",
-        continent: ""
+        country: assignedCountry ?? "",
+        continent: assignedContinent ?? ""
     })
 
     const resetForm = () => {
         setFormData({
             name: "",
-            country: "",
-            continent: ""
+            country: assignedCountry ?? "",
+            continent: assignedContinent ?? ""
         })
         setIsEditing(null)
         setError("")
@@ -46,8 +50,8 @@ export default function TeamManager({
         setIsEditing(team.id)
         setFormData({
             name: team.name,
-            country: team.country,
-            continent: team.continent
+            country: assignedCountry ?? team.country,
+            continent: assignedContinent ?? team.continent
         })
         setError("")
     }
@@ -104,12 +108,12 @@ export default function TeamManager({
                         />
                     </div>
                     <div>
-                        <label style={{ display: "block", marginBottom: "5px" }}>Stadion</label>
+                        <label style={{ display: "block", marginBottom: "5px" }}>Tara</label>
                         <input 
                             required 
                             type="text" 
                             value={formData.country} 
-                            onChange={e => setFormData({...formData, country: e.target.value})}
+                            readOnly
                             style={{ width: "100%", padding: "5px", borderRadius: "3px", border: "1px solid #ccc" }}
                         />
                     </div>
@@ -119,9 +123,13 @@ export default function TeamManager({
                             required
                             value={formData.continent}
                             onChange={e => setFormData({...formData, continent: e.target.value})}
+                            disabled={false}
                             style={{ width: "100%", padding: "5px", borderRadius: "3px", border: "1px solid #ccc" }}
                         >
                             <option value="">Selecteaza liga</option>
+                            {assignedContinent && !leagues.some(league => league.name === assignedContinent) && (
+                                <option value={assignedContinent}>{assignedContinent}</option>
+                            )}
                             {leagues.map(league => (
                                 <option key={league.id} value={league.name}>{league.name}</option>
                             ))}
@@ -146,7 +154,7 @@ export default function TeamManager({
                             <tr>
                                 <th>ID</th>
                                 <th>Nume</th>
-                                <th>Stadion</th>
+                                <th>Tara</th>
                                 <th>Liga</th>
                                 <th>Acțiuni</th>
                             </tr>

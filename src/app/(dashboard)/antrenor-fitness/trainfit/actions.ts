@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { revalidatePath } from "next/cache"
+import { logAudit } from "@/lib/audit"
 
 type PlanType = "forta" | "rezistenta" | "vitezare" | "flexibilitate" | "coordonare"
 
@@ -39,6 +40,8 @@ export async function createPlan(payload: PlanPayload) {
             createdBy: Number(session.user.id),
         },
     })
+
+    await logAudit({ userId: session.user.id, action: "create", tableAffected: "fitness_plans", recordId: plan.id, details: { title: plan.title, type: plan.type, date: plan.date.toISOString() } })
 
     revalidatePath("/antrenor-fitness/trainfit")
     revalidatePath("/antrenor-fitness/fitness-calendar")
@@ -78,6 +81,8 @@ export async function updatePlan(id: number, payload: PlanPayload) {
             date: new Date(date),
         },
     })
+
+    await logAudit({ userId: session.user.id, action: "update", tableAffected: "fitness_plans", recordId: plan.id, details: { title: plan.title, type: plan.type, date: plan.date.toISOString() } })
 
     revalidatePath("/antrenor-fitness/trainfit")
     revalidatePath("/antrenor-fitness/fitness-calendar")

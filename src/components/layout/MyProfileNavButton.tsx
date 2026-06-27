@@ -20,6 +20,21 @@ type ProfileData = {
   sportType?: "fotbal" | "tenis" | null
 }
 
+
+type ProfileSubmitData = {
+  firstName: string
+  lastName: string
+  dateOfBirth: string
+  phone: string
+  gender: string
+  restingHeartRate: string
+  maxHeartRate: string
+  heightCm: string
+  weightKg: string
+  preferredFoot: string
+  preferredHand: string
+  atpWtaRanking: string
+}
 export default function MyProfileNavButton({
   label,
   isActive = false,
@@ -34,7 +49,7 @@ export default function MyProfileNavButton({
   const [formError, setFormError] = useState<string | null>(null)
   const [formSuccess, setFormSuccess] = useState<string | null>(null)
 
-  function handleSubmit(e: React.FormEvent, data: any) {
+  function handleSubmit(e: React.FormEvent, data: ProfileSubmitData) {
     e.preventDefault()
     setFormError(null)
     setFormSuccess(null)
@@ -101,5 +116,6 @@ export default function MyProfileNavButton({
     </>
   )
 }
+
 
 
