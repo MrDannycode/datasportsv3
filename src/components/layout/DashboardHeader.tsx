@@ -71,7 +71,7 @@ const defaultNavItems: NavItem[] = [
     { label: "Dosar Medical", href: "#" },
     { label: "PMC", href: "/atlet-fotbal#performance-management-chart" },
     { label: "Adauga Activitate", href: "/atlet-fotbal/activity?open=new" },
-    { label: "Profilul meu", href: "#" },
+    { label: "Profil Sportiv", href: "#" },
     { label: "Toti Atletii", href: "#" },
     { label: "Turnee Tenis", href: "/atlet-tenis/turnee" },
     { label: "Turneele mele", href: "/atlet-tenis/turnee/inscrieri" },
@@ -312,9 +312,9 @@ export default async function DashboardHeader({
                                         ? session?.user?.role === "atlet_fotbal"
                                     : item.label === "Adauga Activitate"
                                         ? ["atlet_fotbal", "atlet_tenis"].includes(session?.user?.role ?? "")
-                                    : item.label === "Profilul meu"
+                                    : item.label === "Profil Sportiv"
                                         ? ["atlet_fotbal", "atlet_tenis"].includes(session?.user?.role ?? "")
-                                    : item.label === "Turnee Tenis"
+                                    : ["Turnee Tenis", "Turneele mele"].includes(item.label)
                                         ? session?.user?.role === "atlet_tenis"
                                         : true
     )
@@ -379,7 +379,7 @@ export default async function DashboardHeader({
                         return <MedicalRecordNavButton key={item.href + item.label} label={item.label} records={athleteMedicalRecords} />
                     }
 
-                    if (item.label === "Profilul meu" && myProfileData) {
+                    if (item.label === "Profil Sportiv" && myProfileData) {
                         return <MyProfileNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} initialData={myProfileData} />
                     }
 
@@ -410,6 +410,9 @@ export default async function DashboardHeader({
         </header>
     )
 }
+
+
+
 
 
 

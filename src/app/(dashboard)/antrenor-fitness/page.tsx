@@ -3,6 +3,7 @@ import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
+import LoadQualityChart from "@/components/sport-science/LoadQualityChart"
 
 const FITNESS_TYPE_LABELS: Record<string, string> = {
     forta: "Forta",
@@ -11,6 +12,23 @@ const FITNESS_TYPE_LABELS: Record<string, string> = {
     flexibilitate: "Flexibilitate",
     coordonare: "Coordonare",
 }
+
+type TeamLoadPoint = {
+    date: string
+    label: string
+    athleteCount: number
+    monotony: number | null
+    strain: number | null
+    acRatio: number | null
+}
+
+function formatShortDate(date: Date) {
+    return date.toLocaleDateString("ro-RO", {
+        day: "2-digit",
+        month: "short",
+    })
+}
+
 export default async function AntrenorFitnessPage() {
     const session = await getServerSession(authOptions)
 
@@ -18,11 +36,113 @@ export default async function AntrenorFitnessPage() {
         redirect("/login")
     }
 
-    const fitnessPlans = await prisma.fitnessPlan.findMany({
-        where: { createdBy: Number(session.user.id) },
-        orderBy: { date: "asc" },
-        take: 5,
+    const coachProfile = await prisma.profile.findUnique({
+        where: { userId: Number(session.user.id) },
+        select: { teamId: true },
     })
+
+    const loadsFromDate = new Date()
+    loadsFromDate.setUTCDate(loadsFromDate.getUTCDate() - 42)
+    loadsFromDate.setUTCHours(0, 0, 0, 0)
+
+    const [fitnessPlans, teamProfiles] = await Promise.all([
+        prisma.fitnessPlan.findMany({
+            where: { createdBy: Number(session.user.id) },
+            orderBy: { date: "asc" },
+            take: 5,
+        }),
+        coachProfile?.teamId
+            ? prisma.profile.findMany({
+                where: {
+                    teamId: coachProfile.teamId,
+                    user: {
+                        footballAthlete: {
+                            isNot: null,
+                        },
+                    },
+                },
+                select: {
+                    firstName: true,
+                    lastName: true,
+                    dailyLoads: {
+                        where: {
+                            date: {
+                                gte: loadsFromDate,
+                            },
+                        },
+                        orderBy: { date: "asc" },
+                        select: {
+                            date: true,
+                            monotony: true,
+                            strain: true,
+                            acRatio: true,
+                        },
+                    },
+                },
+                orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
+            })
+            : Promise.resolve([]),
+    ])
+
+    const groupedLoads = new Map<string, {
+        date: Date
+        monotonySum: number
+        monotonyCount: number
+        strainSum: number
+        strainCount: number
+        acRatioSum: number
+        acRatioCount: number
+        athleteCount: number
+    }>()
+
+    for (const profile of teamProfiles) {
+        for (const load of profile.dailyLoads) {
+            const dateKey = load.date.toISOString().slice(0, 10)
+            const existing = groupedLoads.get(dateKey) ?? {
+                date: load.date,
+                monotonySum: 0,
+                monotonyCount: 0,
+                strainSum: 0,
+                strainCount: 0,
+                acRatioSum: 0,
+                acRatioCount: 0,
+                athleteCount: 0,
+            }
+
+            if (load.monotony != null) {
+                existing.monotonySum += load.monotony
+                existing.monotonyCount += 1
+            }
+
+            if (load.strain != null) {
+                existing.strainSum += load.strain
+                existing.strainCount += 1
+            }
+
+            if (load.acRatio != null) {
+                existing.acRatioSum += load.acRatio
+                existing.acRatioCount += 1
+            }
+
+            existing.athleteCount += 1
+            groupedLoads.set(dateKey, existing)
+        }
+    }
+
+    const loadQualityPoints: TeamLoadPoint[] = Array.from(groupedLoads.entries())
+        .sort(([leftDate], [rightDate]) => leftDate.localeCompare(rightDate))
+        .map(([date, value]) => ({
+            date,
+            label: formatShortDate(value.date),
+            athleteCount: value.athleteCount,
+            monotony: value.monotonyCount > 0 ? value.monotonySum / value.monotonyCount : null,
+            strain: value.strainCount > 0 ? value.strainSum / value.strainCount : null,
+            acRatio: value.acRatioCount > 0 ? value.acRatioSum / value.acRatioCount : null,
+        }))
+
+    const latestLoadQuality = loadQualityPoints[loadQualityPoints.length - 1] ?? null
+    const teamAthleteCount = teamProfiles.length
+    const safeDaysCount = loadQualityPoints.filter((point) => point.acRatio != null && point.acRatio >= 0.8 && point.acRatio <= 1.3).length
 
     return (
         <main>
@@ -65,92 +185,68 @@ export default async function AntrenorFitnessPage() {
                         Vezi toate activitatile
                     </Link>
                 </div>
-                <div className="sd-box sd-metric-box">
-                    <div className="sd-metric-title">Recovery calendar</div>
+                <div className="sd-box sd-metric-box" style={{ height: "auto", minHeight: "150px" }}>
+                    <div className="sd-metric-title">Load quality</div>
+                    <div style={{ marginTop: "15px", textAlign: "left", fontSize: "13px", color: "#555" }}>
+                        <p style={{ margin: "0 0 8px" }}>Atleti in echipa: <strong>{teamAthleteCount}</strong></p>
+                        <p style={{ margin: "0 0 8px" }}>Zile in zona safe A:C: <strong>{safeDaysCount}</strong></p>
+                        <p style={{ margin: "0 0 8px" }}>Monotony curent: <strong>{latestLoadQuality?.monotony?.toFixed(2) ?? "-"}</strong></p>
+                        <p style={{ margin: 0 }}>Strain curent: <strong>{latestLoadQuality?.strain?.toFixed(0) ?? "-"}</strong></p>
+                    </div>
                 </div>
                 <Link href="/antrenor-fitness/trainfit" style={{ flex: 1, textDecoration: "none" }}>
                     <div className="sd-box sd-metric-box" style={{ cursor: "pointer" }}>
                         <div className="sd-metric-title">Plan fitness</div>
                         <div className="sd-metric-value" style={{ fontSize: "14px", marginTop: "8px", color: "#0056b3" }}>
-                            Gestionează →
+                            Gestioneaza -&gt;
                         </div>
                     </div>
                 </Link>
             </div>
 
+            <div className="sd-box">
+                <div className="sd-box-content">
+                    <LoadQualityChart points={loadQualityPoints} />
+                </div>
+            </div>
+
             <div className="sd-panels">
                 <div className="sd-box sd-activities">
                     <div className="sd-box-header">
-                        <h2>Recent Activities</h2>
-                        <a href="#">View All</a>
+                        <h2>Load quality focus</h2>
+                        <Link href="/antrenor-fitness/fitness-calendar">Vezi calendarul</Link>
                     </div>
                     <div className="sd-box-content">
-                        <table className="sd-table">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Type</th>
-                                    <th>Title</th>
-                                    <th>Distance</th>
-                                    <th>Duration</th>
-                                    <th>Pace / Speed</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Today</td>
-                                    <td>Gym</td>
-                                    <td>Strength Session</td>
-                                    <td>—</td>
-                                    <td>1:00:00</td>
-                                    <td>—</td>
-                                </tr>
-                                <tr>
-                                    <td>Yesterday</td>
-                                    <td>Run</td>
-                                    <td>Aerobic Base Run</td>
-                                    <td>12.0 km</td>
-                                    <td>58:00</td>
-                                    <td>4:50 /km</td>
-                                </tr>
-                                <tr>
-                                    <td>Wed</td>
-                                    <td>Bike</td>
-                                    <td>Recovery Ride</td>
-                                    <td>25.4 km</td>
-                                    <td>1:08:52</td>
-                                    <td>22.1 km/h</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <ul className="sd-list">
+                            <li>Strain evidentiaza stresul cumulat real si scoate rapid la suprafata blocurile prea dense.</li>
+                            <li>Monotony mare inseamna distributie prea uniforma a efortului si risc crescut de supraantrenament.</li>
+                            <li>A:C Ratio intre 0.8 si 1.3 marcheaza zilele in care incarcare acuta si cronica raman echilibrate.</li>
+                        </ul>
                     </div>
                 </div>
 
                 <div className="sd-sidebar">
                     <div className="sd-box">
                         <div className="sd-box-header">
-                            <h2>Weekly Goal</h2>
+                            <h2>Squad snapshot</h2>
                         </div>
                         <div className="sd-box-content">
-                            <p>Focus: Endurance</p>
-                            <p>Load target: —</p>
-                            <p>Recovery day: —</p>
+                            <p>Atleti urmariti: {teamAthleteCount}</p>
+                            <p>A:C Ratio curent: {latestLoadQuality?.acRatio?.toFixed(2) ?? "-"}</p>
+                            <p>Zile agregate: {loadQualityPoints.length}</p>
                         </div>
                     </div>
 
                     <div className="sd-box">
                         <div className="sd-box-header">
-                            <h2>Data Science</h2>
+                            <h2>Interpretare</h2>
                         </div>
                         <div className="sd-box-content">
                             <ul className="sd-list">
-                                <li>VO2Max</li>
-                                <li>Fitness level</li>
-                                <li>Fatigue</li>
-                                <li>Stress Balance</li>
-                                <li>Workload ratio</li>
-                                <li>Monotony</li>
-                                <li>Recovery</li>
+                                <li>A:C sub 0.8 poate sugera pierdere de stimul.</li>
+                                <li>A:C peste 1.3 cere prudenta la incarcarea urmatoare.</li>
+                                <li>Monotony peste 2.0 merita verificata distributia saptamanii.</li>
+                                <li>Strain in crestere cu monotony mare indica risc acumulat.</li>
                             </ul>
                         </div>
                     </div>
@@ -159,7 +255,3 @@ export default async function AntrenorFitnessPage() {
         </main>
     )
 }
-
-
-
-
