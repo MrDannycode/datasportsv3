@@ -68,13 +68,15 @@ export default async function AdminPage() {
                     <h2>Dashboard overview</h2>
                 </div>
                 <div className="sd-box-content">
-                    <div className="sd-metrics">
-                        <div className="sd-box sd-metric-box" style={{ flex: 1 }}>
-                            <div className="sd-metric-title">Utilizatori</div>
-                            <div className="sd-metric-value" style={{ fontSize: "14px", marginTop: "8px", color: "#0056b3" }}>
-                                <Link href="/admin/users" style={{ color: "inherit", textDecoration: "none" }}>Gestioneaza &gt;</Link>
-                                <span style={{ color: "#999", margin: "0 6px" }}>|</span>
-                                <Link href="/admin/manageri" style={{ color: "inherit", textDecoration: "none" }}>Gestiune Manageri &gt;</Link>
+                    <div className="sd-metrics sd-admin-overview-grid">
+                        <div className="sd-box sd-metric-box sd-admin-overview-card">
+                            <div className="sd-admin-overview-head">
+                                <div className="sd-metric-title">Utilizatori</div>
+                                <div className="sd-admin-overview-icon">U</div>
+                            </div>
+                            <div className="sd-admin-overview-links">
+                                <Link href="/admin/users" className="sd-admin-overview-link sd-admin-overview-link-primary">Gestioneaza utilizatori</Link>
+                                {/* <Link href="/admin/manageri" className="sd-admin-overview-link">Gestiune manageri</Link>  */}
                             </div>
                             <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "14px" }}>
                                 {ROLE_LABELS.map((role) => (
@@ -83,7 +85,7 @@ export default async function AdminPage() {
                                         <span style={{ color: "#666", fontSize: "12px" }}>{countByRole.get(role.value) ?? 0}</span>
                                         <Link
                                             href={`/admin/users?role=${role.value}`}
-                                            style={{ border: "1px solid #0056b3", color: "#0056b3", backgroundColor: "transparent", padding: "2px 8px", fontSize: "11px", textDecoration: "none" }}
+                                            className="sd-admin-inline-link"
                                         >
                                             Vezi
                                         </Link>
@@ -91,10 +93,13 @@ export default async function AdminPage() {
                                 ))}
                             </div>
                         </div>
-                        <div className="sd-box sd-metric-box" style={{ flex: 1 }}>
-                            <div className="sd-metric-title">Competitii</div>
-                            <div className="sd-metric-value" style={{ fontSize: "14px", marginTop: "8px", color: "#0056b3" }}>
-                                <Link href="/admin/competitions" style={{ color: "inherit", textDecoration: "none" }}>Gestioneaza &gt;</Link>
+                        <div className="sd-box sd-metric-box sd-admin-overview-card">
+                            <div className="sd-admin-overview-head">
+                                <div className="sd-metric-title">Competitii</div>
+                                <div className="sd-admin-overview-icon">C</div>
+                            </div>
+                            <div className="sd-admin-overview-links">
+                                <Link href="/admin/competitions" className="sd-admin-overview-link sd-admin-overview-link-primary">Gestioneaza competitii</Link>
                             </div>
                             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto auto", gap: "8px", alignItems: "center", marginTop: "14px" }}>
                                 <span style={{ color: "#666", fontSize: "11px", fontWeight: 700 }}>Sport</span>
@@ -108,7 +113,7 @@ export default async function AdminPage() {
                                         <span style={{ borderTop: "1px solid #eee", paddingTop: "8px", color: "#666", fontSize: "12px" }}>{item._count._all}</span>
                                         <Link
                                             href={`/admin/competitions?sport=${item.sport}&continent=${encodeURIComponent(item.continent)}`}
-                                            style={{ border: "1px solid #0056b3", color: "#0056b3", backgroundColor: "transparent", padding: "2px 8px", fontSize: "11px", textDecoration: "none" }}
+                                            className="sd-admin-inline-link"
                                         >
                                             Vezi
                                         </Link>
@@ -116,10 +121,13 @@ export default async function AdminPage() {
                                 ))}
                             </div>
                         </div>
-                        <div className="sd-box sd-metric-box" style={{ flex: 1 }}>
-                            <div className="sd-metric-title">Audituri</div>
-                            <div className="sd-metric-value" style={{ fontSize: "14px", marginTop: "8px", color: "#0056b3" }}>
-                                <Link href="/admin/audituri" style={{ color: "inherit", textDecoration: "none" }}>Vezi audituri &gt;</Link>
+                        <div className="sd-box sd-metric-box sd-admin-overview-card">
+                            <div className="sd-admin-overview-head">
+                                <div className="sd-metric-title">Audituri</div>
+                                <div className="sd-admin-overview-icon">A</div>
+                            </div>
+                            <div className="sd-admin-overview-links">
+                                <Link href="/admin/audituri" className="sd-admin-overview-link sd-admin-overview-link-primary">Vezi audituri</Link>
                             </div>
                             <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "14px" }}>
                                 <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", borderTop: "1px solid #eee", paddingTop: "8px" }}>
@@ -150,3 +158,8 @@ export default async function AdminPage() {
         </main>
     )
 }
+
+
+
+
+
