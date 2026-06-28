@@ -66,10 +66,10 @@ const defaultNavItems: NavItem[] = [
     { label: "Adauga Meci", href: "#" },
     { label: "Adauga antrenament", href: "/antrenor-fotbal/antrenamente" },
     { label: "Adauga Sesiune Fitness", href: "/antrenor-fitness/trainfit?open=new" },
+    { label: "Gestioneaza Sesiune Fitness", href: "/antrenor-fitness/trainfit" },
     { label: "Adauga Dosar", href: "/medic/dosar-medical?open=new" },
     { label: "Adauga Accidentare", href: "#" },
     { label: "Dosar Medical", href: "#" },
-    { label: "PMC", href: "/atlet-fotbal#performance-management-chart" },
     { label: "Adauga Activitate", href: "/atlet-fotbal/activity?open=new" },
     { label: "Profil Sportiv", href: "#" },
     { label: "Toti Atletii", href: "#" },
@@ -288,7 +288,7 @@ export default async function DashboardHeader({
               preferredFoot: athleteUser.footballAthlete?.preferredFoot || null,
               preferredHand: athleteUser.tennisAthlete?.preferredHand || null,
               atpWtaRanking: athleteUser.tennisAthlete?.atpWtaRanking ?? null,
-              sportType: session.user.role === "atlet_fotbal" ? "fotbal" : session.user.role === "atlet_tenis" ? "tenis" : athleteUser.footballAthlete ? "fotbal" : athleteUser.tennisAthlete ? "tenis" : null
+              sportType: session?.user?.role === "atlet_fotbal" ? "fotbal" : session?.user?.role === "atlet_tenis" ? "tenis" : athleteUser.footballAthlete ? "fotbal" : athleteUser.tennisAthlete ? "tenis" : null
            }
         }
     }
@@ -302,14 +302,12 @@ export default async function DashboardHeader({
                     ? session?.user?.role === "manager_fotbal"
                     : ["Adauga antrenament"].includes(item.label)
                         ? session?.user?.role === "antrenor_fotbal"
-                        : ["Adauga Sesiune Fitness"].includes(item.label)
+                        : ["Adauga Sesiune Fitness", "Gestioneaza Sesiune Fitness"].includes(item.label)
                             ? session?.user?.role === "antrenor_fitness"
                             : ["Adauga Dosar", "Adauga Accidentare"].includes(item.label)
                                 ? session?.user?.role === "medic"
                                 : item.label === "Dosar Medical"
                                     ? session?.user?.role === "atlet_fotbal"
-                                    : item.label === "PMC"
-                                        ? session?.user?.role === "atlet_fotbal"
                                     : item.label === "Adauga Activitate"
                                         ? ["atlet_fotbal", "atlet_tenis"].includes(session?.user?.role ?? "")
                                     : item.label === "Profil Sportiv"
@@ -321,91 +319,95 @@ export default async function DashboardHeader({
 
     return (
         <header className="sd-header">
-            <div className="sd-logo">
-                <strong>SportsData</strong>
+            <div className="sd-header-row sd-header-top">
+                <div className="sd-logo">
+                    <strong>SportsData</strong>
+                </div>
+
+                <div className="sd-user-info">
+                    {session?.user ? (
+                        <>
+                            <span>Bine ai venit <strong>{accountSettingsData?.email ?? session.user.email}</strong></span>
+                            {accountSettingsData && <AccountSettingsButton account={accountSettingsData} />}
+                            <Link href="/signout">Logout</Link>
+                        </>
+                    ) : (
+                        <Link href="/login">Login</Link>
+                    )}
+                </div>
             </div>
 
-            <nav className="sd-nav">
-                {visibleNavItems.map((item) => {
-                    if (item.label === "Adauga Utilizator") {
-                        return <AddUserNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} />
-                    }
+            <div className="sd-header-row sd-header-bottom">
+                <div className="sd-header-toggles">
+                    <ThemeToggle />
+                    <TableModeToggle />
+                </div>
 
-                    if (item.label === "Adauga Competitie") {
-                        return <AddCompetitionNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} />
-                    }
+                <nav className="sd-nav">
+                    {visibleNavItems.map((item) => {
+                        if (item.label === "Adauga Utilizator") {
+                            return <AddUserNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} />
+                        }
 
-                    if (item.label === "Export Audit Curent") {
-                        return <ExportAuditNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} ignoreFilters={true} />
-                    }
+                        if (item.label === "Adauga Competitie") {
+                            return <AddCompetitionNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} />
+                        }
 
-                    if (item.label === "Adauga Atleti") {
-                        return <AddAthleteNavButton key={item.href + item.label} label={item.label} teams={footballTeams} isActive={item.href === activeHref} />
-                    }
+                        if (item.label === "Export Audit Curent") {
+                            return <ExportAuditNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} ignoreFilters={true} />
+                        }
 
-                    if (item.label === "Gestiune Antrenori") {
-                        return <CoachManagementNavButton key={item.href + item.label} label={item.label} antrenori={footballCoaches} teams={footballTeams} isActive={item.href === activeHref} />
-                    }
+                        if (item.label === "Adauga Atleti") {
+                            return <AddAthleteNavButton key={item.href + item.label} label={item.label} teams={footballTeams} isActive={item.href === activeHref} />
+                        }
 
-                    if (item.label === "Adauga Meci") {
-                        return <AddMatchNavButton key={item.href + item.label} label={item.label} teams={footballTeams} competitions={footballCompetitions} isActive={item.href === activeHref} />
-                    }
+                        if (item.label === "Gestiune Antrenori") {
+                            return <CoachManagementNavButton key={item.href + item.label} label={item.label} antrenori={footballCoaches} teams={footballTeams} isActive={item.href === activeHref} />
+                        }
 
-                    if (item.label === "Adauga antrenament") {
-                        return <AddTrainingNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} />
-                    }
+                        if (item.label === "Adauga Meci") {
+                            return <AddMatchNavButton key={item.href + item.label} label={item.label} teams={footballTeams} competitions={footballCompetitions} isActive={item.href === activeHref} />
+                        }
 
-                    if (item.label === "Adauga Sesiune Fitness") {
-                        return <AddFitnessSessionNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} />
-                    }
+                        if (item.label === "Adauga antrenament") {
+                            return <AddTrainingNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} />
+                        }
 
-                    if (item.label === "Adauga Dosar") {
-                        return <AddMedicalRecordNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} />
-                    }
+                        if (item.label === "Adauga Sesiune Fitness") {
+                            return <AddFitnessSessionNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} />
+                        }
 
-                    if (item.label === "Adauga Accidentare") {
-                        return <AddInjuryNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} />
-                    }
+                        if (item.label === "Adauga Dosar") {
+                            return <AddMedicalRecordNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} />
+                        }
 
-                    if (item.label === "Adauga Activitate") {
-                        return <AddActivityNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} hasCardiacData={athleteHasCardiacData} defaultSport={session?.user?.role === "atlet_tenis" ? "tenis" : "fotbal"} />
-                    }
+                        if (item.label === "Adauga Accidentare") {
+                            return <AddInjuryNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} />
+                        }
 
-                    if (item.label === "Toti Atletii") {
-                        return <TeamAthletesNavButton key={item.href + item.label} label={item.label} teamName={teamName} athletes={teamAthletes} />
-                    }
+                        if (item.label === "Adauga Activitate") {
+                            return <AddActivityNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} hasCardiacData={athleteHasCardiacData} defaultSport={session?.user?.role === "atlet_tenis" ? "tenis" : "fotbal"} />
+                        }
 
-                    if (item.label === "Dosar Medical") {
-                        return <MedicalRecordNavButton key={item.href + item.label} label={item.label} records={athleteMedicalRecords} />
-                    }
+                        if (item.label === "Toti Atletii") {
+                            return <TeamAthletesNavButton key={item.href + item.label} label={item.label} teamName={teamName} athletes={teamAthletes} />
+                        }
 
-                    if (item.label === "Profil Sportiv" && myProfileData) {
-                        return <MyProfileNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} initialData={myProfileData} />
-                    }
+                        if (item.label === "Dosar Medical") {
+                            return <MedicalRecordNavButton key={item.href + item.label} label={item.label} records={athleteMedicalRecords} />
+                        }
 
-                    return (
-                        <Link key={item.href + item.label} href={item.href} className={item.href === activeHref ? "active" : ""}>
-                            {item.label}
-                        </Link>
-                    )
-                })}
-            </nav>
+                        if (item.label === "Profil Sportiv" && myProfileData) {
+                            return <MyProfileNavButton key={item.href + item.label} label={item.label} isActive={item.href === activeHref} initialData={myProfileData} />
+                        }
 
-            <div className="sd-user-info" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <ThemeToggle />
-                <TableModeToggle />
-                {session?.user ? (
-                    <>
-                        Logged in as{" "}
-                        <strong>{accountSettingsData?.email ?? session.user.email}</strong>
-                        {" | "}
-                        <Link href="/signout">Logout</Link>
-                        {" "}
-                        {accountSettingsData && <AccountSettingsButton account={accountSettingsData} />}
-                    </>
-                ) : (
-                    <Link href="/login">Login</Link>
-                )}
+                        return (
+                            <Link key={item.href + item.label} href={item.href} className={item.href === activeHref ? "active" : ""}>
+                                {item.label}
+                            </Link>
+                        )
+                    })}
+                </nav>
             </div>
         </header>
     )

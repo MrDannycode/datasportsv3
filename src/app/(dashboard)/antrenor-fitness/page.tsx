@@ -146,108 +146,103 @@ export default async function AntrenorFitnessPage() {
 
     return (
         <main>
-            <div className="sd-page-title">
-                <h1>Dashboard overview</h1>
-            </div>
-
-            <div className="sd-metrics">
-                <div className="sd-box sd-metric-box" style={{ height: "auto", minHeight: "150px" }}>
-                    <div className="sd-metric-title">Fitness calendar</div>
-                    <div style={{ marginTop: "15px", textAlign: "left" }}>
-                        {fitnessPlans.length === 0 ? (
-                            <p style={{ fontSize: "14px", color: "#666" }}>Nu ai adaugat activitati de fitness.</p>
-                        ) : (
-                            <ul style={{ listStyle: "none", padding: 0, margin: 0, fontSize: "14px" }}>
-                                {fitnessPlans.map((plan) => (
-                                    <li key={plan.id} style={{ marginBottom: "10px", paddingBottom: "10px", borderBottom: "1px solid #eee" }}>
-                                        <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center" }}>
-                                            <span style={{ fontWeight: "bold" }}>{plan.title}</span>
-                                            <span style={{ backgroundColor: "#eef7ed", color: "#2a7a2a", padding: "2px 8px", fontSize: "11px", fontWeight: "bold", borderRadius: "2px", whiteSpace: "nowrap" }}>
-                                                {FITNESS_TYPE_LABELS[plan.type]}
-                                            </span>
-                                        </div>
-                                        <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
-                                            {new Date(plan.date).toLocaleDateString("ro-RO", {
-                                                weekday: "short", day: "numeric", month: "short",
-                                            })}
-                                        </div>
-                                        {plan.description && (
-                                            <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
-                                                {plan.description}
-                                            </div>
-                                        )}
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                    </div>
-                    <Link href="/antrenor-fitness/fitness-calendar" style={{ display: "inline-block", marginTop: "8px", fontSize: "13px", color: "#0056b3", textDecoration: "none" }}>
-                        Vezi toate activitatile
-                    </Link>
-                </div>
-                <div className="sd-box sd-metric-box" style={{ height: "auto", minHeight: "150px" }}>
-                    <div className="sd-metric-title">Load quality</div>
-                    <div style={{ marginTop: "15px", textAlign: "left", fontSize: "13px", color: "#555" }}>
-                        <p style={{ margin: "0 0 8px" }}>Atleti in echipa: <strong>{teamAthleteCount}</strong></p>
-                        <p style={{ margin: "0 0 8px" }}>Zile in zona safe A:C: <strong>{safeDaysCount}</strong></p>
-                        <p style={{ margin: "0 0 8px" }}>Monotony curent: <strong>{latestLoadQuality?.monotony?.toFixed(2) ?? "-"}</strong></p>
-                        <p style={{ margin: 0 }}>Strain curent: <strong>{latestLoadQuality?.strain?.toFixed(0) ?? "-"}</strong></p>
-                    </div>
-                </div>
-                <Link href="/antrenor-fitness/trainfit" style={{ flex: 1, textDecoration: "none" }}>
-                    <div className="sd-box sd-metric-box" style={{ cursor: "pointer" }}>
-                        <div className="sd-metric-title">Plan fitness</div>
-                        <div className="sd-metric-value" style={{ fontSize: "14px", marginTop: "8px", color: "#0056b3" }}>
-                            Gestioneaza -&gt;
-                        </div>
-                    </div>
-                </Link>
-            </div>
-
             <div className="sd-box">
+                <div className="sd-box-header">
+                    <h2>Dashboard overview</h2>
+                </div>
                 <div className="sd-box-content">
-                    <LoadQualityChart points={loadQualityPoints} />
-                </div>
-            </div>
-
-            <div className="sd-panels">
-                <div className="sd-box sd-activities">
-                    <div className="sd-box-header">
-                        <h2>Load quality focus</h2>
-                        <Link href="/antrenor-fitness/fitness-calendar">Vezi calendarul</Link>
+                    <div className="sd-metrics">
+                        <div className="sd-box sd-metric-box" style={{ height: "auto", minHeight: "150px" }}>
+                            <div className="sd-metric-title">Fitness calendar</div>
+                            <div style={{ marginTop: "15px", textAlign: "left" }}>
+                                {fitnessPlans.length === 0 ? (
+                                    <p style={{ fontSize: "14px", color: "#666" }}>Nu ai adaugat activitati de fitness.</p>
+                                ) : (
+                                    <ul style={{ listStyle: "none", padding: 0, margin: 0, fontSize: "14px" }}>
+                                        {fitnessPlans.map((plan) => (
+                                            <li key={plan.id} style={{ marginBottom: "10px", paddingBottom: "10px", borderBottom: "1px solid #eee" }}>
+                                                <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center" }}>
+                                                    <span style={{ fontWeight: "bold" }}>{plan.title}</span>
+                                                    <span style={{ backgroundColor: "#eef7ed", color: "#2a7a2a", padding: "2px 8px", fontSize: "11px", fontWeight: "bold", borderRadius: "2px", whiteSpace: "nowrap" }}>
+                                                        {FITNESS_TYPE_LABELS[plan.type]}
+                                                    </span>
+                                                </div>
+                                                <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
+                                                    {new Date(plan.date).toLocaleDateString("ro-RO", {
+                                                        weekday: "short", day: "numeric", month: "short",
+                                                    })}
+                                                </div>
+                                                {plan.description && (
+                                                    <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
+                                                        {plan.description}
+                                                    </div>
+                                                )}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
+                            <Link href="/antrenor-fitness/fitness-calendar" style={{ display: "inline-block", marginTop: "8px", fontSize: "13px", color: "#0056b3", textDecoration: "none" }}>
+                                Vezi toate activitatile
+                            </Link>
+                        </div>
                     </div>
-                    <div className="sd-box-content">
-                        <ul className="sd-list">
-                            <li>Strain evidentiaza stresul cumulat real si scoate rapid la suprafata blocurile prea dense.</li>
-                            <li>Monotony mare inseamna distributie prea uniforma a efortului si risc crescut de supraantrenament.</li>
-                            <li>A:C Ratio intre 0.8 si 1.3 marcheaza zilele in care incarcare acuta si cronica raman echilibrate.</li>
-                        </ul>
-                    </div>
-                </div>
 
-                <div className="sd-sidebar">
                     <div className="sd-box">
-                        <div className="sd-box-header">
-                            <h2>Squad snapshot</h2>
-                        </div>
                         <div className="sd-box-content">
-                            <p>Atleti urmariti: {teamAthleteCount}</p>
-                            <p>A:C Ratio curent: {latestLoadQuality?.acRatio?.toFixed(2) ?? "-"}</p>
-                            <p>Zile agregate: {loadQualityPoints.length}</p>
+                            <LoadQualityChart points={loadQualityPoints} />
                         </div>
                     </div>
 
-                    <div className="sd-box">
-                        <div className="sd-box-header">
-                            <h2>Interpretare</h2>
+                    <div className="sd-panels">
+                        <div className="sd-box sd-activities">
+                            <div className="sd-box-header">
+                                <h2>Load quality focus</h2>
+                                <Link href="/antrenor-fitness/fitness-calendar">Vezi calendarul</Link>
+                            </div>
+                            <div className="sd-box-content">
+                                <ul className="sd-list">
+                                    <li>Strain evidentiaza stresul cumulat real si scoate rapid la suprafata blocurile prea dense.</li>
+                                    <li>Monotony mare inseamna distributie prea uniforma a efortului si risc crescut de supraantrenament.</li>
+                                    <li>A:C Ratio intre 0.8 si 1.3 marcheaza zilele in care incarcare acuta si cronica raman echilibrate.</li>
+                                </ul>
+                            </div>
                         </div>
-                        <div className="sd-box-content">
-                            <ul className="sd-list">
-                                <li>A:C sub 0.8 poate sugera pierdere de stimul.</li>
-                                <li>A:C peste 1.3 cere prudenta la incarcarea urmatoare.</li>
-                                <li>Monotony peste 2.0 merita verificata distributia saptamanii.</li>
-                                <li>Strain in crestere cu monotony mare indica risc acumulat.</li>
-                            </ul>
+
+                        <div className="sd-sidebar">
+                            <div className="sd-box">
+                                <div className="sd-box-header">
+                                    <h2>Squad snapshot</h2>
+                                </div>
+                                <div className="sd-box-content">
+                                    <p>Atleti urmariti: {teamAthleteCount}</p>
+                                    <p>A:C Ratio curent: {latestLoadQuality?.acRatio?.toFixed(2) ?? "-"}</p>
+                                    <p>Zile agregate: {loadQualityPoints.length}</p>
+                                </div>
+                            </div>
+
+                            <div className="sd-box">
+                                <div className="sd-box-header">
+                                    <h2>Interpretare</h2>
+                                </div>
+                                <div className="sd-box-content">
+                                    <ul className="sd-list">
+                                        <li>A:C sub 0.8 poate sugera pierdere de stimul.</li>
+                                        <li>A:C peste 1.3 cere prudenta la incarcarea urmatoare.</li>
+                                        <li>Monotony peste 2.0 merita verificata distributia saptamanii.</li>
+                                        <li>Strain in crestere cu monotony mare indica risc acumulat.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div className="sd-box sd-metric-box" style={{ height: "auto", minHeight: "150px" }}>
+                                <div className="sd-metric-title">Load quality</div>
+                                <div style={{ marginTop: "15px", textAlign: "left", fontSize: "13px", color: "#555" }}>
+                                    <p style={{ margin: "0 0 8px" }}>Atleti in echipa: <strong>{teamAthleteCount}</strong></p>
+                                    <p style={{ margin: "0 0 8px" }}>Zile in zona safe A:C: <strong>{safeDaysCount}</strong></p>
+                                    <p style={{ margin: "0 0 8px" }}>Monotony curent: <strong>{latestLoadQuality?.monotony?.toFixed(2) ?? "-"}</strong></p>
+                                    <p style={{ margin: 0 }}>Strain curent: <strong>{latestLoadQuality?.strain?.toFixed(0) ?? "-"}</strong></p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

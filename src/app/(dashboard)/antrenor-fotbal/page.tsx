@@ -139,244 +139,248 @@ export default async function AntrenorFotbalPage() {
 
     return (
         <main>
-            <div className="sd-page-title">
-                <h1>Dashboard - Antrenor Fotbal</h1>
-            </div>
-
-            <div className="sd-metrics">
-                <div className="sd-box sd-metric-box" style={{ flex: 1 }}>
-                    <div className="sd-metric-title">Accidentari Recente</div>
-                    {recentInjuries.length === 0 ? (
-                        <div className="sd-metric-value">-</div>
-                    ) : (
-                        <div style={{ textAlign: "left", marginTop: "10px" }}>
-                            <div className="sd-metric-value" style={{ fontSize: "24px", marginBottom: "8px", textAlign: "center" }}>
-                                {recentInjuries.length}
-                            </div>
-                            <ul className="sd-list">
-                                {recentInjuries.map((injury) => {
-                                    const profile = injury.medicalRecord.athlete.user.profile
-                                    const athleteName = profile
-                                        ? [profile.firstName, profile.lastName].join(" ")
-                                        : injury.medicalRecord.athlete.user.email
-
-                                    return (
-                                        <li key={injury.id}>
-                                            <strong>{athleteName}</strong>
-                                            <br />
-                                            {injury.injuryType} - {injury.bodyPart}
-                                            <br />
-                                            <span style={{ color: "#666" }}>
-                                                {injury.severity} - {" "}
-                                                {new Date(injury.medicalRecord.createdAt).toLocaleDateString("ro-RO", {
-                                                    day: "2-digit",
-                                                    month: "2-digit",
-                                                    year: "numeric",
-                                                })}
-                                            </span>
-                                        </li>
-                                    )
-                                })}
-                            </ul>
-                        </div>
-                    )}
-                </div>
-                <div className="sd-box sd-metric-box">
-                    <div className="sd-metric-title">Planuri de antrenament</div>
-                    <div className="sd-metric-value">{totalPlans}</div>
-                </div>
-                <Link href="/antrenor-fotbal/antrenamente" style={{ flex: 1, textDecoration: "none" }}>
-                    <div className="sd-box sd-metric-box" style={{ cursor: "pointer" }}>
-                        <div className="sd-metric-title">Antrenamente</div>
-                        <div className="sd-metric-value" style={{ fontSize: "14px", marginTop: "8px", color: "#0056b3" }}>
-                            Gestioneaza -&gt;
-                        </div>
-                    </div>
-                </Link>
-            </div>
-
-            <div className="sd-box" style={{ marginTop: "24px" }}>
+            <div className="sd-box">
                 <div className="sd-box-header">
-                    <h2>Team Readiness</h2>
-                    <span
-                        className="sd-badge"
-                        style={{
-                            background: readinessStatus.background,
-                            color: readinessStatus.color,
-                            border: `1px solid ${readinessStatus.color}`,
-                        }}
-                    >
-                        {readinessStatus.label}
-                    </span>
+                    <h2>Dashboard overview</h2>
                 </div>
                 <div className="sd-box-content">
-                    <div className="sd-metrics" style={{ marginBottom: "18px" }}>
-                        <div className="sd-box sd-metric-box">
-                            <div className="sd-metric-title">Scor echipa</div>
-                            <div className="sd-metric-value">{formatReadinessScore(teamReadiness)}</div>
+
+                    <div className="sd-metrics">
+                        <div className="sd-box sd-metric-box" style={{ flex: 1 }}>
+                            <div className="sd-metric-title">Accidentari Recente</div>
+                            {recentInjuries.length === 0 ? (
+                                <div className="sd-metric-value">-</div>
+                            ) : (
+                                <div style={{ textAlign: "left", marginTop: "10px" }}>
+                                    <div className="sd-metric-value" style={{ fontSize: "24px", marginBottom: "8px", textAlign: "center" }}>
+                                        {recentInjuries.length}
+                                    </div>
+                                    <ul className="sd-list">
+                                        {recentInjuries.map((injury) => {
+                                            const profile = injury.medicalRecord.athlete.user.profile
+                                            const athleteName = profile
+                                                ? [profile.firstName, profile.lastName].join(" ")
+                                                : injury.medicalRecord.athlete.user.email
+
+                                            return (
+                                                <li key={injury.id}>
+                                                    <strong>{athleteName}</strong>
+                                                    <br />
+                                                    {injury.injuryType} - {injury.bodyPart}
+                                                    <br />
+                                                    <span style={{ color: "#666" }}>
+                                                        {injury.severity} - {" "}
+                                                        {new Date(injury.medicalRecord.createdAt).toLocaleDateString("ro-RO", {
+                                                            day: "2-digit",
+                                                            month: "2-digit",
+                                                            year: "numeric",
+                                                        })}
+                                                    </span>
+                                                </li>
+                                            )
+                                        })}
+                                    </ul>
+                                </div>
+                            )}
                         </div>
                         <div className="sd-box sd-metric-box">
-                            <div className="sd-metric-title">Jucatori inclusi</div>
-                            <div className="sd-metric-value">{readinessPlayers.length}</div>
+                            <div className="sd-metric-title">Planuri de antrenament</div>
+                            <div className="sd-metric-value">{totalPlans}</div>
                         </div>
-                        <div className="sd-box sd-metric-box">
-                            <div className="sd-metric-title">Eligibilitate</div>
-                            <div className="sd-metric-value" style={{ fontSize: "14px", marginTop: "8px" }}>
-                                Disponibili cu aviz medical
+                        <Link href="/antrenor-fotbal/antrenamente" style={{ flex: 1, textDecoration: "none" }}>
+                            <div className="sd-box sd-metric-box" style={{ cursor: "pointer" }}>
+                                <div className="sd-metric-title">Antrenamente</div>
+                                <div className="sd-metric-value" style={{ fontSize: "14px", marginTop: "8px", color: "#0056b3" }}>
+                                    Gestioneaza -&gt;
+                                </div>
                             </div>
-                        </div>
+                        </Link>
                     </div>
 
-                    <div style={{ marginBottom: "16px" }}>
-                        <div style={{ height: "12px", background: "#e5e7eb", borderRadius: "999px", overflow: "hidden" }}>
-                            <div
+                    <div className="sd-box" style={{ marginTop: "24px" }}>
+                        <div className="sd-box-header">
+                            <h2>Team Readiness</h2>
+                            <span
+                                className="sd-badge"
                                 style={{
-                                    width: `${teamReadiness ?? 0}%`,
-                                    height: "100%",
-                                    background: readinessStatus.color,
+                                    background: readinessStatus.background,
+                                    color: readinessStatus.color,
+                                    border: `1px solid ${readinessStatus.color}`,
                                 }}
-                            />
+                            >
+                                {readinessStatus.label}
+                            </span>
                         </div>
-                        <div style={{ display: "flex", justifyContent: "space-between", marginTop: "6px", color: "#64748b", fontSize: "12px" }}>
-                            <span>0</span>
-                            <span>60</span>
-                            <span>80</span>
-                            <span>100</span>
-                        </div>
-                    </div>
-
-                    {readinessPlayers.length === 0 ? (
-                        <div className="sd-empty-state">
-                            <p>Nu exista jucatori disponibili cu aviz medical si date de incarcare.</p>
-                        </div>
-                    ) : (
-                        <table className="sd-table">
-                            <thead>
-                                <tr>
-                                    <th>Jucator</th>
-                                    <th>Scor</th>
-                                    <th>TSB 40%</th>
-                                    <th>ATL 25%</th>
-                                    <th>CTL 20%</th>
-                                    <th>A:C 15%</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {readinessPlayers
-                                    .sort((a, b) => b.score - a.score)
-                                    .map((player) => (
-                                        <tr key={player.id}>
-                                            <td>{player.name}</td>
-                                            <td><strong>{formatReadinessScore(player.score)}</strong></td>
-                                            <td>{formatReadinessScore(player.tsbScore)}</td>
-                                            <td>{formatReadinessScore(player.atlScore)}</td>
-                                            <td>{formatReadinessScore(player.ctlScore)}</td>
-                                            <td>{formatReadinessScore(player.acRatioScore)}</td>
-                                        </tr>
-                                    ))}
-                            </tbody>
-                        </table>
-                    )}
-                </div>
-            </div>
-
-            <div className="sd-panels">
-                <div className="sd-box sd-activities">
-                    <div className="sd-box-header">
-                        <h2>Planuri recente</h2>
-                        <Link href="/antrenor-fotbal/antrenamente">Vezi toate</Link>
-                    </div>
-                    <div className="sd-box-content" style={{ padding: 0 }}>
-                        {recentPlans.length === 0 ? (
-                            <div className="sd-empty-state">
-                                <p>Nu ai creat niciun plan de antrenament.</p>
-                                <Link href="/antrenor-fotbal/antrenamente/nou" className="sd-btn-primary">
-                                    Creeaza primul plan
-                                </Link>
+                        <div className="sd-box-content">
+                            <div className="sd-metrics" style={{ marginBottom: "18px" }}>
+                                <div className="sd-box sd-metric-box">
+                                    <div className="sd-metric-title">Scor echipa</div>
+                                    <div className="sd-metric-value">{formatReadinessScore(teamReadiness)}</div>
+                                </div>
+                                <div className="sd-box sd-metric-box">
+                                    <div className="sd-metric-title">Jucatori inclusi</div>
+                                    <div className="sd-metric-value">{readinessPlayers.length}</div>
+                                </div>
+                                <div className="sd-box sd-metric-box">
+                                    <div className="sd-metric-title">Eligibilitate</div>
+                                    <div className="sd-metric-value" style={{ fontSize: "14px", marginTop: "8px" }}>
+                                        Disponibili cu aviz medical
+                                    </div>
+                                </div>
                             </div>
-                        ) : (
-                            <table className="sd-table">
-                                <thead>
-                                    <tr>
-                                        <th>Data</th>
-                                        <th>Titlu</th>
-                                        <th>Tip</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {recentPlans.map((plan) => (
-                                        <tr key={plan.id}>
-                                            <td>
-                                                {new Date(plan.date).toLocaleDateString("ro-RO", {
-                                                    day: "2-digit",
-                                                    month: "2-digit",
-                                                    year: "numeric",
-                                                })}
-                                            </td>
-                                            <td>
-                                                <Link href={`/antrenor-fotbal/antrenamente/${plan.id}/edit`}>
-                                                    {plan.title}
-                                                </Link>
-                                            </td>
-                                            <td>
-                                                <span className={`sd-badge sd-badge-${plan.type}`}>
-                                                    {plan.type.charAt(0).toUpperCase() + plan.type.slice(1)}
-                                                </span>
-                                            </td>
+
+                            <div style={{ marginBottom: "16px" }}>
+                                <div style={{ height: "12px", background: "#e5e7eb", borderRadius: "999px", overflow: "hidden" }}>
+                                    <div
+                                        style={{
+                                            width: `${teamReadiness ?? 0}%`,
+                                            height: "100%",
+                                            background: readinessStatus.color,
+                                        }}
+                                    />
+                                </div>
+                                <div style={{ display: "flex", justifyContent: "space-between", marginTop: "6px", color: "#64748b", fontSize: "12px" }}>
+                                    <span>0</span>
+                                    <span>60</span>
+                                    <span>80</span>
+                                    <span>100</span>
+                                </div>
+                            </div>
+
+                            {readinessPlayers.length === 0 ? (
+                                <div className="sd-empty-state">
+                                    <p>Nu exista jucatori disponibili cu aviz medical si date de incarcare.</p>
+                                </div>
+                            ) : (
+                                <table className="sd-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Jucator</th>
+                                            <th>Scor</th>
+                                            <th>TSB 40%</th>
+                                            <th>ATL 25%</th>
+                                            <th>CTL 20%</th>
+                                            <th>A:C 15%</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        )}
-                    </div>
-                </div>
-
-                <div className="sd-sidebar">
-                    <div className="sd-box">
-                        <div className="sd-box-header">
-                            <h2>Navigare rapida</h2>
-                        </div>
-                        <div className="sd-box-content">
-                            <ul className="sd-list">
-                                <li>
-                                    <Link href="/antrenor-fotbal/antrenamente">
-                                        Toate antrenamentele
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link href="/antrenor-fotbal/antrenamente/nou">
-                                        Plan nou de antrenament
-                                    </Link>
-                                </li>
-                            </ul>
+                                    </thead>
+                                    <tbody>
+                                        {readinessPlayers
+                                            .sort((a, b) => b.score - a.score)
+                                            .map((player) => (
+                                                <tr key={player.id}>
+                                                    <td>{player.name}</td>
+                                                    <td><strong>{formatReadinessScore(player.score)}</strong></td>
+                                                    <td>{formatReadinessScore(player.tsbScore)}</td>
+                                                    <td>{formatReadinessScore(player.atlScore)}</td>
+                                                    <td>{formatReadinessScore(player.ctlScore)}</td>
+                                                    <td>{formatReadinessScore(player.acRatioScore)}</td>
+                                                </tr>
+                                            ))}
+                                    </tbody>
+                                </table>
+                            )}
                         </div>
                     </div>
 
-                    <div className="sd-box">
-                        <div className="sd-box-header">
-                            <h2>Tipuri antrenament</h2>
+                    <div className="sd-panels">
+                        <div className="sd-box sd-activities">
+                            <div className="sd-box-header">
+                                <h2>Planuri recente</h2>
+                                <Link href="/antrenor-fotbal/antrenamente">Vezi toate</Link>
+                            </div>
+                            <div className="sd-box-content" style={{ padding: 0 }}>
+                                {recentPlans.length === 0 ? (
+                                    <div className="sd-empty-state">
+                                        <p>Nu ai creat niciun plan de antrenament.</p>
+                                        <Link href="/antrenor-fotbal/antrenamente/nou" className="sd-btn-primary">
+                                            Creeaza primul plan
+                                        </Link>
+                                    </div>
+                                ) : (
+                                    <table className="sd-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Data</th>
+                                                <th>Titlu</th>
+                                                <th>Tip</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {recentPlans.map((plan) => (
+                                                <tr key={plan.id}>
+                                                    <td>
+                                                        {new Date(plan.date).toLocaleDateString("ro-RO", {
+                                                            day: "2-digit",
+                                                            month: "2-digit",
+                                                            year: "numeric",
+                                                        })}
+                                                    </td>
+                                                    <td>
+                                                        <Link href={`/antrenor-fotbal/antrenamente/${plan.id}/edit`}>
+                                                            {plan.title}
+                                                        </Link>
+                                                    </td>
+                                                    <td>
+                                                        <span className={`sd-badge sd-badge-${plan.type}`}>
+                                                            {plan.type.charAt(0).toUpperCase() + plan.type.slice(1)}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                )}
+                            </div>
                         </div>
-                        <div className="sd-box-content">
-                            <ul className="sd-list">
-                                <li>
-                                    <span className="sd-badge sd-badge-tehnic">Tehnic</span>
-                                    {" - lucru cu mingea, dribling, pase"}
-                                </li>
-                                <li>
-                                    <span className="sd-badge sd-badge-fizic">Fizic</span>
-                                    {" - rezistenta, viteza, forta"}
-                                </li>
-                                <li>
-                                    <span className="sd-badge sd-badge-tactic">Tactic</span>
-                                    {" - scheme, pozitionare, faze fixe"}
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
 
-                    <div className="sd-box">
-                        <div className="sd-box-header">
-                            <h2>Bara verde ca la fifa</h2>
+                        <div className="sd-sidebar">
+                            <div className="sd-box">
+                                <div className="sd-box-header">
+                                    <h2>Navigare rapida</h2>
+                                </div>
+                                <div className="sd-box-content">
+                                    <ul className="sd-list">
+                                        <li>
+                                            <Link href="/antrenor-fotbal/antrenamente">
+                                                Toate antrenamentele
+                                            </Link>
+                                        </li>
+                                        <li>
+                                            <Link href="/antrenor-fotbal/antrenamente/nou">
+                                                Plan nou de antrenament
+                                            </Link>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div className="sd-box">
+                                <div className="sd-box-header">
+                                    <h2>Tipuri antrenament</h2>
+                                </div>
+                                <div className="sd-box-content">
+                                    <ul className="sd-list">
+                                        <li>
+                                            <span className="sd-badge sd-badge-tehnic">Tehnic</span>
+                                            {" - lucru cu mingea, dribling, pase"}
+                                        </li>
+                                        <li>
+                                            <span className="sd-badge sd-badge-fizic">Fizic</span>
+                                            {" - rezistenta, viteza, forta"}
+                                        </li>
+                                        <li>
+                                            <span className="sd-badge sd-badge-tactic">Tactic</span>
+                                            {" - scheme, pozitionare, faze fixe"}
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div className="sd-box">
+                                <div className="sd-box-header">
+                                    <h2>Bara verde ca la fifa</h2>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
