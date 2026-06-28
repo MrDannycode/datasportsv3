@@ -2,10 +2,12 @@
 
 import { signOut } from "next-auth/react"
 import { useTheme } from "next-themes"
+import { useRouter } from "next/navigation"
 import { LogOut } from "lucide-react"
 import { useTableMode } from "@/components/table-mode-provider"
 
 export default function SignOutPage() {
+    const router = useRouter()
     const { theme } = useTheme()
     const { tableMode } = useTableMode()
     const isDark = theme === "dark"
@@ -92,29 +94,48 @@ export default function SignOutPage() {
                     Confirma ca vrei sa inchizi sesiunea curenta.
                 </p>
 
-                <button
-                    type="button"
-                    onClick={() => signOut({ callbackUrl: "/login" })}
-                    onMouseEnter={(event) => {
-                        event.currentTarget.style.backgroundColor = colors.buttonHover
-                    }}
-                    onMouseLeave={(event) => {
-                        event.currentTarget.style.backgroundColor = colors.button
-                    }}
-                    style={{
-                        width: "100%",
-                        border: "none",
-                        borderRadius: isNormal ? 10 : 3,
-                        backgroundColor: colors.button,
-                        color: "#fff",
-                        cursor: "pointer",
-                        fontSize: 14,
-                        fontWeight: "bold",
-                        padding: "10px 0",
-                    }}
-                >
-                    Logout
-                </button>
+                <div style={{ display: "flex", gap: 10 }}>
+                    <button
+                        type="button"
+                        onClick={() => router.back()}
+                        style={{
+                            flex: 1,
+                            border: `1px solid ${colors.border}`,
+                            borderRadius: isNormal ? 10 : 3,
+                            background: colors.secondaryBg,
+                            color: colors.text,
+                            cursor: "pointer",
+                            fontSize: 14,
+                            fontWeight: "bold",
+                            padding: "10px 0",
+                        }}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => signOut({ callbackUrl: "/login" })}
+                        onMouseEnter={(event) => {
+                            event.currentTarget.style.backgroundColor = colors.buttonHover
+                        }}
+                        onMouseLeave={(event) => {
+                            event.currentTarget.style.backgroundColor = colors.button
+                        }}
+                        style={{
+                            flex: 1,
+                            border: "none",
+                            borderRadius: isNormal ? 10 : 3,
+                            backgroundColor: colors.button,
+                            color: "#fff",
+                            cursor: "pointer",
+                            fontSize: 14,
+                            fontWeight: "bold",
+                            padding: "10px 0",
+                        }}
+                    >
+                        Logout
+                    </button>
+                </div>
             </section>
         </main>
     )
