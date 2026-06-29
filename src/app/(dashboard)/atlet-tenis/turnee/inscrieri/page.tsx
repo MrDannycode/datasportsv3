@@ -91,54 +91,60 @@ export default async function AtletTenisInscrieriPage() {
 
     return (
         <main>
-            <div className="sd-page-title">
-                <h1>Turneele mele</h1>
-            </div>
+            <div className="sd-box">
+                <div className="sd-box-header">
+                    <Link href="/atlet-tenis" className="sd-btn-secondary">Inapoi</Link>
+                    <h2 className="flex-1 text-center">Turneele Mele</h2>
+                    <div className="sd-btn-secondary invisible">Inapoi</div>
+                </div>
+                <div className="sd-box-content">
 
-            <div className="sd-metrics">
-                <div className="sd-box sd-metric-box">
-                    <div className="sd-metric-title">Inscrieri active</div>
-                    <div className="sd-metric-value">{tournaments.length}</div>
-                </div>
-                <div className="sd-box sd-metric-box">
-                    <div className="sd-metric-title">Urmatorul turneu</div>
-                    <div className="sd-metric-value" style={{ fontSize: 24 }}>{formatShortDate(nextTournament?.startDate ?? null)}</div>
-                </div>
-                <div className="sd-box sd-metric-box">
-                    <div className="sd-metric-title">Turnee Grele</div>
-                    <div className="sd-metric-value" style={{ color: "#991b1b" }}>{countByDifficulty.greu}</div>
-                </div>
-                <div className="sd-box sd-metric-box">
-                    <div className="sd-metric-title">Turnee Medii / Usoare</div>
-                    <div className="sd-metric-value" style={{ color: "#166534" }}>{countByDifficulty.mediu + countByDifficulty.usor}</div>
+                    <div className="sd-metrics">
+                        <div className="sd-box sd-metric-box">
+                            <div className="sd-metric-title">Inscrieri active</div>
+                            <div className="sd-metric-value">{tournaments.length}</div>
+                        </div>
+                        <div className="sd-box sd-metric-box">
+                            <div className="sd-metric-title">Urmatorul turneu</div>
+                            <div className="sd-metric-value" style={{ fontSize: 24 }}>{formatShortDate(nextTournament?.startDate ?? null)}</div>
+                        </div>
+                        <div className="sd-box sd-metric-box">
+                            <div className="sd-metric-title">Turnee Grele</div>
+                            <div className="sd-metric-value" style={{ color: "#991b1b" }}>{countByDifficulty.greu}</div>
+                        </div>
+                        <div className="sd-box sd-metric-box">
+                            <div className="sd-metric-title">Turnee Medii / Usoare</div>
+                            <div className="sd-metric-value" style={{ color: "#166534" }}>{countByDifficulty.mediu + countByDifficulty.usor}</div>
+                        </div>
+                    </div>
+
+                    {tournaments.length === 0 ? (
+                        <div className="sd-box sd-empty-state">
+                            <p>Nu esti inscris la niciun turneu momentan.</p>
+                            <Link href="/atlet-tenis/turnee" className="sd-players-toggle" style={{ display: "inline-block", marginTop: 12 }}>
+                                Vezi turnee disponibile
+                            </Link>
+                        </div>
+                    ) : (
+                        <>
+                            <div style={{ marginBottom: 12, fontSize: 13, color: "#666" }}>
+                                {tournaments.length} turneu{tournaments.length !== 1 ? "e" : ""} in lista ta.
+                            </div>
+                            <div className="sd-tournament-grid">
+                                {tournaments.map((tournament) => (
+                                    <TournamentCard
+                                        key={tournament.id}
+                                        tournament={tournament}
+                                        showPlayersDefault={false}
+                                        onWithdraw={withdrawFromTournament}
+                                        showAllPlayers={true}
+                                    />
+                                ))}
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
-
-            {tournaments.length === 0 ? (
-                <div className="sd-box sd-empty-state">
-                    <p>Nu esti inscris la niciun turneu momentan.</p>
-                    <Link href="/atlet-tenis/turnee" className="sd-players-toggle" style={{ display: "inline-block", marginTop: 12 }}>
-                        Vezi turnee disponibile
-                    </Link>
-                </div>
-            ) : (
-                <>
-                    <div style={{ marginBottom: 12, fontSize: 13, color: "#666" }}>
-                        {tournaments.length} turneu{tournaments.length !== 1 ? "e" : ""} in lista ta.
-                    </div>
-                    <div className="sd-tournament-grid">
-                        {tournaments.map((tournament) => (
-                            <TournamentCard
-                                key={tournament.id}
-                                tournament={tournament}
-                                showPlayersDefault={false}
-                                onWithdraw={withdrawFromTournament}
-                                showAllPlayers={true}
-                            />
-                        ))}
-                    </div>
-                </>
-            )}
         </main>
     )
 }

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { Severity } from "@prisma/client"
 import DosarMedicalModal from "./DosarMedicalModal"
+import { saveMedicalRecord } from "./actions"
 
 export type Profile = {
     firstName: string;
@@ -52,6 +53,14 @@ export default function DosarManager({ initialRecords, athletes, shouldOpenNewRe
     const [records, setRecords] = useState<MedicalRecord[]>(initialRecords)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingRecord, setEditingRecord] = useState<MedicalRecord | null>(null)
+    const [athleteId, setAthleteId] = useState<number | "">("")
+    const [diagnosis, setDiagnosis] = useState("")
+    const [treatment, setTreatment] = useState("")
+    const [startDate, setStartDate] = useState(new Date().toISOString().split("T")[0])
+    const [endDate, setEndDate] = useState("")
+    const [isAvailable, setIsAvailable] = useState(true)
+    const [injuries, setInjuries] = useState<Omit<Injury, "id" | "medicalRecordId">[]>([])
+    const [loading, setLoading] = useState(false)
     const hasOpenedFromQueryRef = useRef(false)
 
     useEffect(() => {
@@ -73,60 +82,278 @@ export default function DosarManager({ initialRecords, athletes, shouldOpenNewRe
         setEditingRecord(null)
     }
 
+    const resetInlineForm = () => {
+        setAthleteId("")
+        setDiagnosis("")
+        setTreatment("")
+        setStartDate(new Date().toISOString().split("T")[0])
+        setEndDate("")
+        setIsAvailable(true)
+        setInjuries([])
+    }
+
+    const handleRemoveInjury = (index: number) => {
+        const newInjuries = [...injuries]
+        newInjuries.splice(index, 1)
+        setInjuries(newInjuries)
+    }
+
+    const handleInjuryChange = (index: number, field: keyof Omit<Injury, "id" | "medicalRecordId">, value: string | number | Severity | null) => {
+        const newInjuries = [...injuries]
+        newInjuries[index] = { ...newInjuries[index], [field]: value }
+        setInjuries(newInjuries)
+    }
+
+    const handleCreateSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (athleteId === "") return
+
+        setLoading(true)
+        try {
+            const createdRecord = await saveMedicalRecord({
+                athleteId: Number(athleteId),
+                diagnosis,
+                treatment,
+                startDate: new Date(startDate),
+                endDate: endDate ? new Date(endDate) : null,
+                isAvailable,
+                injuries: injuries.map((injury) => ({
+                    injuryType: injury.injuryType,
+                    bodyPart: injury.bodyPart,
+                    severity: injury.severity as Severity,
+                    recoveryDays: Number(injury.recoveryDays),
+                    notes: injury.notes || undefined,
+                })),
+            })
+
+            const selectedAthlete = athletes.find((athlete) => athlete.id === Number(athleteId))
+
+            setRecords((current) => [
+                {
+                    ...createdRecord,
+                    athlete: selectedAthlete ?? { id: Number(athleteId), user: { profile: null } },
+                    injuries,
+                } as MedicalRecord,
+                ...current,
+            ])
+            resetInlineForm()
+        } catch (error) {
+            console.error(error)
+            alert("Eroare la salvarea dosarului")
+        } finally {
+            setLoading(false)
+        }
+    }
+
     return (
-        <div className="sd-box">
-            <div className="sd-box-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2>Dosar Medical - Evidență</h2>
-                <button onClick={() => openModal()} className="sd-btn sd-btn-primary" style={{ padding: '8px 16px', background: '#0056b3', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-                    Adaugă Dosar
-                </button>
+        <>
+            <div className="sd-box" style={{ marginBottom: "24px" }}>
+                <div className="sd-box-header">
+                    <h2>Adauga Dosar Medical</h2>
+                </div>
+                <div className="sd-box-content">
+                    <form onSubmit={handleCreateSubmit}>
+                        <div style={{ marginBottom: "16px" }}>
+                            <label style={{ display: "block", marginBottom: "8px" }}>Atlet (Fotbal)</label>
+                            <select
+                                value={athleteId}
+                                onChange={(e) => setAthleteId(e.target.value ? Number(e.target.value) : "")}
+                                required
+                                style={{ width: "100%", padding: "8px", border: "1px solid #ccc", borderRadius: "4px" }}
+                            >
+                                <option value="">Selecteaza atlet</option>
+                                {athletes.map((athlete) => (
+                                    <option key={athlete.id} value={athlete.id}>
+                                        {athlete.user.profile?.firstName} {athlete.user.profile?.lastName}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div style={{ marginBottom: "16px" }}>
+                            <label style={{ display: "block", marginBottom: "8px" }}>Diagnostic</label>
+                            <input
+                                type="text"
+                                value={diagnosis}
+                                onChange={(e) => setDiagnosis(e.target.value)}
+                                required
+                                style={{ width: "100%", padding: "8px", border: "1px solid #ccc", borderRadius: "4px" }}
+                            />
+                        </div>
+
+                        <div style={{ marginBottom: "16px" }}>
+                            <label style={{ display: "block", marginBottom: "8px" }}>Tratament</label>
+                            <textarea
+                                value={treatment}
+                                onChange={(e) => setTreatment(e.target.value)}
+                                required
+                                rows={3}
+                                style={{ width: "100%", padding: "8px", border: "1px solid #ccc", borderRadius: "4px" }}
+                            />
+                        </div>
+
+                        <div style={{ display: "flex", gap: "16px", marginBottom: "16px" }}>
+                            <div style={{ flex: 1 }}>
+                                <label style={{ display: "block", marginBottom: "8px" }}>Data Inceput</label>
+                                <input
+                                    type="date"
+                                    value={startDate}
+                                    onChange={(e) => setStartDate(e.target.value)}
+                                    required
+                                    style={{ width: "100%", padding: "8px", border: "1px solid #ccc", borderRadius: "4px" }}
+                                />
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <label style={{ display: "block", marginBottom: "8px" }}>Data Sfarsit (Optional)</label>
+                                <input
+                                    type="date"
+                                    value={endDate}
+                                    onChange={(e) => setEndDate(e.target.value)}
+                                    style={{ width: "100%", padding: "8px", border: "1px solid #ccc", borderRadius: "4px" }}
+                                />
+                            </div>
+                        </div>
+
+                        <div style={{ marginBottom: "16px" }}>
+                            <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                <input
+                                    type="checkbox"
+                                    checked={isAvailable}
+                                    onChange={(e) => setIsAvailable(e.target.checked)}
+                                />
+                                Atletul este apt pentru joc/antrenament
+                            </label>
+                        </div>
+
+                        <div style={{ marginBottom: "16px", borderTop: "1px solid #eee", paddingTop: "16px" }}>
+                            {injuries.map((injury, index) => (
+                                <div key={index} style={{ background: "#f9f9f9", padding: "12px", borderRadius: "4px", marginBottom: "8px", border: "1px solid #e0e0e0" }}>
+                                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+                                        <strong>Accidentare #{index + 1}</strong>
+                                        <button type="button" onClick={() => handleRemoveInjury(index)} style={{ color: "red", background: "none", border: "none", cursor: "pointer" }}>Sterge</button>
+                                    </div>
+                                    <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
+                                        <input
+                                            type="text"
+                                            placeholder="Tip (ex: Entorsa)"
+                                            value={injury.injuryType}
+                                            onChange={(e) => handleInjuryChange(index, "injuryType", e.target.value)}
+                                            required
+                                            style={{ flex: 1, padding: "6px", border: "1px solid #ccc", borderRadius: "4px" }}
+                                        />
+                                        <input
+                                            type="text"
+                                            placeholder="Parte corp (ex: Glezna stanga)"
+                                            value={injury.bodyPart}
+                                            onChange={(e) => handleInjuryChange(index, "bodyPart", e.target.value)}
+                                            required
+                                            style={{ flex: 1, padding: "6px", border: "1px solid #ccc", borderRadius: "4px" }}
+                                        />
+                                    </div>
+                                    <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
+                                        <select
+                                            value={injury.severity}
+                                            onChange={(e) => handleInjuryChange(index, "severity", e.target.value as Severity)}
+                                            style={{ flex: 1, padding: "6px", border: "1px solid #ccc", borderRadius: "4px" }}
+                                        >
+                                            <option value={Severity.usoara}>Usoara</option>
+                                            <option value={Severity.medie}>Medie</option>
+                                            <option value={Severity.grava}>Grava</option>
+                                        </select>
+                                        <input
+                                            type="number"
+                                            placeholder="Zile recuperare"
+                                            value={injury.recoveryDays}
+                                            onChange={(e) => handleInjuryChange(index, "recoveryDays", e.target.value)}
+                                            required
+                                            min="0"
+                                            style={{ flex: 1, padding: "6px", border: "1px solid #ccc", borderRadius: "4px" }}
+                                        />
+                                    </div>
+                                    <div>
+                                        <input
+                                            type="text"
+                                            placeholder="Note (optional)"
+                                            value={injury.notes || ""}
+                                            onChange={(e) => handleInjuryChange(index, "notes", e.target.value)}
+                                            style={{ width: "100%", padding: "6px", border: "1px solid #ccc", borderRadius: "4px" }}
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "24px" }}>
+                            <button type="button" onClick={resetInlineForm} style={{ padding: "8px 16px", background: "white", border: "1px solid #ccc", borderRadius: "4px", cursor: "pointer" }}>
+                                Anuleaza
+                            </button>
+                            <button type="submit" disabled={loading} style={{ padding: "8px 16px", background: "#0056b3", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>
+                                {loading ? "Se salveaza..." : "Salveaza"}
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
 
-            <div className="sd-box-content">
-                {records.length === 0 ? (
-                    <p>Nu există dosare medicale înregistrate.</p>
-                ) : (
-                    <table className="sd-table" style={{ width: '100%', borderCollapse: 'collapse', marginTop: '16px' }}>
-                        <thead>
-                            <tr style={{ borderBottom: '1px solid #eee', textAlign: 'left' }}>
-                                <th style={{ padding: '12px' }}>Atlet</th>
-                                <th style={{ padding: '12px' }}>Diagnostic</th>
-                                <th style={{ padding: '12px' }}>Tratament</th>
-                                <th style={{ padding: '12px' }}>Data Început</th>
-                                <th style={{ padding: '12px' }}>Disponibilitate</th>
-                                <th style={{ padding: '12px' }}>Acțiuni</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {records.map(record => (
-                                <tr key={record.id} style={{ borderBottom: '1px solid #eee' }}>
-                                    <td style={{ padding: '12px' }}>
-                                        {record.athlete.user.profile?.firstName} {record.athlete.user.profile?.lastName}
-                                    </td>
-                                    <td style={{ padding: '12px' }}>{record.diagnosis}</td>
-                                    <td style={{ padding: '12px' }}>{record.treatment}</td>
-                                    <td style={{ padding: '12px' }}>{new Date(record.startDate).toLocaleDateString()}</td>
-                                    <td style={{ padding: '12px' }}>
-                                        <span style={{
-                                            padding: '4px 8px',
-                                            borderRadius: '12px',
-                                            fontSize: '12px',
-                                            background: record.isAvailable ? '#e6f4ea' : '#fce8e6',
-                                            color: record.isAvailable ? '#1e8e3e' : '#d93025'
-                                        }}>
-                                            {record.isAvailable ? "Disponibil" : "Indisponibil"}
-                                        </span>
-                                    </td>
-                                    <td style={{ padding: '12px' }}>
-                                        <button onClick={() => openModal(record)} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#0056b3', textDecoration: 'underline' }}>
-                                            Editează
-                                        </button>
-                                    </td>
+            <div className="sd-box">
+                <div className="sd-box-header">
+                    <h2>Dosare medicale ({records.length})</h2>
+                </div>
+                <div className="sd-box-content">
+                    {records.length === 0 ? (
+                        <p>Nu exista dosare medicale inregistrate.</p>
+                    ) : (
+                        <table className="sd-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+                            <thead>
+                                <tr style={{ borderBottom: "1px solid #eee", textAlign: "left" }}>
+                                    <th style={{ padding: "12px" }}>Atlet</th>
+                                    <th style={{ padding: "12px" }}>Diagnostic</th>
+                                    <th style={{ padding: "12px" }}>Tratament</th>
+                                    <th style={{ padding: "12px" }}>Data inceput</th>
+                                    <th style={{ padding: "12px" }}>Data sfarsit</th>
+                                    <th style={{ padding: "12px" }}>Disponibilitate</th>
+                                    <th style={{ padding: "12px" }}>Actiuni</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                )}
+                            </thead>
+                            <tbody>
+                                {records.map((record) => (
+                                    <tr key={record.id} style={{ borderBottom: "1px solid #eee" }}>
+                                        <td style={{ padding: "12px" }}>
+                                            {record.athlete.user.profile?.firstName} {record.athlete.user.profile?.lastName}
+                                        </td>
+                                        <td style={{ padding: "12px" }}>{record.diagnosis}</td>
+                                        <td style={{ padding: "12px" }}>{record.treatment}</td>
+                                        <td style={{ padding: "12px" }}>{new Date(record.startDate).toLocaleDateString()}</td>
+                                        <td style={{ padding: "12px" }}>
+                                            {record.endDate ? new Date(record.endDate).toLocaleDateString() : "-"}
+                                        </td>
+                                        <td style={{ padding: "12px" }}>
+                                            <span
+                                                style={{
+                                                    padding: "4px 8px",
+                                                    borderRadius: "12px",
+                                                    fontSize: "12px",
+                                                    background: record.isAvailable ? "#e6f4ea" : "#fce8e6",
+                                                    color: record.isAvailable ? "#1e8e3e" : "#d93025",
+                                                }}
+                                            >
+                                                {record.isAvailable ? "Disponibil" : "Indisponibil"}
+                                            </span>
+                                        </td>
+                                        <td style={{ padding: "12px" }}>
+                                            <button
+                                                onClick={() => openModal(record)}
+                                                style={{ cursor: "pointer", background: "none", border: "none", color: "#0056b3", textDecoration: "underline" }}
+                                            >
+                                                Editeaza
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
             </div>
 
             {isModalOpen && (
@@ -137,9 +364,6 @@ export default function DosarManager({ initialRecords, athletes, shouldOpenNewRe
                     onSuccess={() => window.location.reload()}
                 />
             )}
-        </div>
+        </>
     )
 }
-
-
-

@@ -10,6 +10,15 @@ import type { Prisma } from "@prisma/client"
 type UpcomingMatch = Prisma.FootballMatchGetPayload<{ include: { teamHome: true; teamAway: true; competition: true } }>
 type AssignedTrainingPlan = Prisma.TrainingPlanGetPayload<{ include: { creator: { include: { profile: true } } } }>
 type AssignedFitnessPlan = Prisma.FitnessPlanGetPayload<{ include: { creator: { include: { profile: true } } } }>
+type RecentActivity = {
+    id: number
+    date: Date
+    durationMin: number
+    avgHeartRate: number | null
+    sport: string | null
+    notes: string | null
+    trimp: number | null
+}
 type ActivityCalendarEvent = {
     id: string
     date: Date
@@ -34,6 +43,32 @@ const FITNESS_TYPE_LABELS: Record<string, string> = {
     coordonare: "Coordonare",
 }
 
+const SPORT_LABELS: Record<string, string> = {
+    fotbal: "Fotbal",
+    tenis: "Tenis",
+    alergare: "Alergare",
+    ciclism: "Ciclism",
+    inot: "Inot",
+    fitness: "Fitness / Sala",
+    alta: "Alta",
+}
+
+function formatActivityDate(date: Date) {
+    return date.toLocaleDateString("ro-RO", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+    })
+}
+
+function formatDuration(minutes: number) {
+    const hours = Math.floor(minutes / 60)
+    const remainingMinutes = Math.round(minutes % 60)
+
+    if (hours === 0) return String(remainingMinutes) + " min"
+    return String(hours) + "h " + String(remainingMinutes) + "min"
+}
+
 
 export default async function AtletFotbalPage() {
     const session = await getServerSession(authOptions)
@@ -53,6 +88,7 @@ export default async function AtletFotbalPage() {
     let assignedFitnessPlans: AssignedFitnessPlan[] = [];
     let latestLoad: SportScienceLoad | null = null;
     let trainingLoads: SportScienceLoad[] = [];
+    let recentActivities: RecentActivity[] = [];
 
     if (profile) {
         const loadFromDate = new Date();
@@ -80,6 +116,21 @@ export default async function AtletFotbalPage() {
             },
         });
         latestLoad = trainingLoads[trainingLoads.length - 1] ?? null;
+
+        recentActivities = await prisma.activity.findMany({
+            where: { athleteId: profile.id },
+            orderBy: { date: "desc" },
+            take: 5,
+            select: {
+                id: true,
+                date: true,
+                durationMin: true,
+                avgHeartRate: true,
+                sport: true,
+                notes: true,
+                trimp: true,
+            },
+        });
     }
 
     if (profile?.teamId) {
@@ -249,39 +300,32 @@ export default async function AtletFotbalPage() {
                                     <table className="sd-table">
                                         <thead>
                                             <tr>
-                                                <th>Date</th>
-                                                <th>Type</th>
-                                                <th>Title</th>
-                                                <th>Distance</th>
-                                                <th>Duration</th>
-                                                <th>Pace / Speed</th>
+                                                <th>Data</th>
+                                                <th>Sport</th>
+                                                <th>Durata</th>
+                                                <th>FC medie</th>
+                                                <th>TRIMP</th>
+                                                <th>Note</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>Today</td>
-                                                <td>Run</td>
-                                                <td>Morning Tempo Run</td>
-                                                <td>10.0 km</td>
-                                                <td>45:00</td>
-                                                <td>4:30 /km</td>
-                                            </tr>
-                                            <tr>
-                                                <td>Yesterday</td>
-                                                <td>Bike</td>
-                                                <td>Recovery Ride</td>
-                                                <td>25.4 km</td>
-                                                <td>1:08:52</td>
-                                                <td>22.1 km/h</td>
-                                            </tr>
-                                            <tr>
-                                                <td>Wed</td>
-                                                <td>Run</td>
-                                                <td>Long Interval Session</td>
-                                                <td>15.2 km</td>
-                                                <td>1:12:15</td>
-                                                <td>4:45 /km</td>
-                                            </tr>
+                                            {recentActivities.map((activity) => (
+                                                <tr key={activity.id}>
+                                                    <td>{formatActivityDate(activity.date)}</td>
+                                                    <td>{activity.sport ? SPORT_LABELS[activity.sport] ?? activity.sport : "-"}</td>
+                                                    <td>{formatDuration(activity.durationMin)}</td>
+                                                    <td>{activity.avgHeartRate ? String(activity.avgHeartRate) + " bpm" : "-"}</td>
+                                                    <td>{activity.trimp != null ? activity.trimp.toFixed(1) : "N/A"}</td>
+                                                    <td>{activity.notes ? (activity.notes.length > 50 ? activity.notes.slice(0, 50) + "..." : activity.notes) : "-"}</td>
+                                                </tr>
+                                            ))}
+                                            {recentActivities.length === 0 && (
+                                                <tr>
+                                                    <td colSpan={6} style={{ textAlign: "center", color: "#999", padding: "24px" }}>
+                                                        Nu ai adaugat nicio activitate inca.
+                                                    </td>
+                                                </tr>
+                                            )}
                                         </tbody>
                                     </table>
                                 </div>
@@ -293,18 +337,3 @@ export default async function AtletFotbalPage() {
         </main>
     )
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

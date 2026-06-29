@@ -66,16 +66,7 @@ export default function MedicalRecordNavButton({ label, records }: Props) {
             <button
                 type="button"
                 onClick={() => setIsOpen(true)}
-                style={{
-                    margin: "0 10px",
-                    fontWeight: "bold",
-                    color: "#555",
-                    fontSize: "14px",
-                    background: "none",
-                    border: "none",
-                    padding: 0,
-                    cursor: "pointer",
-                }}
+                className="sd-nav-button"
             >
                 {label}
             </button>

@@ -24,19 +24,22 @@ export default async function AdminCompetitionsPage({ searchParams }: AdminCompe
 
     return (
         <main>
-            <div className="sd-page-title" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                <Link href="/admin" style={{ color: '#0070f3', textDecoration: 'none', fontSize: '14px', fontWeight: 'bold' }}>
-                    ← Inapoi la Dashboard
-                </Link>
-                <h1 style={{ margin: 0 }}>Gestionare Competitii</h1>
-            </div>
+            <div className="sd-box">
+                                <div className="sd-box-header">
+                    <Link href="/admin" className="sd-btn-secondary">Inapoi</Link>
+                    <h2 className="flex-1 text-center">Gestionare Competitii</h2>
+                    <div className="sd-btn-secondary invisible">Inapoi</div>
+                </div>
+                <div className="sd-box-content">
 
-            <CompetitionsManager
-                initialCompetitions={competitions}
-                shouldOpenNewCompetitionModal={resolvedSearchParams?.open === "new"}
-                initialSportFilter={resolvedSearchParams?.sport}
-                initialContinentFilter={resolvedSearchParams?.continent}
-            />
+                    <CompetitionsManager
+                        initialCompetitions={competitions}
+                        shouldOpenNewCompetitionModal={resolvedSearchParams?.open === "new"}
+                        initialSportFilter={resolvedSearchParams?.sport}
+                        initialContinentFilter={resolvedSearchParams?.continent}
+                    />
+                </div>
+            </div>
         </main>
     )
 }

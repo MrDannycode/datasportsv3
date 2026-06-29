@@ -39,19 +39,8 @@ export default function AddMedicalRecordNavButton({ label, isActive = false }: P
             <button
                 type="button"
                 onClick={handleOpenClick}
-                className={isActive ? "active" : ""}
+                className={`sd-nav-button${isActive ? " active" : ""}`}
                 disabled={isLoading}
-                style={{
-                    margin: "0 10px",
-                    fontWeight: "bold",
-                    color: "#555",
-                    fontSize: "14px",
-                    background: "none",
-                    border: "none",
-                    padding: 0,
-                    cursor: isLoading ? "wait" : "pointer",
-                    opacity: isLoading ? 0.7 : 1,
-                }}
             >
                 {isLoading ? "Se încarcă..." : label}
             </button>

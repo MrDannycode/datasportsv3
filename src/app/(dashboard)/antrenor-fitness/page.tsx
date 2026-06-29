@@ -4,6 +4,8 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import LoadQualityChart from "@/components/sport-science/LoadQualityChart"
+import ActivitiesCalendar from "../atlet-fotbal/ActivitiesCalendar"
+import type { Prisma } from "@prisma/client"
 
 const FITNESS_TYPE_LABELS: Record<string, string> = {
     forta: "Forta",
@@ -11,6 +13,25 @@ const FITNESS_TYPE_LABELS: Record<string, string> = {
     vitezare: "Viteza",
     flexibilitate: "Flexibilitate",
     coordonare: "Coordonare",
+}
+
+const TRAINING_TYPE_LABELS: Record<string, string> = {
+    tehnic: "Tehnic",
+    fizic: "Fizic",
+    tactic: "Tactic",
+}
+
+type UpcomingMatch = Prisma.FootballMatchGetPayload<{ include: { teamHome: true; teamAway: true; competition: true } }>
+type AssignedTrainingPlan = Prisma.TrainingPlanGetPayload<{ include: { creator: { include: { profile: true } } } }>
+type AssignedFitnessPlan = Prisma.FitnessPlanGetPayload<{ include: { creator: { include: { profile: true } } } }>
+type ActivityCalendarEvent = {
+    id: string
+    date: Date
+    label: string
+    title: string
+    details: string
+    color: string
+    backgroundColor: string
 }
 
 type TeamLoadPoint = {
@@ -40,6 +61,10 @@ export default async function AntrenorFitnessPage() {
         where: { userId: Number(session.user.id) },
         select: { teamId: true },
     })
+
+    let upcomingMatches: UpcomingMatch[] = []
+    let assignedTrainingPlans: AssignedTrainingPlan[] = []
+    let assignedFitnessPlans: AssignedFitnessPlan[] = []
 
     const loadsFromDate = new Date()
     loadsFromDate.setUTCDate(loadsFromDate.getUTCDate() - 42)
@@ -83,6 +108,77 @@ export default async function AntrenorFitnessPage() {
             })
             : Promise.resolve([]),
     ])
+
+    if (coachProfile?.teamId) {
+        upcomingMatches = await prisma.footballMatch.findMany({
+            where: {
+                OR: [
+                    { teamHomeId: coachProfile.teamId },
+                    { teamAwayId: coachProfile.teamId },
+                ],
+                matchDate: {
+                    gte: new Date(),
+                },
+            },
+            include: {
+                teamHome: true,
+                teamAway: true,
+                competition: true,
+            },
+            orderBy: {
+                matchDate: "asc",
+            },
+            take: 5,
+        })
+
+        assignedTrainingPlans = await prisma.trainingPlan.findMany({
+            where: {
+                creator: {
+                    role: "antrenor_fotbal",
+                    profile: {
+                        is: {
+                            teamId: coachProfile.teamId,
+                        },
+                    },
+                },
+            },
+            include: {
+                creator: {
+                    include: {
+                        profile: true,
+                    },
+                },
+            },
+            orderBy: {
+                date: "asc",
+            },
+            take: 5,
+        })
+
+        assignedFitnessPlans = await prisma.fitnessPlan.findMany({
+            where: {
+                creator: {
+                    role: "antrenor_fitness",
+                    profile: {
+                        is: {
+                            teamId: coachProfile.teamId,
+                        },
+                    },
+                },
+            },
+            include: {
+                creator: {
+                    include: {
+                        profile: true,
+                    },
+                },
+            },
+            orderBy: {
+                date: "asc",
+            },
+            take: 30,
+        })
+    }
 
     const groupedLoads = new Map<string, {
         date: Date
@@ -143,6 +239,55 @@ export default async function AntrenorFitnessPage() {
     const latestLoadQuality = loadQualityPoints[loadQualityPoints.length - 1] ?? null
     const teamAthleteCount = teamProfiles.length
     const safeDaysCount = loadQualityPoints.filter((point) => point.acRatio != null && point.acRatio >= 0.8 && point.acRatio <= 1.3).length
+    const today = new Date()
+    const fitnessEvents: ActivityCalendarEvent[] = assignedFitnessPlans.map((plan) => {
+        const coachName = plan.creator.profile
+            ? `${plan.creator.profile.firstName} ${plan.creator.profile.lastName}`.trim()
+            : plan.creator.email
+
+        return {
+            id: `fitness-${plan.id}`,
+            date: plan.date,
+            label: FITNESS_TYPE_LABELS[plan.type] ?? plan.type,
+            title: plan.title,
+            details: `Fitness - ${coachName || "Nespecificat"}`,
+            color: "#2a7a2a",
+            backgroundColor: "#eef7ed",
+        }
+    })
+    const matchEvents: ActivityCalendarEvent[] = upcomingMatches.map((match) => ({
+        id: `match-${match.id}`,
+        date: match.matchDate,
+        label: "Meci",
+        title: `${match.teamHome.name} vs ${match.teamAway.name}`,
+        details: `${match.location} | ${match.competition.name}`,
+        color: "#9a4b00",
+        backgroundColor: "#fff4e6",
+    }))
+    const trainingEvents: ActivityCalendarEvent[] = assignedTrainingPlans.map((plan) => {
+        const coachName = plan.creator.profile
+            ? `${plan.creator.profile.firstName} ${plan.creator.profile.lastName}`.trim()
+            : plan.creator.email
+
+        return {
+            id: `training-${plan.id}`,
+            date: plan.date,
+            label: TRAINING_TYPE_LABELS[plan.type] ?? plan.type,
+            title: plan.title,
+            details: `Antrenor: ${coachName || "Nespecificat"}`,
+            color: "#0056b3",
+            backgroundColor: "#e8f0fb",
+        }
+    })
+    const activityCalendarEvents = [...fitnessEvents, ...matchEvents, ...trainingEvents].sort(
+        (firstEvent, secondEvent) => firstEvent.date.getTime() - secondEvent.date.getTime()
+    )
+    const nextCalendarEvent = activityCalendarEvents.find((event) => event.date >= today)
+    const activityCalendarMonth = nextCalendarEvent?.date ?? activityCalendarEvents[0]?.date ?? today
+    const serializedActivityCalendarEvents = activityCalendarEvents.map((event) => ({
+        ...event,
+        date: event.date.toISOString(),
+    }))
 
     return (
         <main>
@@ -152,39 +297,14 @@ export default async function AntrenorFitnessPage() {
                 </div>
                 <div className="sd-box-content">
                     <div className="sd-metrics">
-                        <div className="sd-box sd-metric-box" style={{ height: "auto", minHeight: "150px" }}>
-                            <div className="sd-metric-title">Fitness calendar</div>
+                        <div className="sd-box sd-metric-box" style={{ height: "auto", minHeight: "150px", flex: 1 }}>
+                            <div className="sd-metric-title">Activities calendar</div>
                             <div style={{ marginTop: "15px", textAlign: "left" }}>
-                                {fitnessPlans.length === 0 ? (
-                                    <p style={{ fontSize: "14px", color: "#666" }}>Nu ai adaugat activitati de fitness.</p>
-                                ) : (
-                                    <ul style={{ listStyle: "none", padding: 0, margin: 0, fontSize: "14px" }}>
-                                        {fitnessPlans.map((plan) => (
-                                            <li key={plan.id} style={{ marginBottom: "10px", paddingBottom: "10px", borderBottom: "1px solid #eee" }}>
-                                                <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center" }}>
-                                                    <span style={{ fontWeight: "bold" }}>{plan.title}</span>
-                                                    <span style={{ backgroundColor: "#eef7ed", color: "#2a7a2a", padding: "2px 8px", fontSize: "11px", fontWeight: "bold", borderRadius: "2px", whiteSpace: "nowrap" }}>
-                                                        {FITNESS_TYPE_LABELS[plan.type]}
-                                                    </span>
-                                                </div>
-                                                <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
-                                                    {new Date(plan.date).toLocaleDateString("ro-RO", {
-                                                        weekday: "short", day: "numeric", month: "short",
-                                                    })}
-                                                </div>
-                                                {plan.description && (
-                                                    <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
-                                                        {plan.description}
-                                                    </div>
-                                                )}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
+                                <ActivitiesCalendar
+                                    events={serializedActivityCalendarEvents}
+                                    initialMonth={activityCalendarMonth.toISOString().slice(0, 7)}
+                                />
                             </div>
-                            <Link href="/antrenor-fitness/fitness-calendar" style={{ display: "inline-block", marginTop: "8px", fontSize: "13px", color: "#0056b3", textDecoration: "none" }}>
-                                Vezi toate activitatile
-                            </Link>
                         </div>
                     </div>
 
@@ -197,53 +317,40 @@ export default async function AntrenorFitnessPage() {
                     <div className="sd-panels">
                         <div className="sd-box sd-activities">
                             <div className="sd-box-header">
-                                <h2>Load quality focus</h2>
-                                <Link href="/antrenor-fitness/fitness-calendar">Vezi calendarul</Link>
+                                <h2>Planuri de Fitness Recente</h2>
+                                <Link href="/antrenor-fitness/trainfit">Vezi toate</Link>
                             </div>
                             <div className="sd-box-content">
-                                <ul className="sd-list">
-                                    <li>Strain evidentiaza stresul cumulat real si scoate rapid la suprafata blocurile prea dense.</li>
-                                    <li>Monotony mare inseamna distributie prea uniforma a efortului si risc crescut de supraantrenament.</li>
-                                    <li>A:C Ratio intre 0.8 si 1.3 marcheaza zilele in care incarcare acuta si cronica raman echilibrate.</li>
-                                </ul>
+                                {fitnessPlans.length === 0 ? (
+                                    <p>Nu exista planuri de fitness create inca.</p>
+                                ) : (
+                                    <table className="sd-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Data</th>
+                                                <th>Tip</th>
+                                                <th>Titlu</th>
+                                                <th>Descriere</th>
+                                                <th>Creat la</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {fitnessPlans.map((plan) => (
+                                                <tr key={plan.id}>
+                                                    <td>{new Date(plan.date).toLocaleDateString()}</td>
+                                                    <td>{FITNESS_TYPE_LABELS[plan.type] ?? plan.type}</td>
+                                                    <td>{plan.title}</td>
+                                                    <td>{plan.description?.trim() || "-"}</td>
+                                                    <td>{new Date(plan.createdAt).toLocaleDateString()}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                )}
                             </div>
                         </div>
 
-                        <div className="sd-sidebar">
-                            <div className="sd-box">
-                                <div className="sd-box-header">
-                                    <h2>Squad snapshot</h2>
-                                </div>
-                                <div className="sd-box-content">
-                                    <p>Atleti urmariti: {teamAthleteCount}</p>
-                                    <p>A:C Ratio curent: {latestLoadQuality?.acRatio?.toFixed(2) ?? "-"}</p>
-                                    <p>Zile agregate: {loadQualityPoints.length}</p>
-                                </div>
-                            </div>
 
-                            <div className="sd-box">
-                                <div className="sd-box-header">
-                                    <h2>Interpretare</h2>
-                                </div>
-                                <div className="sd-box-content">
-                                    <ul className="sd-list">
-                                        <li>A:C sub 0.8 poate sugera pierdere de stimul.</li>
-                                        <li>A:C peste 1.3 cere prudenta la incarcarea urmatoare.</li>
-                                        <li>Monotony peste 2.0 merita verificata distributia saptamanii.</li>
-                                        <li>Strain in crestere cu monotony mare indica risc acumulat.</li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div className="sd-box sd-metric-box" style={{ height: "auto", minHeight: "150px" }}>
-                                <div className="sd-metric-title">Load quality</div>
-                                <div style={{ marginTop: "15px", textAlign: "left", fontSize: "13px", color: "#555" }}>
-                                    <p style={{ margin: "0 0 8px" }}>Atleti in echipa: <strong>{teamAthleteCount}</strong></p>
-                                    <p style={{ margin: "0 0 8px" }}>Zile in zona safe A:C: <strong>{safeDaysCount}</strong></p>
-                                    <p style={{ margin: "0 0 8px" }}>Monotony curent: <strong>{latestLoadQuality?.monotony?.toFixed(2) ?? "-"}</strong></p>
-                                    <p style={{ margin: 0 }}>Strain curent: <strong>{latestLoadQuality?.strain?.toFixed(0) ?? "-"}</strong></p>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>

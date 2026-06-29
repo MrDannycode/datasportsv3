@@ -43,5 +43,5 @@ export function matchesTournamentGender(source: TournamentGenderSource, gender: 
 export function matchesTournamentSource(source: { sourceUrl?: string | null }) {
   const sourceUrl = source.sourceUrl?.toLowerCase() ?? ""
 
-  return sourceUrl.includes("itftennis.com")
+  return sourceUrl.includes("itftennis.com") || sourceUrl === "platforma web"
 }

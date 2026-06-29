@@ -10,6 +10,7 @@ import TournamentCard from "@/components/tournament/TournamentCard"
 import TournamentSyncButton from "@/components/tournament/TournamentSyncButton"
 import { registerForTournament } from "./actions"
 import type { TournamentWithDifficulty } from "@/app/api/tournaments/route"
+import Link from "next/link"
 
 interface AtletTenisTurneePageProps {
     searchParams?: Promise<{ country?: string; continent?: string; dateFrom?: string }>
@@ -110,78 +111,83 @@ export default async function AtletTenisTurneePage({ searchParams }: AtletTenisT
 
     return (
         <main>
-            <div className="sd-page-title">
-                <h1>Turnee Viitoare</h1>
-            </div>
-
-            <div className="sd-metrics">
-                <div className="sd-box sd-metric-box">
-                    <div className="sd-metric-title">Total Turnee Viitoare</div>
-                    <div className="sd-metric-value">{tournaments.length}</div>
-                </div>
-                <div className="sd-box sd-metric-box">
-                    <div className="sd-metric-title">Turnee Grele</div>
-                    <div className="sd-metric-value" style={{ color: "#991b1b" }}>
-                        {countByDifficulty.greu}
-                    </div>
-                </div>
-                <div className="sd-box sd-metric-box">
-                    <div className="sd-metric-title">Turnee Medii</div>
-                    <div className="sd-metric-value" style={{ color: "#92400e" }}>
-                        {countByDifficulty.mediu}
-                    </div>
-                </div>
-                <div className="sd-box sd-metric-box">
-                    <div className="sd-metric-title">Turnee Usoare</div>
-                    <div className="sd-metric-value" style={{ color: "#166534" }}>
-                        {countByDifficulty.usor}
-                    </div>
-                </div>
-            </div>
-
-            <TournamentSyncButton
-                redirectPath="/atlet-tenis/turnee"
-                enableFilters={true}
-                initialCountry={filters.country}
-                initialContinent={filters.continent}
-                initialDateFrom={filters.dateFrom}
-                countryOptions={liveOptions.countries}
-                continentOptions={liveOptions.continents}
-            />
-
-            <div className="sd-box" style={{ marginBottom: 16 }}>
+            <div className="sd-box">
                 <div className="sd-box-header">
-                    <h2>Algoritm de calcul al dificultatii</h2>
+                    <Link href="/atlet-tenis" className="sd-btn-secondary">Inapoi</Link>
+                    <h2 className="flex-1 text-center">Turnee Viitoare</h2>
+                    <div className="sd-btn-secondary invisible">Inapoi</div>
                 </div>
                 <div className="sd-box-content">
-                    <p style={{ fontSize: 13, color: "#555", marginBottom: 10 }}>
-                        Dificultatea fiecarui turneu este calculata dinamic la momentul citirii,
-                        pe baza mediei rankingului ATP/WTA al jucatorilor inscrisi in comparatie cu clasamentul tau actual.
-                    </p>
+                    <div className="sd-metrics">
+                        <div className="sd-box sd-metric-box">
+                            <div className="sd-metric-title">Total Turnee Viitoare</div>
+                            <div className="sd-metric-value">{tournaments.length}</div>
+                        </div>
+                        <div className="sd-box sd-metric-box">
+                            <div className="sd-metric-title">Turnee Grele</div>
+                            <div className="sd-metric-value" style={{ color: "#991b1b" }}>
+                                {countByDifficulty.greu}
+                            </div>
+                        </div>
+                        <div className="sd-box sd-metric-box">
+                            <div className="sd-metric-title">Turnee Medii</div>
+                            <div className="sd-metric-value" style={{ color: "#92400e" }}>
+                                {countByDifficulty.mediu}
+                            </div>
+                        </div>
+                        <div className="sd-box sd-metric-box">
+                            <div className="sd-metric-title">Turnee Usoare</div>
+                            <div className="sd-metric-value" style={{ color: "#166534" }}>
+                                {countByDifficulty.usor}
+                            </div>
+                        </div>
+                    </div>
+
+                    <TournamentSyncButton
+                        redirectPath="/atlet-tenis/turnee"
+                        enableFilters={true}
+                        initialCountry={filters.country}
+                        initialContinent={filters.continent}
+                        initialDateFrom={filters.dateFrom}
+                        countryOptions={liveOptions.countries}
+                        continentOptions={liveOptions.continents}
+                    />
+
+                    <div className="sd-box" style={{ marginBottom: 16 }}>
+                        <div className="sd-box-header">
+                            <h2>Algoritm de calcul al dificultatii</h2>
+                        </div>
+                        <div className="sd-box-content">
+                            <p style={{ fontSize: 13, color: "#555", marginBottom: 10 }}>
+                                Dificultatea fiecarui turneu este calculata dinamic la momentul citirii,
+                                pe baza mediei rankingului ATP/WTA al jucatorilor inscrisi in comparatie cu clasamentul tau actual.
+                            </p>
+                        </div>
+                    </div>
+
+                    {tournaments.length === 0 ? (
+                        <div className="sd-box sd-empty-state">
+                            <p>Nu exista turnee pentru filtrele selectate. Ajusteaza formularul si sincronizeaza din nou.</p>
+                        </div>
+                    ) : (
+                        <>
+                            <div style={{ marginBottom: 12, fontSize: 13, color: "#666" }}>
+                                {tournaments.length} turneu{tournaments.length !== 1 ? "e" : ""} viitoare.
+                            </div>
+                            <div className="sd-tournament-grid">
+                                {tournaments.map((t) => (
+                                    <TournamentCard
+                                        key={t.id}
+                                        tournament={t}
+                                        showPlayersDefault={false}
+                                        onRegister={registerForTournament}
+                                    />
+                                ))}
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
-
-            {tournaments.length === 0 ? (
-                <div className="sd-box sd-empty-state">
-                    <p>Nu exista turnee pentru filtrele selectate. Ajusteaza formularul si sincronizeaza din nou.</p>
-                </div>
-            ) : (
-                <>
-                    <div style={{ marginBottom: 12, fontSize: 13, color: "#666" }}>
-                        {tournaments.length} turneu{tournaments.length !== 1 ? "e" : ""} viitoare.
-                    </div>
-                    <div className="sd-tournament-grid">
-                        {tournaments.map((t) => (
-                            <TournamentCard
-                                key={t.id}
-                                tournament={t}
-                                showPlayersDefault={false}
-                                onRegister={registerForTournament}
-                            />
-                        ))}
-                    </div>
-                </>
-            )}
         </main>
     )
 }

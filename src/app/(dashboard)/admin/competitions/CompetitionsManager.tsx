@@ -247,205 +247,215 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
 
         return sortConfig.direction === "asc" ? "A-Z" : "Z-A"
     }
-    return (
-        <div className="sd-box">
-            <div className="sd-box-header">
-                <h2>Adaugare Competitie Noua</h2>
-            </div>
-            <div className="sd-box-content">
-                {error && <div style={{ color: "red", marginBottom: "10px", padding: "10px", background: "#fee", borderRadius: "5px" }}>{error}</div>}
-                {success && <div style={{ color: "green", marginBottom: "10px", padding: "10px", background: "#efe", borderRadius: "5px" }}>{success}</div>}
 
-                <form onSubmit={handleSubmit} style={{ display: "flex", gap: "10px", alignItems: "flex-end", marginBottom: "30px", padding: "15px", border: "1px solid #ddd", borderRadius: "5px", background: "#f9f9f9", flexWrap: "wrap" }}>
-                    <div style={{ flex: "2 1 240px" }}>
-                        <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Nume Competitie</label>
-                        <input
-                            required
-                            type="text"
-                            placeholder="ex: Liga 1"
-                            value={formData.name}
-                            onChange={e => setFormData({ ...formData, name: e.target.value })}
-                            style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
-                        />
-                    </div>
-                    <div style={{ flex: "1 1 150px" }}>
-                        <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Sport</label>
+    return (
+        <>
+            <div className="sd-box" style={{ marginBottom: "24px" }}>
+                <div className="sd-box-header">
+                    <h2>Adaugare competitie noua</h2>
+                </div>
+                <div className="sd-box-content">
+                    {error && <div style={{ color: "red", marginBottom: "10px", padding: "10px", background: "#fee", borderRadius: "5px" }}>{error}</div>}
+                    {success && <div style={{ color: "green", marginBottom: "10px", padding: "10px", background: "#efe", borderRadius: "5px" }}>{success}</div>}
+
+                    <form onSubmit={handleSubmit} style={{ display: "flex", gap: "10px", alignItems: "flex-end", flexWrap: "wrap" }}>
+                        <div style={{ flex: "2 1 240px" }}>
+                            <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Nume competitie</label>
+                            <input
+                                required
+                                type="text"
+                                placeholder="ex: Liga 1"
+                                value={formData.name}
+                                onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+                            />
+                        </div>
+                        <div style={{ flex: "1 1 150px" }}>
+                            <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Sport</label>
+                            <select
+                                required
+                                value={formData.sport}
+                                onChange={e => setFormData({ ...formData, sport: e.target.value as "fotbal" | "tenis" })}
+                                style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+                            >
+                                <option value="fotbal">Fotbal</option>
+                                <option value="tenis">Tenis</option>
+                            </select>
+                        </div>
+                        <div style={{ flex: "1 1 150px" }}>
+                            <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Continent</label>
+                            <select
+                                required
+                                value={formData.continent}
+                                onChange={e => handleCreateContinentChange(e.target.value)}
+                                style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+                            >
+                                <option value="">Selecteaza continent</option>
+                                {locationContinentOptions.map(option => (
+                                    <option key={option} value={option}>{option}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div style={{ flex: "1 1 150px" }}>
+                            <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Tara</label>
+                            <select
+                                required
+                                value={formData.country}
+                                onChange={e => setFormData({ ...formData, country: e.target.value })}
+                                disabled={!formData.continent}
+                                style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc", backgroundColor: !formData.continent ? "#f3f4f6" : "#fff" }}
+                            >
+                                <option value="">Selecteaza tara</option>
+                                {createCountryOptions.map(option => (
+                                    <option key={option.country} value={option.country}>{option.country}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div style={{ flex: "1 1 150px" }}>
+                            <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Data inceput</label>
+                            <input
+                                type="date"
+                                value={formData.startDate}
+                                onChange={e => setFormData({ ...formData, startDate: e.target.value })}
+                                style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+                            />
+                        </div>
+                        <div style={{ flex: "1 1 150px" }}>
+                            <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Data final</label>
+                            <input
+                                type="date"
+                                value={formData.endDate}
+                                min={formData.startDate || undefined}
+                                onChange={e => setFormData({ ...formData, endDate: e.target.value })}
+                                style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+                            />
+                        </div>
+                        <div>
+                            <button disabled={loading} type="submit" style={{ padding: "9px 20px", background: "#0070f3", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }}>
+                                {loading ? "Se salveaza..." : "Adauga"}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div className="sd-box">
+                <div className="sd-box-header">
+                    <h2>Competitii existente ({sortedCompetitions.length}/{competitions.length})</h2>
+                </div>
+                <div className="sd-box-content" style={{ padding: 0, overflowX: "auto" }}>
+                    <div className="sd-table-toolbar">
+                        <label htmlFor="competition-sport-filter" className="sd-table-toolbar-label">Sport</label>
                         <select
-                            required
-                            value={formData.sport}
-                            onChange={e => setFormData({ ...formData, sport: e.target.value as "fotbal" | "tenis" })}
-                            style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+                            id="competition-sport-filter"
+                            value={sportFilter}
+                            onChange={e => setSportFilter(e.target.value)}
+                            className="sd-input"
+                            style={{ minWidth: "150px" }}
                         >
+                            <option value="all">Toate sporturile</option>
                             <option value="fotbal">Fotbal</option>
                             <option value="tenis">Tenis</option>
                         </select>
-                    </div>
-                    <div style={{ flex: "1 1 150px" }}>
-                        <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Continent</label>
+
+                        <label htmlFor="competition-continent-filter" className="sd-table-toolbar-label">Continent</label>
                         <select
-                            required
-                            value={formData.continent}
-                            onChange={e => handleCreateContinentChange(e.target.value)}
-                            style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+                            id="competition-continent-filter"
+                            value={continentFilter}
+                            onChange={e => {
+                                setContinentFilter(e.target.value)
+                                setCountryFilter("all")
+                            }}
+                            className="sd-input"
+                            style={{ minWidth: "170px" }}
                         >
-                            <option value="">Selecteaza continent</option>
-                            {locationContinentOptions.map(option => (
-                                <option key={option} value={option}>{option}</option>
+                            <option value="all">Toate continentele</option>
+                            {locationContinentOptions.map(continent => (
+                                <option key={continent} value={continent}>{continent}</option>
+                            ))}
+                        </select>
+
+                        <label htmlFor="competition-country-filter" className="sd-table-toolbar-label">Tara</label>
+                        <select
+                            id="competition-country-filter"
+                            value={countryFilter}
+                            onChange={e => setCountryFilter(e.target.value)}
+                            className="sd-input"
+                            style={{ minWidth: "170px" }}
+                        >
+                            <option value="all">Toate tarile</option>
+                            {Array.from(new Map(filterCountryOptions.map(option => [option.country, option])).values()).map(option => (
+                                <option key={`${option.continent}-${option.country}`} value={option.country}>{option.country}</option>
                             ))}
                         </select>
                     </div>
-                    <div style={{ flex: "1 1 150px" }}>
-                        <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Tara</label>
-                        <select
-                            required
-                            value={formData.country}
-                            onChange={e => setFormData({ ...formData, country: e.target.value })}
-                            disabled={!formData.continent}
-                            style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc", backgroundColor: !formData.continent ? "#f3f4f6" : "#fff" }}
-                        >
-                            <option value="">Selecteaza tara</option>
-                            {createCountryOptions.map(option => (
-                                <option key={option.country} value={option.country}>{option.country}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div style={{ flex: "1 1 150px" }}>
-                        <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Data inceput</label>
-                        <input
-                            type="date"
-                            value={formData.startDate}
-                            onChange={e => setFormData({ ...formData, startDate: e.target.value })}
-                            style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
-                        />
-                    </div>
-                    <div style={{ flex: "1 1 150px" }}>
-                        <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Data final</label>
-                        <input
-                            type="date"
-                            value={formData.endDate}
-                            min={formData.startDate || undefined}
-                            onChange={e => setFormData({ ...formData, endDate: e.target.value })}
-                            style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
-                        />
-                    </div>
-                    <div>
-                        <button disabled={loading} type="submit" style={{ padding: "9px 20px", background: "#0070f3", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }}>
-                            {loading ? "Se salveaza..." : "Adauga"}
-                        </button>
-                    </div>
-                </form>
 
-                <h3 style={{ marginBottom: "15px", fontSize: "16px", borderBottom: "1px solid #eee", paddingBottom: "10px" }}>Competitii Existente ({sortedCompetitions.length}/{competitions.length})</h3>
-
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", marginBottom: "12px" }}>
-                    <label htmlFor="competition-sport-filter" style={{ fontSize: "12px", fontWeight: "bold" }}>Sport</label>
-                    <select
-                        id="competition-sport-filter"
-                        value={sportFilter}
-                        onChange={e => setSportFilter(e.target.value)}
-                        style={{ border: "1px solid #ccc", padding: "6px 10px", fontSize: "13px", backgroundColor: "#fff", minWidth: "150px" }}
-                    >
-                        <option value="all">Toate sporturile</option>
-                        <option value="fotbal">Fotbal</option>
-                        <option value="tenis">Tenis</option>
-                    </select>
-
-                    <label htmlFor="competition-continent-filter" style={{ fontSize: "12px", fontWeight: "bold" }}>Continent</label>
-                    <select
-                        id="competition-continent-filter"
-                        value={continentFilter}
-                        onChange={e => {
-                            setContinentFilter(e.target.value)
-                            setCountryFilter("all")
-                        }}
-                        style={{ border: "1px solid #ccc", padding: "6px 10px", fontSize: "13px", backgroundColor: "#fff", minWidth: "170px" }}
-                    >
-                        <option value="all">Toate continentele</option>
-                        {locationContinentOptions.map(continent => (
-                            <option key={continent} value={continent}>{continent}</option>
-                        ))}
-                    </select>
-
-                    <label htmlFor="competition-country-filter" style={{ fontSize: "12px", fontWeight: "bold" }}>Tara</label>
-                    <select
-                        id="competition-country-filter"
-                        value={countryFilter}
-                        onChange={e => setCountryFilter(e.target.value)}
-                        style={{ border: "1px solid #ccc", padding: "6px 10px", fontSize: "13px", backgroundColor: "#fff", minWidth: "170px" }}
-                    >
-                        <option value="all">Toate tarile</option>
-                        {Array.from(new Map(filterCountryOptions.map(option => [option.country, option])).values()).map(option => (
-                            <option key={`${option.continent}-${option.country}`} value={option.country}>{option.country}</option>
-                        ))}
-                    </select>
-                </div>
-
-                <div style={{ overflowX: "auto" }}>
-                    <table className="sd-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>
-                                    <button type="button" onClick={() => handleSort("name")} aria-label="Sorteaza dupa numele competitiei" style={{ background: "none", border: 0, padding: 0, color: "inherit", font: "inherit", fontWeight: 700, cursor: "pointer" }}>
-                                        Nume Competitie {renderSortIndicator("name")}
-                                    </button>
-                                </th>
-                                <th>
-                                    <button type="button" onClick={() => handleSort("sport")} aria-label="Sorteaza dupa sport" style={{ background: "none", border: 0, padding: 0, color: "inherit", font: "inherit", fontWeight: 700, cursor: "pointer" }}>
-                                        Sport {renderSortIndicator("sport")}
-                                    </button>
-                                </th>
-                                <th>
-                                    <button type="button" onClick={() => handleSort("country")} aria-label="Sorteaza dupa tara" style={{ background: "none", border: 0, padding: 0, color: "inherit", font: "inherit", fontWeight: 700, cursor: "pointer" }}>
-                                        Tara {renderSortIndicator("country")}
-                                    </button>
-                                </th>
-                                <th>
-                                    <button type="button" onClick={() => handleSort("continent")} aria-label="Sorteaza dupa continent" style={{ background: "none", border: 0, padding: 0, color: "inherit", font: "inherit", fontWeight: 700, cursor: "pointer" }}>
-                                        Continent {renderSortIndicator("continent")}
-                                    </button>
-                                </th>
-                                <th>Durata</th>
-                                <th>Data Crearii</th>
-                                <th style={{ textAlign: "right" }}>Actiuni</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {sortedCompetitions.map(comp => (
-                                <tr key={comp.id}>
-                                    <td>#{comp.id}</td>
-                                    <td style={{ fontWeight: "bold" }}>{comp.name}</td>
-                                    <td>
-                                        <span style={{
-                                            padding: "3px 8px",
-                                            borderRadius: "12px",
-                                            fontSize: "12px",
-                                            background: comp.sport === "fotbal" ? "#e6f7ff" : "#f6ffed",
-                                            color: comp.sport === "fotbal" ? "#0050b3" : "#389e0d",
-                                            border: `1px solid ${comp.sport === "fotbal" ? "#91d5ff" : "#b7eb8f"}`
-                                        }}>
-                                            {sportLabel(comp.sport)}
-                                        </span>
-                                    </td>
-                                    <td>{comp.country}</td>
-                                    <td>{comp.continent}</td>
-                                    <td>{formatCompetitionDuration(comp.startDate, comp.endDate)}</td>
-                                    <td>{new Date(comp.createdAt).toLocaleDateString("ro-RO")}</td>
-                                    <td style={{ textAlign: "right" }}>
-                                        <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", flexWrap: "wrap" }}>
-                                            <button disabled={loading} type="button" onClick={() => openEditModal(comp)} style={{ padding: "4px 10px", cursor: "pointer", background: "#f0f7ff", color: "#0050b3", border: "1px solid #91d5ff", borderRadius: "3px" }}>Edit</button>
-                                            <button disabled={loading} type="button" onClick={() => handleDelete(comp.id)} style={{ padding: "4px 10px", cursor: "pointer", background: "#fff0f0", color: "red", border: "1px solid #ffcccc", borderRadius: "3px" }}>Sterge</button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                            {sortedCompetitions.length === 0 && (
+                    {sortedCompetitions.length === 0 ? (
+                        <div className="sd-empty-state">
+                            <p>Nu exista nicio competitie pentru filtrele selectate.</p>
+                        </div>
+                    ) : (
+                        <table className="sd-table">
+                            <thead>
                                 <tr>
-                                    <td colSpan={8} style={{ textAlign: "center", padding: "20px", color: "#666" }}>Nu exista nicio competitie pentru filtrele selectate.</td>
+                                    <th>ID</th>
+                                    <th>
+                                        <button type="button" onClick={() => handleSort("name")} aria-label="Sorteaza dupa numele competitiei" style={{ background: "none", border: 0, padding: 0, color: "inherit", font: "inherit", fontWeight: 700, cursor: "pointer" }}>
+                                            Nume competitie {renderSortIndicator("name")}
+                                        </button>
+                                    </th>
+                                    <th>
+                                        <button type="button" onClick={() => handleSort("sport")} aria-label="Sorteaza dupa sport" style={{ background: "none", border: 0, padding: 0, color: "inherit", font: "inherit", fontWeight: 700, cursor: "pointer" }}>
+                                            Sport {renderSortIndicator("sport")}
+                                        </button>
+                                    </th>
+                                    <th>
+                                        <button type="button" onClick={() => handleSort("country")} aria-label="Sorteaza dupa tara" style={{ background: "none", border: 0, padding: 0, color: "inherit", font: "inherit", fontWeight: 700, cursor: "pointer" }}>
+                                            Tara {renderSortIndicator("country")}
+                                        </button>
+                                    </th>
+                                    <th>
+                                        <button type="button" onClick={() => handleSort("continent")} aria-label="Sorteaza dupa continent" style={{ background: "none", border: 0, padding: 0, color: "inherit", font: "inherit", fontWeight: 700, cursor: "pointer" }}>
+                                            Continent {renderSortIndicator("continent")}
+                                        </button>
+                                    </th>
+                                    <th>Durata</th>
+                                    <th>Data crearii</th>
+                                    <th style={{ textAlign: "right" }}>Actiuni</th>
                                 </tr>
-                            )}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {sortedCompetitions.map(comp => (
+                                    <tr key={comp.id}>
+                                        <td>#{comp.id}</td>
+                                        <td style={{ fontWeight: "bold" }}>{comp.name}</td>
+                                        <td>
+                                            <span style={{
+                                                padding: "3px 8px",
+                                                borderRadius: "12px",
+                                                fontSize: "12px",
+                                                background: comp.sport === "fotbal" ? "#e6f7ff" : "#f6ffed",
+                                                color: comp.sport === "fotbal" ? "#0050b3" : "#389e0d",
+                                                border: `1px solid ${comp.sport === "fotbal" ? "#91d5ff" : "#b7eb8f"}`,
+                                            }}>
+                                                {sportLabel(comp.sport)}
+                                            </span>
+                                        </td>
+                                        <td>{comp.country}</td>
+                                        <td>{comp.continent}</td>
+                                        <td>{formatCompetitionDuration(comp.startDate, comp.endDate)}</td>
+                                        <td>{new Date(comp.createdAt).toLocaleDateString("ro-RO")}</td>
+                                        <td style={{ textAlign: "right" }}>
+                                            <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", flexWrap: "wrap" }}>
+                                                <button disabled={loading} type="button" onClick={() => openEditModal(comp)} style={{ padding: "4px 10px", cursor: "pointer", background: "#f0f7ff", color: "#0050b3", border: "1px solid #91d5ff", borderRadius: "3px" }}>Edit</button>
+                                                <button disabled={loading} type="button" onClick={() => handleDelete(comp.id)} style={{ padding: "4px 10px", cursor: "pointer", background: "#fff0f0", color: "red", border: "1px solid #ffcccc", borderRadius: "3px" }}>Sterge</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
             </div>
 
@@ -491,6 +501,6 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                     onSubmit={handleSubmit}
                 />
             )}
-        </div>
+        </>
     )
 }

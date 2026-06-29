@@ -4,11 +4,19 @@ import { useState } from "react"
 
 type SidebarTab = "clasament" | "jucatori"
 
+export type SidebarRecentInjury = {
+    id: number
+    athleteName: string
+    injuryType: string
+    bodyPart: string
+    severity: string
+    createdAt: string
+}
 
 export type SidebarPlayer = {
     id: number
     name: string
-    team: string
+    ctl: number | null
     atl: number | null
     tsb: number | null
 }
@@ -27,36 +35,73 @@ type DashboardSidebarProps = {
     players: SidebarPlayer[]
     standings: SidebarStanding[]
     standingsLeagueName: string | null
+    recentInjuries?: SidebarRecentInjury[]
 }
 
 function formatMetric(value: number | null) {
     return value === null ? "-" : value.toFixed(1)
 }
 
-export default function DashboardSidebar({ players, standings, standingsLeagueName }: DashboardSidebarProps) {
+export default function DashboardSidebar({
+    players,
+    standings,
+    standingsLeagueName,
+    recentInjuries,
+}: DashboardSidebarProps) {
     const [activeTab, setActiveTab] = useState<SidebarTab>("clasament")
 
     return (
         <aside className="dsb-sidebar">
-            {/* Tab buttons */}
+            {recentInjuries && (
+                <div className="sd-box">
+                    <div className="sd-box-header">
+                        <h2>Accidentari Recente</h2>
+                    </div>
+                    <div className="sd-box-content">
+                        {recentInjuries.length === 0 ? (
+                            <div className="sd-empty-state">
+                                <p>Nu exista accidentari recente.</p>
+                            </div>
+                        ) : (
+                            <ul className="sd-list">
+                                {recentInjuries.map((injury) => (
+                                    <li key={injury.id}>
+                                        <strong>{injury.athleteName}</strong>
+                                        <br />
+                                        {injury.injuryType} - {injury.bodyPart}
+                                        <br />
+                                        <span style={{ color: "#666" }}>
+                                            {injury.severity} - {" "}
+                                            {new Date(injury.createdAt).toLocaleDateString("ro-RO", {
+                                                day: "2-digit",
+                                                month: "2-digit",
+                                                year: "numeric",
+                                            })}
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                </div>
+            )}
             <div className="dsb-tabs">
                 <button
                     id="dsb-btn-clasament"
                     className={`dsb-tab-btn${activeTab === "clasament" ? " dsb-tab-btn--active" : ""}`}
                     onClick={() => setActiveTab("clasament")}
                 >
-                    🏆 Clasament
+                    Clasament
                 </button>
                 <button
                     id="dsb-btn-jucatori"
                     className={`dsb-tab-btn${activeTab === "jucatori" ? " dsb-tab-btn--active" : ""}`}
                     onClick={() => setActiveTab("jucatori")}
                 >
-                    ⚽ Jucători
+                    Jucatori
                 </button>
             </div>
 
-            {/* Tab content */}
             <div className="dsb-content">
                 {activeTab === "clasament" && (
                     <div className="dsb-panel" id="dsb-panel-clasament">
@@ -68,11 +113,11 @@ export default function DashboardSidebar({ players, standings, standingsLeagueNa
                             <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th>Echipă</th>
+                                    <th title="Echipa">Echipa</th>
                                     <th title="Meciuri jucate">MJ</th>
                                     <th title="Victorii">V</th>
                                     <th title="Egaluri">E</th>
-                                    <th title="Înfrângeri">Î</th>
+                                    <th title="Infrangeri">I</th>
                                     <th title="Puncte">Pct</th>
                                 </tr>
                             </thead>
@@ -122,8 +167,8 @@ export default function DashboardSidebar({ players, standings, standingsLeagueNa
                             <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th>Jucător</th>
-                                    <th>Echipă</th>
+                                    <th>Jucator</th>
+                                    <th title="Chronic Training Load">CTL</th>
                                     <th title="Acute Training Load">ATL</th>
                                     <th title="Training Stress Balance">TSB</th>
                                 </tr>
@@ -138,8 +183,8 @@ export default function DashboardSidebar({ players, standings, standingsLeagueNa
                                         <tr key={row.id}>
                                             <td className="dsb-pos">{index + 1}</td>
                                             <td className="dsb-player-name">{row.name}</td>
-                                            <td className="dsb-team-small">{row.team}</td>
-                                            <td className="dsb-pts">{formatMetric(row.atl)}</td>
+                                            <td className="dsb-pts">{formatMetric(row.ctl)}</td>
+                                            <td>{formatMetric(row.atl)}</td>
                                             <td>{formatMetric(row.tsb)}</td>
                                         </tr>
                                     ))

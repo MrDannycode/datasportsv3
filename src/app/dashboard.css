@@ -101,17 +101,18 @@
     order: 1;
 }
 
-.sd-nav a {
+.sd-nav a,
+.sd-nav .sd-nav-button {
     font-weight: bold;
     color: #555;
     font-size: 14px;
 }
 
-.sd-nav a.active {
+.sd-nav a.active,
+.sd-nav .sd-nav-button.active {
     color: #000;
     text-decoration: underline;
 }
-
 .sd-user-info {
     font-size: 13px;
     color: #666;
@@ -200,6 +201,16 @@
     flex-direction: column;
 }
 
+.sd-manager-football-panels {
+    display: grid;
+    grid-template-columns: minmax(0, 2.2fr) minmax(280px, 360px);
+    align-items: flex-start;
+}
+
+.sd-manager-football-sidebar {
+    gap: 20px;
+}
+
 .sd-sticky-sidebar {
     align-self: flex-start;
     position: sticky;
@@ -215,6 +226,14 @@
 .sd-athlete-left-sidebar {
     width: 260px;
     flex: 0 0 260px;
+}
+
+.sd-athlete-right-sidebar {
+    width: 320px;
+    flex: 0 0 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 .sd-athlete-main-content {
@@ -300,6 +319,10 @@
 
     .sd-panels {
         flex-direction: column;
+    }
+
+    .sd-manager-football-panels {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -590,6 +613,22 @@
     border-top: 1px solid #eee;
 }
 
+.coach-athlete-modal .sd-form-group {
+    padding: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #f8fafc;
+}
+
+.coach-athlete-modal .sd-input {
+    border: 1px solid #94a3b8;
+    min-height: 38px;
+}
+
+.coach-athlete-modal .sd-input:focus {
+    border-color: #2563eb;
+}
+
 /* =========================================================
    Dashboard Sidebar (DashboardSidebar.tsx)
    ========================================================= */
@@ -624,7 +663,13 @@
 /* ---- Tab buttons row ---- */
 .dsb-tabs {
     display: flex;
-    border-bottom: 2px solid var(--sd-border);
+    align-items: stretch;
+    background: linear-gradient(180deg, #ffffff 0%, #f4f7fb 100%);
+    border-top: 1px solid color-mix(in srgb, var(--sd-border) 68%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--sd-border) 68%, transparent);
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+    overflow: hidden;
 }
 
 .dsb-tab-btn {
@@ -645,6 +690,14 @@
 .dsb-tab-btn:hover {
     background: rgba(0, 86, 179, 0.06);
     color: #0056b3;
+}
+
+.dsb-tab-btn:first-child {
+    border-top-left-radius: 14px;
+}
+
+.dsb-tab-btn:last-child {
+    border-top-right-radius: 14px;
 }
 
 .dsb-tab-btn--active {
@@ -815,7 +868,8 @@
         flex-direction: column;
     }
 
-    .sd-athlete-left-sidebar {
+    .sd-athlete-left-sidebar,
+    .sd-athlete-right-sidebar {
         width: 100%;
         flex-basis: auto;
     }
@@ -1243,6 +1297,21 @@
     border-bottom-color: color-mix(in srgb, var(--sd-border) 68%, transparent);
 }
 
+.sd-table-mode-normal .dsb-tabs {
+    background: linear-gradient(180deg, #ffffff 0%, #f4f7fb 100%);
+    border-top-color: color-mix(in srgb, var(--sd-border) 68%, transparent);
+    border-bottom-color: color-mix(in srgb, var(--sd-border) 68%, transparent);
+}
+
+.sd-table-mode-normal .dsb-tab-btn {
+    padding: 12px 16px;
+    color: #243447;
+}
+
+.sd-table-mode-normal .dsb-tab-btn--active {
+    background: rgba(0, 86, 179, 0.08);
+}
+
 .dark.sd-table-mode-normal .sd-box,
 .dark.sd-table-mode-normal .dsb-sidebar {
     border-color: #2f3a4a;
@@ -1253,6 +1322,22 @@
 .dark.sd-table-mode-normal .dsb-panel-header {
     background: linear-gradient(180deg, #202a3a 0%, #182232 100%);
     border-bottom-color: #2f3a4a;
+}
+
+.dark.sd-table-mode-normal .dsb-tabs {
+    background: linear-gradient(180deg, #202a3a 0%, #182232 100%);
+    border-top-color: #2f3a4a;
+    border-bottom-color: #2f3a4a;
+}
+
+.dark.sd-table-mode-normal .dsb-tab-btn {
+    color: #dbe7f5;
+}
+
+.dark.sd-table-mode-normal .dsb-tab-btn--active {
+    background: rgba(96, 165, 250, 0.14);
+    color: #bfdbfe;
+    border-bottom-color: #60a5fa;
 }
 
 .dark.sd-table-mode-normal .sd-box-header h2 {
@@ -1281,20 +1366,23 @@
     letter-spacing: 0;
 }
 
-.sd-table-mode-normal .sd-nav a {
+.sd-table-mode-normal .sd-nav a,
+.sd-table-mode-normal .sd-nav .sd-nav-button {
     color: #536273;
     border-radius: 999px;
     padding: 5px 10px;
     transition: background 0.15s ease, color 0.15s ease;
 }
 
-.sd-table-mode-normal .sd-nav a:hover {
+.sd-table-mode-normal .sd-nav a:hover,
+.sd-table-mode-normal .sd-nav .sd-nav-button:hover {
     background: rgba(0, 86, 179, 0.075);
     color: #0056b3;
     text-decoration: none;
 }
 
-.sd-table-mode-normal .sd-nav a.active {
+.sd-table-mode-normal .sd-nav a.active,
+.sd-table-mode-normal .sd-nav .sd-nav-button.active {
     background: rgba(0, 86, 179, 0.12);
     color: #004494;
     text-decoration: none;
@@ -1308,13 +1396,15 @@
     color: #243447;
 }
 
-.sd-table-mode-normal .sd-user-info a {
+.sd-table-mode-normal .sd-user-info a,
+.sd-table-mode-normal .sd-user-info .sd-user-link-button {
     color: #0056b3;
     border-radius: 999px;
     padding: 3px 8px;
 }
 
-.sd-table-mode-normal .sd-user-info a:hover {
+.sd-table-mode-normal .sd-user-info a:hover,
+.sd-table-mode-normal .sd-user-info .sd-user-link-button:hover {
     background: rgba(0, 86, 179, 0.075);
     text-decoration: none;
 }
@@ -1331,22 +1421,26 @@
 }
 
 .dark.sd-table-mode-normal .sd-nav a,
+.dark.sd-table-mode-normal .sd-nav .sd-nav-button,
 .dark.sd-table-mode-normal .sd-user-info {
     color: #aebdd0;
 }
 
 .dark.sd-table-mode-normal .sd-nav a:hover,
+.dark.sd-table-mode-normal .sd-nav .sd-nav-button:hover,
 .dark.sd-table-mode-normal .sd-user-info a:hover {
     background: rgba(96, 165, 250, 0.11);
     color: #93c5fd;
 }
 
-.dark.sd-table-mode-normal .sd-nav a.active {
+.dark.sd-table-mode-normal .sd-nav a.active,
+.dark.sd-table-mode-normal .sd-nav .sd-nav-button.active {
     background: rgba(96, 165, 250, 0.16);
     color: #bfdbfe;
 }
 
-.dark.sd-table-mode-normal .sd-user-info a {
+.dark.sd-table-mode-normal .sd-user-info a,
+.dark.sd-table-mode-normal .sd-user-info .sd-user-link-button {
     color: #93c5fd;
 }
 
@@ -1441,6 +1535,15 @@
     outline-color: #60a5fa;
 }
 
+.dark .coach-athlete-modal .sd-form-group {
+    background: #101826;
+    border-color: #475569;
+}
+
+.dark .coach-athlete-modal .sd-input {
+    border-color: #64748b;
+}
+
 .dark .sd-filter-btn:hover,
 .dark .sd-btn-secondary:hover {
     background: #243044;
@@ -1510,4 +1613,946 @@
     border-color: #374151;
 }
 
+
+.sd-table-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.sd-table-toolbar-label {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.sd-table-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.dark .sd-table-toolbar {
+  border-bottom-color: #2a2f3a;
+}
+
+.sd-admin-tables-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 1200px) {
+  .sd-admin-tables-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .sd-admin-tables-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+.sd-nav .sd-nav-button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+
+.sd-user-info .sd-user-link-button {
+    border: none;
+    background: transparent;
+    color: #0056b3;
+    cursor: pointer;
+    font: inherit;
+}
+
+
+.sd-hover-box {
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.sd-hover-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.1);
+    border-color: color-mix(in srgb, var(--sd-border) 50%, #60a5fa);
+}
+
+.dark .sd-hover-box:hover {
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.28);
+    border-color: #3b82f6;
+}
+
+
+
+/* ---- Stronger normal mode colour layer ------------------ */
+.sd-table-mode-normal .sd-container {
+    background: linear-gradient(180deg, #eaf2ff 0%, #f7fafc 46%, #edf7f3 100%);
+}
+
+.sd-table-mode-normal .sd-header {
+    background: linear-gradient(135deg, #ffffff 0%, #edf5ff 52%, #ecfdf5 100%);
+    border-color: #c9d9ee;
+}
+
+.sd-table-mode-normal .sd-box,
+.sd-table-mode-normal .dsb-sidebar,
+.sd-table-mode-normal .sd-tournament-card {
+    background: #ffffff;
+    border-color: #c9d9ee;
+}
+
+.sd-table-mode-normal .sd-box-header,
+.sd-table-mode-normal .dsb-panel-header,
+.sd-table-mode-normal .sd-tournament-card-header {
+    background: linear-gradient(135deg, #eaf2ff 0%, #edfdf6 100%);
+    border-bottom-color: #c9d9ee;
+}
+
+.sd-table-mode-normal .sd-page-title h1 {
+    border-bottom-color: #9db8d8;
+    color: #1e3a5f;
+}
+
+.sd-table-mode-normal .sd-table th {
+    background: linear-gradient(135deg, #dbeafe 0%, #dff7ea 100%);
+    color: #17324f;
+}
+
+.sd-table-mode-normal .sd-table tbody tr:nth-child(even) {
+    background: rgba(14, 116, 144, 0.045);
+}
+
+.sd-table-mode-normal .sd-table tbody tr:hover,
+.sd-table-mode-normal .dsb-table tr:hover td {
+    background: rgba(37, 99, 235, 0.095);
+}
+
+.sd-table-mode-normal .sd-nav a.active,
+.sd-table-mode-normal .sd-filter-btn.active {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+    color: #fff;
+}
+
+.sd-table-mode-normal .sd-nav a:hover,
+.sd-table-mode-normal .sd-user-info a:hover,
+.sd-table-mode-normal .sd-filter-btn:hover {
+    background: rgba(13, 148, 136, 0.12);
+    color: #0f766e;
+}
+
+.sd-table-mode-normal .sd-btn-primary,
+.sd-table-mode-normal .sd-tournament-register-btn {
+    background: #0f766e;
+    border-color: #0f766e;
+}
+
+.sd-table-mode-normal .sd-btn-primary:hover,
+.sd-table-mode-normal .sd-tournament-register-btn:hover:not(:disabled) {
+    background: #115e59;
+    border-color: #115e59;
+}
+
+.sd-table-mode-normal .sd-btn-edit {
+    background: #e0f2fe;
+    color: #075985;
+    border-color: #7dd3fc;
+}
+
+.sd-table-mode-normal .sd-btn-delete {
+    background: #fee2e2;
+    color: #991b1b;
+    border-color: #fca5a5;
+}
+
+.sd-table-mode-normal .sd-badge-tehnic,
+.sd-table-mode-normal .sd-surface-hard {
+    background: #dbeafe;
+    color: #1e3a8a;
+    border-color: #93c5fd;
+}
+
+.sd-table-mode-normal .sd-badge-fizic,
+.sd-table-mode-normal .sd-surface-iarba,
+.sd-table-mode-normal .sd-difficulty-usor,
+.sd-table-mode-normal .sd-tournament-register-btn.is-registered {
+    background: #dcfce7;
+    color: #166534;
+    border-color: #86efac;
+}
+
+.sd-table-mode-normal .sd-badge-tactic,
+.sd-table-mode-normal .sd-surface-zgura,
+.sd-table-mode-normal .sd-difficulty-mediu {
+    background: #fef3c7;
+    color: #92400e;
+    border-color: #fbbf24;
+}
+
+.dark.sd-table-mode-normal .sd-container {
+    background: linear-gradient(180deg, #07111f 0%, #0e1726 48%, #071a18 100%);
+}
+
+.dark.sd-table-mode-normal .sd-header {
+    background: linear-gradient(135deg, #17243a 0%, #102433 52%, #0d2a26 100%);
+    border-color: #334863;
+}
+
+.dark.sd-table-mode-normal .sd-box,
+.dark.sd-table-mode-normal .dsb-sidebar,
+.dark.sd-table-mode-normal .sd-tournament-card {
+    background: #111827;
+    border-color: #334863;
+}
+
+.dark.sd-table-mode-normal .sd-box-header,
+.dark.sd-table-mode-normal .dsb-panel-header,
+.dark.sd-table-mode-normal .sd-tournament-card-header {
+    background: linear-gradient(135deg, #17243a 0%, #102a2d 100%);
+    border-bottom-color: #334863;
+}
+
+.dark.sd-table-mode-normal .sd-page-title h1 {
+    border-bottom-color: #3b5f85;
+    color: #dbeafe;
+}
+
+.dark.sd-table-mode-normal .sd-table th {
+    background: linear-gradient(135deg, #1e3a5f 0%, #16433d 100%);
+    color: #e5edf7;
+}
+
+.dark.sd-table-mode-normal .sd-table tbody tr:nth-child(even) {
+    background: rgba(20, 184, 166, 0.055);
+}
+
+.dark.sd-table-mode-normal .sd-table tbody tr:hover,
+.dark.sd-table-mode-normal .dsb-table tr:hover td {
+    background: rgba(96, 165, 250, 0.15);
+}
+
+.dark.sd-table-mode-normal .sd-nav a.active,
+.dark.sd-table-mode-normal .sd-filter-btn.active {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #fff;
+}
+
+.dark.sd-table-mode-normal .sd-nav a:hover,
+.dark.sd-table-mode-normal .sd-user-info a:hover,
+.dark.sd-table-mode-normal .sd-filter-btn:hover {
+    background: rgba(45, 212, 191, 0.13);
+    color: #5eead4;
+}
+
+/* ---- Experimental normal mode colour pass --------------- */
+.sd-table-mode-normal .sd-container {
+    background:
+        radial-gradient(circle at 12% 8%, rgba(14, 165, 233, 0.18), transparent 30%),
+        radial-gradient(circle at 88% 12%, rgba(16, 185, 129, 0.16), transparent 28%),
+        linear-gradient(145deg, #e9f4ff 0%, #f8fbff 44%, #eafaf3 100%);
+}
+
+.sd-table-mode-normal .sd-header {
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(228, 241, 255, 0.96) 48%, rgba(226, 255, 243, 0.94) 100%);
+    border-color: #b6cce8;
+    box-shadow: 0 18px 42px rgba(30, 58, 95, 0.12);
+}
+
+.sd-table-mode-normal .sd-logo strong {
+    color: #0f3b57;
+}
+
+.sd-table-mode-normal .sd-box,
+.sd-table-mode-normal .dsb-sidebar,
+.sd-table-mode-normal .sd-tournament-card {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(247, 251, 255, 0.98) 100%);
+    border-color: #b6cce8;
+    box-shadow: 0 16px 38px rgba(30, 58, 95, 0.1);
+}
+
+.sd-table-mode-normal .sd-box-header,
+.sd-table-mode-normal .dsb-panel-header,
+.sd-table-mode-normal .sd-tournament-card-header {
+    background:
+        linear-gradient(90deg, rgba(37, 99, 235, 0.13) 0%, rgba(14, 165, 233, 0.13) 46%, rgba(16, 185, 129, 0.13) 100%),
+        #f8fbff;
+    border-bottom-color: #b6cce8;
+}
+
+.sd-table-mode-normal .sd-box-header h2,
+.sd-table-mode-normal .dsb-panel-title {
+    color: #075985;
+}
+
+.sd-table-mode-normal .sd-table {
+    border-color: #a9c4e5;
+    box-shadow: 0 14px 32px rgba(30, 58, 95, 0.11);
+}
+
+.sd-table-mode-normal .sd-table th {
+    background:
+        linear-gradient(90deg, rgba(37, 99, 235, 0.22) 0%, rgba(14, 165, 233, 0.2) 48%, rgba(20, 184, 166, 0.2) 100%),
+        #eef7ff;
+    color: #0f2f4a;
+    border-bottom-color: #9db8d8;
+}
+
+.sd-table-mode-normal .sd-table td {
+    border-bottom-color: rgba(157, 184, 216, 0.55);
+}
+
+.sd-table-mode-normal .sd-table tbody tr:nth-child(even) {
+    background: rgba(14, 165, 233, 0.06);
+}
+
+.sd-table-mode-normal .sd-table tbody tr:hover,
+.sd-table-mode-normal .dsb-table tr:hover td {
+    background: linear-gradient(90deg, rgba(37, 99, 235, 0.12), rgba(20, 184, 166, 0.1));
+}
+
+.sd-table-mode-normal .sd-nav a,
+.sd-table-mode-normal .sd-user-info a,
+.sd-table-mode-normal .sd-filter-btn {
+    border: 1px solid transparent;
+}
+
+.sd-table-mode-normal .sd-nav a:hover,
+.sd-table-mode-normal .sd-user-info a:hover,
+.sd-table-mode-normal .sd-filter-btn:hover {
+    background: rgba(14, 165, 233, 0.13);
+    border-color: rgba(14, 165, 233, 0.32);
+    color: #0369a1;
+}
+
+.sd-table-mode-normal .sd-nav a.active,
+.sd-table-mode-normal .sd-filter-btn.active {
+    background: linear-gradient(135deg, #2563eb 0%, #0891b2 100%);
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 8px 18px rgba(37, 99, 235, 0.24);
+}
+
+.sd-table-mode-normal .sd-btn-primary,
+.sd-table-mode-normal .sd-tournament-register-btn {
+    background: linear-gradient(135deg, #0f766e 0%, #0891b2 100%);
+    border-color: transparent;
+    box-shadow: 0 10px 20px rgba(15, 118, 110, 0.2);
+}
+
+.sd-table-mode-normal .sd-btn-secondary,
+.sd-table-mode-normal .sd-filter-btn {
+    background: rgba(255, 255, 255, 0.72);
+    border-color: #c9d9ee;
+    color: #334155;
+}
+
+.sd-table-mode-normal .sd-input {
+    border-color: #b6cce8;
+    background: rgba(255, 255, 255, 0.88);
+}
+
+.sd-table-mode-normal .sd-input:focus {
+    border-color: #0891b2;
+    outline-color: #0891b2;
+}
+
+.sd-table-mode-normal .sd-progress-fill {
+    background: linear-gradient(90deg, #2563eb, #14b8a6);
+}
+
+.dark.sd-table-mode-normal .sd-container {
+    background:
+        radial-gradient(circle at 12% 8%, rgba(37, 99, 235, 0.23), transparent 31%),
+        radial-gradient(circle at 86% 14%, rgba(20, 184, 166, 0.18), transparent 30%),
+        linear-gradient(145deg, #050b16 0%, #0d1626 48%, #061a17 100%);
+}
+
+.dark.sd-table-mode-normal .sd-header {
+    background:
+        linear-gradient(135deg, rgba(23, 36, 58, 0.98) 0%, rgba(13, 32, 51, 0.98) 48%, rgba(8, 43, 37, 0.96) 100%);
+    border-color: #3b5f85;
+    box-shadow: 0 20px 44px rgba(0, 0, 0, 0.34);
+}
+
+.dark.sd-table-mode-normal .sd-logo strong {
+    color: #dff6ff;
+}
+
+.dark.sd-table-mode-normal .sd-box,
+.dark.sd-table-mode-normal .dsb-sidebar,
+.dark.sd-table-mode-normal .sd-tournament-card {
+    background: linear-gradient(180deg, rgba(17, 24, 39, 0.98) 0%, rgba(12, 20, 34, 0.98) 100%);
+    border-color: #334863;
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
+}
+
+.dark.sd-table-mode-normal .sd-box-header,
+.dark.sd-table-mode-normal .dsb-panel-header,
+.dark.sd-table-mode-normal .sd-tournament-card-header {
+    background:
+        linear-gradient(90deg, rgba(37, 99, 235, 0.22) 0%, rgba(14, 165, 233, 0.18) 48%, rgba(20, 184, 166, 0.17) 100%),
+        #111c2e;
+    border-bottom-color: #3b5f85;
+}
+
+.dark.sd-table-mode-normal .sd-box-header h2,
+.dark.sd-table-mode-normal .dsb-panel-title {
+    color: #93e5ff;
+}
+
+.dark.sd-table-mode-normal .sd-table {
+    border-color: #3b5f85;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.32);
+}
+
+.dark.sd-table-mode-normal .sd-table th {
+    background:
+        linear-gradient(90deg, rgba(37, 99, 235, 0.32) 0%, rgba(14, 165, 233, 0.24) 48%, rgba(20, 184, 166, 0.22) 100%),
+        #12233a;
+    color: #e0f2fe;
+    border-bottom-color: #3b5f85;
+}
+
+.dark.sd-table-mode-normal .sd-table td {
+    border-bottom-color: rgba(59, 95, 133, 0.58);
+}
+
+.dark.sd-table-mode-normal .sd-table tbody tr:nth-child(even) {
+    background: rgba(14, 165, 233, 0.07);
+}
+
+.dark.sd-table-mode-normal .sd-table tbody tr:hover,
+.dark.sd-table-mode-normal .dsb-table tr:hover td {
+    background: linear-gradient(90deg, rgba(37, 99, 235, 0.18), rgba(20, 184, 166, 0.14));
+}
+
+.dark.sd-table-mode-normal .sd-nav a:hover,
+.dark.sd-table-mode-normal .sd-user-info a:hover,
+.dark.sd-table-mode-normal .sd-filter-btn:hover {
+    background: rgba(45, 212, 191, 0.16);
+    border-color: rgba(45, 212, 191, 0.34);
+    color: #7dd3fc;
+}
+
+.dark.sd-table-mode-normal .sd-nav a.active,
+.dark.sd-table-mode-normal .sd-filter-btn.active {
+    background: linear-gradient(135deg, #2563eb 0%, #0e7490 100%);
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.28);
+}
+
+.dark.sd-table-mode-normal .sd-btn-primary,
+.dark.sd-table-mode-normal .sd-tournament-register-btn {
+    background: linear-gradient(135deg, #0f766e 0%, #2563eb 100%);
+    border-color: transparent;
+    box-shadow: 0 10px 22px rgba(37, 99, 235, 0.24);
+}
+
+.dark.sd-table-mode-normal .sd-btn-secondary,
+.dark.sd-table-mode-normal .sd-filter-btn {
+    background: rgba(15, 23, 42, 0.72);
+    border-color: #334863;
+    color: #dbeafe;
+}
+
+.dark.sd-table-mode-normal .sd-input {
+    border-color: #3b5f85;
+    background: rgba(8, 14, 26, 0.9);
+}
+
+.dark.sd-table-mode-normal .sd-input:focus {
+    border-color: #22d3ee;
+    outline-color: #22d3ee;
+}
+
+.dark.sd-table-mode-normal .sd-progress-fill {
+    background: linear-gradient(90deg, #2563eb, #2dd4bf);
+}
+
+/* ---- Experimental normal mode details ------------------- */
+.sd-table-mode-normal .sd-metric-box {
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(238, 247, 255, 0.95));
+    border-color: #b6cce8;
+    box-shadow: 0 14px 30px rgba(30, 58, 95, 0.1);
+}
+
+.sd-table-mode-normal .sd-metric-title {
+    color: #0f766e;
+}
+
+.sd-table-mode-normal .sd-metric-value {
+    color: #1d4ed8;
+}
+
+.sd-table-mode-normal .sd-toolbar {
+    padding: 10px 12px;
+    border: 1px solid #c9d9ee;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.64);
+    box-shadow: 0 10px 24px rgba(30, 58, 95, 0.08);
+}
+
+.sd-table-mode-normal .dsb-tabs {
+    background: linear-gradient(90deg, rgba(37, 99, 235, 0.09), rgba(20, 184, 166, 0.09));
+    border-bottom-color: #b6cce8;
+}
+
+.sd-table-mode-normal .dsb-tab-btn {
+    color: #48627f;
+}
+
+.sd-table-mode-normal .dsb-tab-btn:hover {
+    background: rgba(14, 165, 233, 0.12);
+    color: #0369a1;
+}
+
+.sd-table-mode-normal .dsb-tab-btn--active {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.16), rgba(20, 184, 166, 0.14));
+    border-bottom-color: #0891b2;
+    color: #075985;
+}
+
+.sd-table-mode-normal .dsb-pts {
+    color: #0f766e;
+}
+
+.sd-table-mode-normal .dsb-pos {
+    color: #2563eb;
+}
+
+.sd-table-mode-normal .dsb-legend {
+    background: rgba(255, 255, 255, 0.56);
+    border-top-color: #c9d9ee;
+}
+
+.sd-table-mode-normal .sd-modal {
+    border-color: #b6cce8;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #ffffff, #f4f9ff);
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+}
+
+.sd-table-mode-normal .sd-modal-overlay {
+    background: rgba(15, 23, 42, 0.58);
+    backdrop-filter: blur(3px);
+}
+
+.sd-table-mode-normal .sd-empty-state {
+    border: 1px dashed #9db8d8;
+    border-radius: 14px;
+    background: rgba(14, 165, 233, 0.055);
+    color: #48627f;
+}
+
+.sd-table-mode-normal .sd-error-banner {
+    border-radius: 12px;
+    background: linear-gradient(135deg, #fff1f2, #fff7ed);
+    border-color: #fb7185;
+    color: #9f1239;
+}
+
+.sd-table-mode-normal .sd-sync-bar {
+    border-color: #b6cce8;
+    border-radius: 14px;
+    background: linear-gradient(90deg, rgba(37, 99, 235, 0.09), rgba(20, 184, 166, 0.08));
+}
+
+.sd-table-mode-normal .sd-action-group {
+    gap: 8px;
+}
+
+.sd-table-mode-normal .sd-btn-sm {
+    border-radius: 999px;
+    padding: 4px 11px;
+}
+
+.sd-table-mode-normal .sd-progress-bar {
+    height: 16px;
+    border-color: #b6cce8;
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgba(148, 163, 184, 0.22);
+}
+
+.sd-table-mode-normal .sd-progress-fill {
+    border-radius: inherit;
+}
+
+.sd-table-mode-normal .sd-description-cell {
+    color: #48627f;
+}
+
+.dark.sd-table-mode-normal .sd-metric-box {
+    background: linear-gradient(180deg, rgba(17, 24, 39, 0.96), rgba(13, 28, 45, 0.96));
+    border-color: #334863;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
+}
+
+.dark.sd-table-mode-normal .sd-metric-title {
+    color: #5eead4;
+}
+
+.dark.sd-table-mode-normal .sd-metric-value {
+    color: #93c5fd;
+}
+
+.dark.sd-table-mode-normal .sd-toolbar {
+    border-color: #334863;
+    background: rgba(15, 23, 42, 0.62);
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.24);
+}
+
+.dark.sd-table-mode-normal .dsb-tabs {
+    background: linear-gradient(90deg, rgba(37, 99, 235, 0.16), rgba(20, 184, 166, 0.13));
+    border-bottom-color: #334863;
+}
+
+.dark.sd-table-mode-normal .dsb-tab-btn {
+    color: #aebdd0;
+}
+
+.dark.sd-table-mode-normal .dsb-tab-btn:hover {
+    background: rgba(45, 212, 191, 0.12);
+    color: #7dd3fc;
+}
+
+.dark.sd-table-mode-normal .dsb-tab-btn--active {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.24), rgba(20, 184, 166, 0.18));
+    border-bottom-color: #22d3ee;
+    color: #bfdbfe;
+}
+
+.dark.sd-table-mode-normal .dsb-pts {
+    color: #5eead4;
+}
+
+.dark.sd-table-mode-normal .dsb-pos {
+    color: #93c5fd;
+}
+
+.dark.sd-table-mode-normal .dsb-legend {
+    background: rgba(15, 23, 42, 0.56);
+    border-top-color: #334863;
+}
+
+.dark.sd-table-mode-normal .sd-modal {
+    border-color: #3b5f85;
+    background: linear-gradient(180deg, #111827, #0c1422);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+}
+
+.dark.sd-table-mode-normal .sd-modal-overlay {
+    background: rgba(0, 0, 0, 0.66);
+    backdrop-filter: blur(3px);
+}
+
+.dark.sd-table-mode-normal .sd-empty-state {
+    border-color: #3b5f85;
+    background: rgba(14, 165, 233, 0.08);
+    color: #aebdd0;
+}
+
+.dark.sd-table-mode-normal .sd-error-banner {
+    background: linear-gradient(135deg, rgba(127, 29, 29, 0.4), rgba(120, 53, 15, 0.28));
+    border-color: #ef4444;
+    color: #fecaca;
+}
+
+.dark.sd-table-mode-normal .sd-sync-bar {
+    border-color: #334863;
+    background: linear-gradient(90deg, rgba(37, 99, 235, 0.16), rgba(20, 184, 166, 0.12));
+}
+
+.dark.sd-table-mode-normal .sd-progress-bar {
+    border-color: #334863;
+    background: rgba(15, 23, 42, 0.72);
+}
+
+.dark.sd-table-mode-normal .sd-description-cell {
+    color: #aebdd0;
+}
+
+/* ---- Normal mode palette shift: indigo / coral / mint ---- */
+.sd-table-mode-normal .sd-container {
+    background:
+        radial-gradient(circle at 10% 8%, rgba(99, 102, 241, 0.18), transparent 30%),
+        radial-gradient(circle at 88% 10%, rgba(249, 115, 91, 0.16), transparent 28%),
+        radial-gradient(circle at 78% 88%, rgba(16, 185, 129, 0.14), transparent 30%),
+        linear-gradient(145deg, #f3f6ff 0%, #fff8f5 48%, #effaf5 100%);
+}
+
+.sd-table-mode-normal .sd-header {
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.97) 0%, rgba(239, 242, 255, 0.96) 42%, rgba(255, 241, 237, 0.95) 100%);
+    border-color: #c7d2fe;
+    box-shadow: 0 18px 42px rgba(67, 56, 202, 0.12);
+}
+
+.sd-table-mode-normal .sd-logo strong,
+.sd-table-mode-normal .sd-page-title h1 {
+    color: #312e81;
+}
+
+.sd-table-mode-normal .sd-box,
+.sd-table-mode-normal .dsb-sidebar,
+.sd-table-mode-normal .sd-tournament-card,
+.sd-table-mode-normal .sd-metric-box {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 250, 247, 0.96));
+    border-color: #d4d4f7;
+    box-shadow: 0 16px 38px rgba(67, 56, 202, 0.09);
+}
+
+.sd-table-mode-normal .sd-box-header,
+.sd-table-mode-normal .dsb-panel-header,
+.sd-table-mode-normal .sd-tournament-card-header {
+    background:
+        linear-gradient(90deg, rgba(99, 102, 241, 0.15) 0%, rgba(249, 115, 91, 0.12) 52%, rgba(16, 185, 129, 0.11) 100%),
+        #fffaf7;
+    border-bottom-color: #d4d4f7;
+}
+
+.sd-table-mode-normal .sd-box-header h2,
+.sd-table-mode-normal .dsb-panel-title {
+    color: #4338ca;
+}
+
+.sd-table-mode-normal .sd-table {
+    border-color: #c7d2fe;
+    box-shadow: 0 14px 32px rgba(67, 56, 202, 0.1);
+}
+
+.sd-table-mode-normal .sd-table th {
+    background:
+        linear-gradient(90deg, rgba(99, 102, 241, 0.24) 0%, rgba(249, 115, 91, 0.17) 54%, rgba(16, 185, 129, 0.15) 100%),
+        #f7f7ff;
+    color: #27215f;
+    border-bottom-color: #c7d2fe;
+}
+
+.sd-table-mode-normal .sd-table td {
+    border-bottom-color: rgba(199, 210, 254, 0.68);
+}
+
+.sd-table-mode-normal .sd-table tbody tr:nth-child(even) {
+    background: rgba(249, 115, 91, 0.045);
+}
+
+.sd-table-mode-normal .sd-table tbody tr:hover,
+.sd-table-mode-normal .dsb-table tr:hover td {
+    background: linear-gradient(90deg, rgba(99, 102, 241, 0.12), rgba(249, 115, 91, 0.09), rgba(16, 185, 129, 0.08));
+}
+
+.sd-table-mode-normal .sd-nav a:hover,
+.sd-table-mode-normal .sd-user-info a:hover,
+.sd-table-mode-normal .sd-filter-btn:hover {
+    background: rgba(249, 115, 91, 0.13);
+    border-color: rgba(249, 115, 91, 0.34);
+    color: #c2410c;
+}
+
+.sd-table-mode-normal .sd-nav a.active,
+.sd-table-mode-normal .sd-filter-btn.active {
+    background: linear-gradient(135deg, #4f46e5 0%, #f9735b 100%);
+    box-shadow: 0 8px 18px rgba(79, 70, 229, 0.24);
+}
+
+.sd-table-mode-normal .sd-btn-primary,
+.sd-table-mode-normal .sd-tournament-register-btn {
+    background: linear-gradient(135deg, #4f46e5 0%, #10b981 100%);
+    box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);
+}
+
+.sd-table-mode-normal .sd-btn-primary:hover,
+.sd-table-mode-normal .sd-tournament-register-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #4338ca 0%, #059669 100%);
+}
+
+.sd-table-mode-normal .sd-btn-secondary,
+.sd-table-mode-normal .sd-filter-btn {
+    background: rgba(255, 255, 255, 0.76);
+    border-color: #d4d4f7;
+    color: #3f3f46;
+}
+
+.sd-table-mode-normal .sd-input {
+    border-color: #c7d2fe;
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.sd-table-mode-normal .sd-input:focus {
+    border-color: #f9735b;
+    outline-color: #f9735b;
+}
+
+.sd-table-mode-normal .sd-metric-title,
+.sd-table-mode-normal .dsb-pts {
+    color: #059669;
+}
+
+.sd-table-mode-normal .sd-metric-value,
+.sd-table-mode-normal .dsb-pos {
+    color: #4f46e5;
+}
+
+.sd-table-mode-normal .sd-progress-fill {
+    background: linear-gradient(90deg, #4f46e5, #f9735b, #10b981);
+}
+
+.sd-table-mode-normal .sd-badge-tehnic,
+.sd-table-mode-normal .sd-surface-hard {
+    background: #e0e7ff;
+    color: #3730a3;
+    border-color: #a5b4fc;
+}
+
+.sd-table-mode-normal .sd-badge-fizic,
+.sd-table-mode-normal .sd-surface-iarba,
+.sd-table-mode-normal .sd-difficulty-usor,
+.sd-table-mode-normal .sd-tournament-register-btn.is-registered {
+    background: #d1fae5;
+    color: #047857;
+    border-color: #6ee7b7;
+}
+
+.sd-table-mode-normal .sd-badge-tactic,
+.sd-table-mode-normal .sd-surface-zgura,
+.sd-table-mode-normal .sd-difficulty-mediu {
+    background: #ffedd5;
+    color: #c2410c;
+    border-color: #fdba74;
+}
+
+.dark.sd-table-mode-normal .sd-container {
+    background:
+        radial-gradient(circle at 11% 8%, rgba(99, 102, 241, 0.22), transparent 31%),
+        radial-gradient(circle at 88% 12%, rgba(249, 115, 91, 0.18), transparent 30%),
+        radial-gradient(circle at 78% 88%, rgba(16, 185, 129, 0.14), transparent 32%),
+        linear-gradient(145deg, #090b14 0%, #15131b 48%, #071712 100%);
+}
+
+.dark.sd-table-mode-normal .sd-header {
+    background:
+        linear-gradient(135deg, rgba(27, 31, 50, 0.98) 0%, rgba(37, 29, 42, 0.98) 48%, rgba(18, 45, 37, 0.96) 100%);
+    border-color: #4f4b7d;
+    box-shadow: 0 20px 44px rgba(0, 0, 0, 0.36);
+}
+
+.dark.sd-table-mode-normal .sd-logo strong,
+.dark.sd-table-mode-normal .sd-page-title h1 {
+    color: #e0e7ff;
+}
+
+.dark.sd-table-mode-normal .sd-box,
+.dark.sd-table-mode-normal .dsb-sidebar,
+.dark.sd-table-mode-normal .sd-tournament-card,
+.dark.sd-table-mode-normal .sd-metric-box {
+    background: linear-gradient(180deg, rgba(21, 24, 39, 0.98), rgba(18, 18, 29, 0.98));
+    border-color: #4f4b7d;
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.3);
+}
+
+.dark.sd-table-mode-normal .sd-box-header,
+.dark.sd-table-mode-normal .dsb-panel-header,
+.dark.sd-table-mode-normal .sd-tournament-card-header {
+    background:
+        linear-gradient(90deg, rgba(99, 102, 241, 0.24) 0%, rgba(249, 115, 91, 0.16) 52%, rgba(16, 185, 129, 0.13) 100%),
+        #171a2a;
+    border-bottom-color: #4f4b7d;
+}
+
+.dark.sd-table-mode-normal .sd-box-header h2,
+.dark.sd-table-mode-normal .dsb-panel-title {
+    color: #c7d2fe;
+}
+
+.dark.sd-table-mode-normal .sd-table {
+    border-color: #4f4b7d;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.34);
+}
+
+.dark.sd-table-mode-normal .sd-table th {
+    background:
+        linear-gradient(90deg, rgba(99, 102, 241, 0.34) 0%, rgba(249, 115, 91, 0.2) 54%, rgba(16, 185, 129, 0.17) 100%),
+        #171a2a;
+    color: #eef2ff;
+    border-bottom-color: #4f4b7d;
+}
+
+.dark.sd-table-mode-normal .sd-table td {
+    border-bottom-color: rgba(79, 75, 125, 0.68);
+}
+
+.dark.sd-table-mode-normal .sd-table tbody tr:nth-child(even) {
+    background: rgba(249, 115, 91, 0.06);
+}
+
+.dark.sd-table-mode-normal .sd-table tbody tr:hover,
+.dark.sd-table-mode-normal .dsb-table tr:hover td {
+    background: linear-gradient(90deg, rgba(99, 102, 241, 0.18), rgba(249, 115, 91, 0.12), rgba(16, 185, 129, 0.1));
+}
+
+.dark.sd-table-mode-normal .sd-nav a:hover,
+.dark.sd-table-mode-normal .sd-user-info a:hover,
+.dark.sd-table-mode-normal .sd-filter-btn:hover {
+    background: rgba(249, 115, 91, 0.16);
+    border-color: rgba(249, 115, 91, 0.34);
+    color: #fed7aa;
+}
+
+.dark.sd-table-mode-normal .sd-nav a.active,
+.dark.sd-table-mode-normal .sd-filter-btn.active {
+    background: linear-gradient(135deg, #6366f1 0%, #f9735b 100%);
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.28);
+}
+
+.dark.sd-table-mode-normal .sd-btn-primary,
+.dark.sd-table-mode-normal .sd-tournament-register-btn {
+    background: linear-gradient(135deg, #6366f1 0%, #10b981 100%);
+    box-shadow: 0 10px 22px rgba(99, 102, 241, 0.24);
+}
+
+.dark.sd-table-mode-normal .sd-btn-secondary,
+.dark.sd-table-mode-normal .sd-filter-btn {
+    background: rgba(18, 18, 29, 0.76);
+    border-color: #4f4b7d;
+    color: #e0e7ff;
+}
+
+.dark.sd-table-mode-normal .sd-input {
+    border-color: #4f4b7d;
+    background: rgba(9, 11, 20, 0.9);
+}
+
+.dark.sd-table-mode-normal .sd-input:focus {
+    border-color: #fb923c;
+    outline-color: #fb923c;
+}
+
+.dark.sd-table-mode-normal .sd-metric-title,
+.dark.sd-table-mode-normal .dsb-pts {
+    color: #6ee7b7;
+}
+
+.dark.sd-table-mode-normal .sd-metric-value,
+.dark.sd-table-mode-normal .dsb-pos {
+    color: #c7d2fe;
+}
+
+.dark.sd-table-mode-normal .sd-progress-fill {
+    background: linear-gradient(90deg, #6366f1, #fb923c, #10b981);
+}
 

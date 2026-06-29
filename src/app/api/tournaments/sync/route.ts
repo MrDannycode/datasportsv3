@@ -107,6 +107,48 @@ export async function POST(request: Request) {
             }
         }
 
+        const adminCompetitions = await prisma.competition.findMany({
+            where: { sport: "tenis" }
+        })
+
+        for (const comp of adminCompetitions) {
+            const startDate = comp.startDate ?? new Date()
+            const location = `${comp.country}, ${comp.continent}`
+
+            if (
+                matchesTournamentRegion({ location }, filters) &&
+                matchesTournamentDate({ startDate }, filters.dateFrom)
+            ) {
+                const externalId = `comp-${comp.id}`
+                try {
+                    await prisma.tournament.upsert({
+                        where: { externalId },
+                        update: {
+                            name: comp.name,
+                            location,
+                            startDate,
+                            endDate: comp.endDate,
+                            sourceUrl: "platforma web",
+                            lastSyncAt: new Date(),
+                        },
+                        create: {
+                            externalId,
+                            name: comp.name,
+                            location,
+                            startDate,
+                            endDate: comp.endDate,
+                            sourceUrl: "platforma web",
+                            lastSyncAt: new Date(),
+                        }
+                    })
+                    synced += 1
+                } catch (error) {
+                    skippedTournaments.push(comp.name)
+                    console.error("[tournaments/sync] skipped admin competition", { id: comp.id, error })
+                }
+            }
+        }
+
         return NextResponse.json({
             success: true,
             tourneeSincronizate: synced,

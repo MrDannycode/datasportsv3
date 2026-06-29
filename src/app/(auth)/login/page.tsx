@@ -9,10 +9,10 @@ import { useTableMode } from "@/components/table-mode-provider"
 const demoAccounts = [
     { label: "Admin", email: "admin@test.com", password: "parola123" },
     { label: "Manager Fotbal", email: "manager@test.com", password: "manager" },
-    { label: "Antrenor Fotbal", email: "antrenor@test.com", password: "antrenor" },
+    { label: "Antrenor Fotbal", email: "dorinelmunteanu@test.com", password: "munteanu" },
     { label: "Antrenor Fitness", email: "fitness@test.com", password: "fitness" },
     { label: "Medic", email: "medic@test.com", password: "medic" },
-    { label: "Atlet Fotbal", email: "atlet@test.com", password: "parola123" },
+    { label: "Atlet Fotbal", email: "antal@test.com", password: "Ds!0W0QFxbH" },
     { label: "Atlet tenis", email: "tenisdan@test.com", password: "tenisdan" },
 ]
 

@@ -284,14 +284,15 @@ export default function UsersManager({ initialUsers, shouldOpenNewUserModal = fa
                 <div className="sd-box-header">
                     <h2>Toti utilizatorii ({sortedUsers.length}/{users.length})</h2>
                 </div>
-                <div className="sd-box-content" style={{ padding: 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", padding: "12px 16px" }}>
-                        <label htmlFor="user-role-filter" style={{ fontSize: "12px", fontWeight: "bold" }}>Rol</label>
+                <div className="sd-box-content" style={{ padding: 0, overflowX: "auto" }}>
+                    <div className="sd-table-toolbar">
+                        <label htmlFor="user-role-filter" className="sd-table-toolbar-label">Rol</label>
                         <select
                             id="user-role-filter"
                             value={roleFilter}
                             onChange={e => setRoleFilter(e.target.value)}
-                            style={{ border: "1px solid #ccc", padding: "6px 10px", fontSize: "13px", backgroundColor: "#fff", minWidth: "180px" }}
+                            className="sd-input"
+                            style={{ minWidth: "180px" }}
                         >
                             <option value="all">Toate rolurile</option>
                             {ALL_ROLES.map(currentRole => (
@@ -299,7 +300,7 @@ export default function UsersManager({ initialUsers, shouldOpenNewUserModal = fa
                             ))}
                         </select>
 
-                        <label htmlFor="user-continent-filter" style={{ fontSize: "12px", fontWeight: "bold" }}>Continent</label>
+                        <label htmlFor="user-continent-filter" className="sd-table-toolbar-label">Continent</label>
                         <select
                             id="user-continent-filter"
                             value={continentFilter}
@@ -307,7 +308,8 @@ export default function UsersManager({ initialUsers, shouldOpenNewUserModal = fa
                                 setContinentFilter(e.target.value)
                                 setCountryFilter("all")
                             }}
-                            style={{ border: "1px solid #ccc", padding: "6px 10px", fontSize: "13px", backgroundColor: "#fff", minWidth: "180px" }}
+                            className="sd-input"
+                            style={{ minWidth: "180px" }}
                         >
                             <option value="all">Toate continentele</option>
                             <option value={NO_CONTINENT_LABEL}>{NO_CONTINENT_LABEL}</option>
@@ -316,12 +318,13 @@ export default function UsersManager({ initialUsers, shouldOpenNewUserModal = fa
                             ))}
                         </select>
 
-                        <label htmlFor="user-country-filter" style={{ fontSize: "12px", fontWeight: "bold" }}>Tara</label>
+                        <label htmlFor="user-country-filter" className="sd-table-toolbar-label">Tara</label>
                         <select
                             id="user-country-filter"
                             value={countryFilter}
                             onChange={e => setCountryFilter(e.target.value)}
-                            style={{ border: "1px solid #ccc", padding: "6px 10px", fontSize: "13px", backgroundColor: "#fff", minWidth: "180px" }}
+                            className="sd-input"
+                            style={{ minWidth: "180px" }}
                         >
                             <option value="all">Toate tarile</option>
                             {filterCountryOptions.map(country => (
@@ -329,97 +332,97 @@ export default function UsersManager({ initialUsers, shouldOpenNewUserModal = fa
                             ))}
                         </select>
                     </div>
-                    <table className="sd-table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>
-                                    <button
-                                        type="button"
-                                        onClick={() => handleSort("email")}
-                                        aria-label="Sorteaza dupa email"
-                                        style={{ background: "none", border: 0, padding: 0, color: "inherit", font: "inherit", fontWeight: 700, cursor: "pointer" }}
-                                    >
-                                        Email {renderSortIndicator("email")}
-                                    </button>
-                                </th>
-                                <th>
-                                    <button
-                                        type="button"
-                                        onClick={() => handleSort("role")}
-                                        aria-label="Sorteaza dupa rol"
-                                        style={{ background: "none", border: 0, padding: 0, color: "inherit", font: "inherit", fontWeight: 700, cursor: "pointer" }}
-                                    >
-                                        Rol {renderSortIndicator("role")}
-                                    </button>
-                                </th>
-                                <th>Creat la</th>
-                                <th>Actiuni</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {sortedUsers.map(user => (
-                                <tr key={user.id}>
-                                    <td style={{ color: "#999" }}>{user.id}</td>
-                                    <td>{user.email}</td>
-                                    <td>
-                                        <span style={{
-                                            backgroundColor: "#e8f0fb",
-                                            color: "#0056b3",
-                                            padding: "2px 8px",
-                                            fontSize: "11px",
-                                            fontWeight: "bold",
-                                            borderRadius: "2px",
-                                        }}>
-                                            {roleLabel(user.role)}
-                                        </span>
-                                    </td>
-                                    <td style={{ color: "#666", fontSize: "12px" }}>
-                                        {new Date(user.createdAt).toLocaleDateString("ro-RO")}
-                                    </td>
-                                    <td>
-                                        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                                            <button
-                                                type="button"
-                                                onClick={() => openEditModal(user)}
-                                                style={{
-                                                    fontSize: "11px",
-                                                    border: "1px solid #0056b3",
-                                                    color: "#0056b3",
-                                                    backgroundColor: "transparent",
-                                                    padding: "2px 8px",
-                                                    cursor: "pointer",
-                                                }}
-                                            >
-                                                Edit
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => handleDelete(user.id, user.email)}
-                                                style={{
-                                                    fontSize: "11px",
-                                                    border: "1px solid #c00",
-                                                    color: "#c00",
-                                                    backgroundColor: "transparent",
-                                                    padding: "2px 8px",
-                                                    cursor: "pointer",
-                                                }}
-                                            >
-                                                Sterge
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                            {sortedUsers.length === 0 && (
+
+                    {sortedUsers.length === 0 ? (
+                        <div className="sd-empty-state">
+                            <p>Niciun utilizator gasit pentru filtrul selectat.</p>
+                        </div>
+                    ) : (
+                        <table className="sd-table">
+                            <thead>
                                 <tr>
-                                    <td colSpan={5} style={{ textAlign: "center", color: "#999", padding: "20px" }}>
-                                        Niciun utilizator gasit pentru filtrul selectat.
-                                    </td>
+                                    <th>#</th>
+                                    <th>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleSort("email")}
+                                            aria-label="Sorteaza dupa email"
+                                            style={{ background: "none", border: 0, padding: 0, color: "inherit", font: "inherit", fontWeight: 700, cursor: "pointer" }}
+                                        >
+                                            Email {renderSortIndicator("email")}
+                                        </button>
+                                    </th>
+                                    <th>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleSort("role")}
+                                            aria-label="Sorteaza dupa rol"
+                                            style={{ background: "none", border: 0, padding: 0, color: "inherit", font: "inherit", fontWeight: 700, cursor: "pointer" }}
+                                        >
+                                            Rol {renderSortIndicator("role")}
+                                        </button>
+                                    </th>
+                                    <th>Creat la</th>
+                                    <th>Actiuni</th>
                                 </tr>
-                            )}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {sortedUsers.map(user => (
+                                    <tr key={user.id}>
+                                        <td style={{ color: "#999" }}>{user.id}</td>
+                                        <td>{user.email}</td>
+                                        <td>
+                                            <span style={{
+                                                backgroundColor: "#e8f0fb",
+                                                color: "#0056b3",
+                                                padding: "2px 8px",
+                                                fontSize: "11px",
+                                                fontWeight: "bold",
+                                                borderRadius: "2px",
+                                            }}>
+                                                {roleLabel(user.role)}
+                                            </span>
+                                        </td>
+                                        <td style={{ color: "#666", fontSize: "12px" }}>
+                                            {new Date(user.createdAt).toLocaleDateString("ro-RO")}
+                                        </td>
+                                        <td>
+                                            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => openEditModal(user)}
+                                                    style={{
+                                                        fontSize: "11px",
+                                                        border: "1px solid #0056b3",
+                                                        color: "#0056b3",
+                                                        backgroundColor: "transparent",
+                                                        padding: "2px 8px",
+                                                        cursor: "pointer",
+                                                    }}
+                                                >
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleDelete(user.id, user.email)}
+                                                    style={{
+                                                        fontSize: "11px",
+                                                        border: "1px solid #c00",
+                                                        color: "#c00",
+                                                        backgroundColor: "transparent",
+                                                        padding: "2px 8px",
+                                                        cursor: "pointer",
+                                                    }}
+                                                >
+                                                    Sterge
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
             </div>
 

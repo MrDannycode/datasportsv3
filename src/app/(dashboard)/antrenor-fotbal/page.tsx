@@ -3,6 +3,8 @@ import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
+import ActivitiesCalendar from "../atlet-fotbal/ActivitiesCalendar"
+import type { Prisma } from "@prisma/client"
 
 type ReadinessPlayer = {
     id: number
@@ -12,6 +14,33 @@ type ReadinessPlayer = {
     atlScore: number
     ctlScore: number
     acRatioScore: number
+}
+
+type UpcomingMatch = Prisma.FootballMatchGetPayload<{ include: { teamHome: true; teamAway: true; competition: true } }>
+type AssignedTrainingPlan = Prisma.TrainingPlanGetPayload<{ include: { creator: { include: { profile: true } } } }>
+type AssignedFitnessPlan = Prisma.FitnessPlanGetPayload<{ include: { creator: { include: { profile: true } } } }>
+type ActivityCalendarEvent = {
+    id: string
+    date: Date
+    label: string
+    title: string
+    details: string
+    color: string
+    backgroundColor: string
+}
+
+const TRAINING_TYPE_LABELS: Record<string, string> = {
+    tehnic: "Tehnic",
+    fizic: "Fizic",
+    tactic: "Tactic",
+}
+
+const FITNESS_TYPE_LABELS: Record<string, string> = {
+    forta: "Forta",
+    rezistenta: "Rezistenta",
+    vitezare: "Viteza",
+    flexibilitate: "Flexibilitate",
+    coordonare: "Coordonare",
 }
 
 function clampScore(value: number) {
@@ -67,27 +96,12 @@ export default async function AntrenorFotbalPage() {
         select: { teamId: true },
     })
 
-    const [totalPlans, recentPlans, recentInjuries, teamAthletes] = await Promise.all([
+    const [totalPlans, recentPlans, teamAthletes] = await Promise.all([
         prisma.trainingPlan.count({ where: { createdBy: coachId } }),
         prisma.trainingPlan.findMany({
             where: { createdBy: coachId },
             orderBy: { date: "desc" },
             take: 5,
-        }),
-        prisma.injury.findMany({
-            include: {
-                medicalRecord: {
-                    include: {
-                        athlete: {
-                            include: {
-                                user: { include: { profile: true } },
-                            },
-                        },
-                    },
-                },
-            },
-            orderBy: { medicalRecord: { createdAt: "desc" } },
-            take: 3,
         }),
         coachProfile?.teamId
             ? prisma.footballAthlete.findMany({
@@ -120,6 +134,81 @@ export default async function AntrenorFotbalPage() {
             : Promise.resolve([]),
     ])
 
+    let upcomingMatches: UpcomingMatch[] = []
+    let assignedTrainingPlans: AssignedTrainingPlan[] = []
+    let assignedFitnessPlans: AssignedFitnessPlan[] = []
+
+    if (coachProfile?.teamId) {
+        upcomingMatches = await prisma.footballMatch.findMany({
+            where: {
+                OR: [
+                    { teamHomeId: coachProfile.teamId },
+                    { teamAwayId: coachProfile.teamId },
+                ],
+                matchDate: {
+                    gte: new Date(),
+                },
+            },
+            include: {
+                teamHome: true,
+                teamAway: true,
+                competition: true,
+            },
+            orderBy: {
+                matchDate: "asc",
+            },
+            take: 5,
+        })
+
+        assignedTrainingPlans = await prisma.trainingPlan.findMany({
+            where: {
+                creator: {
+                    role: "antrenor_fotbal",
+                    profile: {
+                        is: {
+                            teamId: coachProfile.teamId,
+                        },
+                    },
+                },
+            },
+            include: {
+                creator: {
+                    include: {
+                        profile: true,
+                    },
+                },
+            },
+            orderBy: {
+                date: "asc",
+            },
+            take: 5,
+        })
+
+        assignedFitnessPlans = await prisma.fitnessPlan.findMany({
+            where: {
+                creator: {
+                    role: "antrenor_fitness",
+                    profile: {
+                        is: {
+                            teamId: coachProfile.teamId,
+                        },
+                    },
+                },
+            },
+            include: {
+                creator: {
+                    include: {
+                        profile: true,
+                    },
+                },
+            },
+            orderBy: {
+                date: "asc",
+            },
+            take: 30,
+        })
+    }
+
     const readinessPlayers: ReadinessPlayer[] = teamAthletes.flatMap((athlete) => {
         const latestMedicalRecord = athlete.medicalRecords[0]
         const latestLoad = athlete.user.profile?.dailyLoads[0]
@@ -136,6 +225,55 @@ export default async function AntrenorFotbalPage() {
         ? readinessPlayers.reduce((sum, player) => sum + player.score, 0) / readinessPlayers.length
         : null
     const readinessStatus = getReadinessStatus(teamReadiness)
+    const today = new Date()
+    const fitnessEvents: ActivityCalendarEvent[] = assignedFitnessPlans.map((plan) => {
+        const coachName = plan.creator.profile
+            ? `${plan.creator.profile.firstName} ${plan.creator.profile.lastName}`.trim()
+            : plan.creator.email
+
+        return {
+            id: `fitness-${plan.id}`,
+            date: plan.date,
+            label: FITNESS_TYPE_LABELS[plan.type] ?? plan.type,
+            title: plan.title,
+            details: `Fitness - ${coachName || "Nespecificat"}`,
+            color: "#2a7a2a",
+            backgroundColor: "#eef7ed",
+        }
+    })
+    const matchEvents: ActivityCalendarEvent[] = upcomingMatches.map((match) => ({
+        id: `match-${match.id}`,
+        date: match.matchDate,
+        label: "Meci",
+        title: `${match.teamHome.name} vs ${match.teamAway.name}`,
+        details: `${match.location} | ${match.competition.name}`,
+        color: "#9a4b00",
+        backgroundColor: "#fff4e6",
+    }))
+    const trainingEvents: ActivityCalendarEvent[] = assignedTrainingPlans.map((plan) => {
+        const coachName = plan.creator.profile
+            ? `${plan.creator.profile.firstName} ${plan.creator.profile.lastName}`.trim()
+            : plan.creator.email
+
+        return {
+            id: `training-${plan.id}`,
+            date: plan.date,
+            label: TRAINING_TYPE_LABELS[plan.type] ?? plan.type,
+            title: plan.title,
+            details: `Antrenor: ${coachName || "Nespecificat"}`,
+            color: "#0056b3",
+            backgroundColor: "#e8f0fb",
+        }
+    })
+    const activityCalendarEvents = [...fitnessEvents, ...matchEvents, ...trainingEvents].sort(
+        (firstEvent, secondEvent) => firstEvent.date.getTime() - secondEvent.date.getTime()
+    )
+    const nextCalendarEvent = activityCalendarEvents.find((event) => event.date >= today)
+    const activityCalendarMonth = nextCalendarEvent?.date ?? activityCalendarEvents[0]?.date ?? today
+    const serializedActivityCalendarEvents = activityCalendarEvents.map((event) => ({
+        ...event,
+        date: event.date.toISOString(),
+    }))
 
     return (
         <main>
@@ -146,55 +284,15 @@ export default async function AntrenorFotbalPage() {
                 <div className="sd-box-content">
 
                     <div className="sd-metrics">
-                        <div className="sd-box sd-metric-box" style={{ flex: 1 }}>
-                            <div className="sd-metric-title">Accidentari Recente</div>
-                            {recentInjuries.length === 0 ? (
-                                <div className="sd-metric-value">-</div>
-                            ) : (
-                                <div style={{ textAlign: "left", marginTop: "10px" }}>
-                                    <div className="sd-metric-value" style={{ fontSize: "24px", marginBottom: "8px", textAlign: "center" }}>
-                                        {recentInjuries.length}
-                                    </div>
-                                    <ul className="sd-list">
-                                        {recentInjuries.map((injury) => {
-                                            const profile = injury.medicalRecord.athlete.user.profile
-                                            const athleteName = profile
-                                                ? [profile.firstName, profile.lastName].join(" ")
-                                                : injury.medicalRecord.athlete.user.email
-
-                                            return (
-                                                <li key={injury.id}>
-                                                    <strong>{athleteName}</strong>
-                                                    <br />
-                                                    {injury.injuryType} - {injury.bodyPart}
-                                                    <br />
-                                                    <span style={{ color: "#666" }}>
-                                                        {injury.severity} - {" "}
-                                                        {new Date(injury.medicalRecord.createdAt).toLocaleDateString("ro-RO", {
-                                                            day: "2-digit",
-                                                            month: "2-digit",
-                                                            year: "numeric",
-                                                        })}
-                                                    </span>
-                                                </li>
-                                            )
-                                        })}
-                                    </ul>
-                                </div>
-                            )}
-                        </div>
-                        <div className="sd-box sd-metric-box">
-                            <div className="sd-metric-title">Planuri de antrenament</div>
-                            <div className="sd-metric-value">{totalPlans}</div>
-                        </div>
-                        <Link href="/antrenor-fotbal/antrenamente" style={{ flex: 1, textDecoration: "none" }}>
-                            <div className="sd-box sd-metric-box" style={{ cursor: "pointer" }}>
-                                <div className="sd-metric-title">Antrenamente</div>
-                                <div className="sd-metric-value" style={{ fontSize: "14px", marginTop: "8px", color: "#0056b3" }}>
-                                    Gestioneaza -&gt;
-                                </div>
+                        <div className="sd-box sd-metric-box" style={{ height: "auto", minHeight: "150px", flex: 1 }}>
+                            <div className="sd-metric-title">Activities calendar</div>
+                            <div style={{ marginTop: "15px", textAlign: "left" }}>
+                                <ActivitiesCalendar
+                                    events={serializedActivityCalendarEvents}
+                                    initialMonth={activityCalendarMonth.toISOString().slice(0, 7)}
+                                />
                             </div>
-                        </Link>
+                        </div>
                     </div>
 
                     <div className="sd-box" style={{ marginTop: "24px" }}>
@@ -285,24 +383,21 @@ export default async function AntrenorFotbalPage() {
                     <div className="sd-panels">
                         <div className="sd-box sd-activities">
                             <div className="sd-box-header">
-                                <h2>Planuri recente</h2>
+                                <h2>Planurile de antrenament</h2>
                                 <Link href="/antrenor-fotbal/antrenamente">Vezi toate</Link>
                             </div>
-                            <div className="sd-box-content" style={{ padding: 0 }}>
+                            <div className="sd-box-content">
                                 {recentPlans.length === 0 ? (
                                     <div className="sd-empty-state">
-                                        <p>Nu ai creat niciun plan de antrenament.</p>
-                                        <Link href="/antrenor-fotbal/antrenamente/nou" className="sd-btn-primary">
-                                            Creeaza primul plan
-                                        </Link>
+                                        <p>Nu exista planuri de antrenament recente.</p>
                                     </div>
                                 ) : (
                                     <table className="sd-table">
                                         <thead>
                                             <tr>
                                                 <th>Data</th>
-                                                <th>Titlu</th>
                                                 <th>Tip</th>
+                                                <th>Titlu</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -315,71 +410,13 @@ export default async function AntrenorFotbalPage() {
                                                             year: "numeric",
                                                         })}
                                                     </td>
-                                                    <td>
-                                                        <Link href={`/antrenor-fotbal/antrenamente/${plan.id}/edit`}>
-                                                            {plan.title}
-                                                        </Link>
-                                                    </td>
-                                                    <td>
-                                                        <span className={`sd-badge sd-badge-${plan.type}`}>
-                                                            {plan.type.charAt(0).toUpperCase() + plan.type.slice(1)}
-                                                        </span>
-                                                    </td>
+                                                    <td>{TRAINING_TYPE_LABELS[plan.type] ?? plan.type}</td>
+                                                    <td>{plan.title}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
                                     </table>
                                 )}
-                            </div>
-                        </div>
-
-                        <div className="sd-sidebar">
-                            <div className="sd-box">
-                                <div className="sd-box-header">
-                                    <h2>Navigare rapida</h2>
-                                </div>
-                                <div className="sd-box-content">
-                                    <ul className="sd-list">
-                                        <li>
-                                            <Link href="/antrenor-fotbal/antrenamente">
-                                                Toate antrenamentele
-                                            </Link>
-                                        </li>
-                                        <li>
-                                            <Link href="/antrenor-fotbal/antrenamente/nou">
-                                                Plan nou de antrenament
-                                            </Link>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-
-                            <div className="sd-box">
-                                <div className="sd-box-header">
-                                    <h2>Tipuri antrenament</h2>
-                                </div>
-                                <div className="sd-box-content">
-                                    <ul className="sd-list">
-                                        <li>
-                                            <span className="sd-badge sd-badge-tehnic">Tehnic</span>
-                                            {" - lucru cu mingea, dribling, pase"}
-                                        </li>
-                                        <li>
-                                            <span className="sd-badge sd-badge-fizic">Fizic</span>
-                                            {" - rezistenta, viteza, forta"}
-                                        </li>
-                                        <li>
-                                            <span className="sd-badge sd-badge-tactic">Tactic</span>
-                                            {" - scheme, pozitionare, faze fixe"}
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-
-                            <div className="sd-box">
-                                <div className="sd-box-header">
-                                    <h2>Bara verde ca la fifa</h2>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -388,3 +425,4 @@ export default async function AntrenorFotbalPage() {
         </main>
     )
 }
+

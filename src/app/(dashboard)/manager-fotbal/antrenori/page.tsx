@@ -49,11 +49,16 @@ export default async function AntrenoriPage({ searchParams }: AntrenoriPageProps
 
     return (
         <main>
-            <div className="sd-page-title" style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-                <Link href="/manager-fotbal" className="sd-btn-secondary">Inapoi</Link>
-                <h1>Staff fotbal</h1>
+            <div className="sd-box">
+                <div className="sd-box-header">
+                    <Link href="/manager-fotbal" className="sd-btn-secondary">Inapoi</Link>
+                    <h2 className="flex-1 text-center">Gestionare Staff Fotbal</h2>
+                    <div className="sd-btn-secondary invisible">Inapoi</div>
+                </div>
+                <div className="sd-box-content">
+                    <AntrenorManager antrenori={antrenori} teams={teams} shouldOpenCoachModal={resolvedSearchParams?.open === "coaches"} />
+                </div>
             </div>
-            <AntrenorManager antrenori={antrenori} teams={teams} shouldOpenCoachModal={resolvedSearchParams?.open === "coaches"} />
         </main>
     )
 }

@@ -1,1 +1,41 @@
-import { getServerSession } from "next-auth"; import { authOptions } from "@/lib/auth"; import { redirect } from "next/navigation"; import DosarManager from "./DosarManager"; import { getMedicalRecords, getFootballAthletes } from "./actions"; interface DosarMedicalPageProps { searchParams?: Promise<{ open?: string }> } export default async function DosarMedicalPage({ searchParams }: DosarMedicalPageProps) { const session = await getServerSession(authOptions); if (!session || session.user.role !== "medic") { redirect("/login"); } const resolvedSearchParams = searchParams ? await searchParams : undefined; const records = await getMedicalRecords(); const athletes = await getFootballAthletes(); return ( <main><div className="sd-page-title" style={{ marginBottom: '24px' }}><h1>Dosar Medical</h1><p style={{ color: '#666' }}>Gestioneaza dosarele medicale si accidentarile atletilor de fotbal.</p></div><DosarManager initialRecords={records} athletes={athletes} shouldOpenNewRecordModal={resolvedSearchParams?.open === "new"} /></main> ); }
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import DosarManager from "./DosarManager";
+import { getMedicalRecords, getFootballAthletes } from "./actions";
+import Link from "next/link"
+
+interface DosarMedicalPageProps {
+    searchParams?: Promise<{ open?: string }>;
+}
+
+export default async function DosarMedicalPage({ searchParams }: DosarMedicalPageProps) {
+    const session = await getServerSession(authOptions);
+
+    if (!session || session.user.role !== "medic") {
+        redirect("/login");
+    }
+
+    const resolvedSearchParams = searchParams ? await searchParams : undefined;
+    const records = await getMedicalRecords();
+    const athletes = await getFootballAthletes();
+
+    return (
+        <main>
+            <div className="sd-box">
+                <div className="sd-box-header">
+                    <Link href="/medic" className="sd-btn-secondary">Inapoi</Link>
+                    <h2 className="flex-1 text-center">Gestionare Dosare Medicale</h2>
+                    <div className="sd-btn-secondary invisible">Inapoi</div>
+                </div>
+                <div className="sd-box-content">
+                    <DosarManager
+                        initialRecords={records}
+                        athletes={athletes}
+                        shouldOpenNewRecordModal={resolvedSearchParams?.open === "new"}
+                    />
+                </div>
+            </div>
+        </main>
+    );
+}

@@ -145,15 +145,7 @@ export default function UserCreateModal({
                                 id="new-user-submit"
                                 type="submit"
                                 disabled={creating}
-                                style={{
-                                    backgroundColor: creating ? "#aaa" : "#0056b3",
-                                    color: "#fff",
-                                    border: "none",
-                                    padding: "9px 20px",
-                                    fontSize: "13px",
-                                    fontWeight: "bold",
-                                    cursor: creating ? "not-allowed" : "pointer",
-                                }}
+className="sd-btn-primary"
                             >
                                 {creating ? "Se creeaza..." : "Creeaza"}
                             </button>

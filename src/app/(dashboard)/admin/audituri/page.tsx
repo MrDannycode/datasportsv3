@@ -4,7 +4,6 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { AuditAction, Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
-import AuditExportButton from "./AuditExportButton"
 
 const PAGE_SIZE = 20
 const EXPORT_LIMIT = 10000
@@ -125,7 +124,6 @@ export default async function AdminAuditPage({ searchParams }: AdminAuditPagePro
     ])
 
     const totalPages = Math.max(1, Math.ceil(totalLogs / PAGE_SIZE))
-    const hasActiveFilters = Boolean(validAction || selectedTable || userId)
     const filtersForLinks = {
         action: validAction,
         table: selectedTable,
@@ -134,105 +132,97 @@ export default async function AdminAuditPage({ searchParams }: AdminAuditPagePro
 
     return (
         <main>
-            <div className="sd-page-title" style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-                <Link href="/admin" style={{ color: "#0070f3", textDecoration: "none", fontSize: "14px", fontWeight: "bold" }}>
-                    {"<-"} Inapoi la Dashboard
-                </Link>
-                <h1 style={{ margin: 0 }}>Audituri</h1>
-            </div>
-
             <div className="sd-box">
                 <div className="sd-box-header">
-                    <h2>Filtre audit</h2>
+                    <Link href="/admin" className="sd-btn-secondary">Inapoi</Link>
+                    <h2 className="flex-1 text-center">Gestionare Audituri</h2>
+                    <div className="sd-btn-secondary invisible">Inapoi</div>
                 </div>
+
                 <div className="sd-box-content">
-                    <form action="/admin/audituri" method="get" style={{ display: "flex", gap: "12px", flexWrap: "wrap", alignItems: "flex-end" }}>
-                        <div className="sd-form-group" style={{ flex: "1 1 160px" }}>
-                            <label className="sd-label" htmlFor="audit-action">Actiune</label>
+                    <div className="sd-box-header">
+                        <h2>Inregistrari audit ({totalLogs})</h2>
+                        <a href={buildExportHref(filtersForLinks)} download className="sd-btn-secondary">
+                            Export XLSX
+                        </a>
+                    </div>
+                    <div className="sd-box-content" style={{ padding: 0, overflowX: "auto" }}>
+                        <form action="/admin/audituri" method="get" className="sd-table-toolbar">
+                            <label className="sd-table-toolbar-label" htmlFor="audit-action">Actiune</label>
                             <select id="audit-action" name="action" className="sd-input" defaultValue={validAction ?? ""}>
                                 <option value="">Toate</option>
                                 {Object.values(AuditAction).map(action => (
                                     <option key={action} value={action}>{actionLabel(action)}</option>
                                 ))}
                             </select>
-                        </div>
 
-                        <div className="sd-form-group" style={{ flex: "1 1 180px" }}>
-                            <label className="sd-label" htmlFor="audit-table">Tabel</label>
+                            <label className="sd-table-toolbar-label" htmlFor="audit-table">Tabel</label>
                             <select id="audit-table" name="table" className="sd-input" defaultValue={selectedTable ?? ""}>
                                 <option value="">Toate</option>
                                 {tables.map(table => (
                                     <option key={table.tableAffected} value={table.tableAffected}>{table.tableAffected}</option>
                                 ))}
                             </select>
-                        </div>
 
-                        <div className="sd-form-group" style={{ flex: "1 1 220px" }}>
-                            <label className="sd-label" htmlFor="audit-user">Utilizator</label>
+                            <label className="sd-table-toolbar-label" htmlFor="audit-user">Utilizator</label>
                             <select id="audit-user" name="userId" className="sd-input" defaultValue={userId ?? ""}>
                                 <option value="">Toti</option>
                                 {users.map(user => (
                                     <option key={user.id} value={user.id}>{user.email}</option>
                                 ))}
                             </select>
-                        </div>
 
-                        <button type="submit" className="sd-btn-primary">Filtreaza</button>
-                        <Link href="/admin/audituri" className="sd-btn-secondary">Reseteaza</Link>
-                    </form>
-                    <p className="sd-hint" style={{ marginTop: "12px" }}>
-                        Exportul XLSX include toate rezultatele filtrate, maxim {EXPORT_LIMIT} inregistrari.
-                    </p>
-                </div>
-            </div>
+                            <div className="sd-table-toolbar-actions">
+                                <button type="submit" className="sd-btn-primary">Filtreaza</button>
+                                <Link href="/admin/audituri" className="sd-btn-secondary">Reseteaza</Link>
+                            </div>
+                        </form>
 
-            <div className="sd-box">
-                <div className="sd-box-header">
-                    <h2>Inregistrari audit ({totalLogs})</h2>
-                    <a href={buildExportHref(filtersForLinks)} download className="sd-btn-secondary">
-                        Export XLSX
-                    </a>
-                </div>
-                <div className="sd-box-content" style={{ padding: 0, overflowX: "auto" }}>
-                    <table className="sd-table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Data</th>
-                                <th>Utilizator</th>
-                                <th>Actiune</th>
-                                <th>Tabel</th>
-                                <th>Record</th>
-                                <th>Detalii</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {auditLogs.map(log => (
-                                <tr key={log.id}>
-                                    <td style={{ color: "#999" }}>{log.id}</td>
-                                    <td style={{ color: "#666", fontSize: "12px", whiteSpace: "nowrap" }}>
-                                        {new Date(log.createdAt).toLocaleString("ro-RO")}
-                                    </td>
-                                    <td>{log.user.email}</td>
-                                    <td>
-                                        <span className="sd-badge sd-badge-tehnic">{actionLabel(log.action)}</span>
-                                    </td>
-                                    <td>{log.tableAffected}</td>
-                                    <td>{log.recordId ?? "-"}</td>
-                                    <td className="sd-description-cell" title={formatDetails(log.details)}>
-                                        {formatDetails(log.details)}
-                                    </td>
-                                </tr>
-                            ))}
-                            {auditLogs.length === 0 && (
-                                <tr>
-                                    <td colSpan={7} className="sd-empty-state">
-                                        Nu exista audituri pentru filtrele selectate.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                        {auditLogs.length === 0 ? (
+                            <div className="sd-empty-state">
+                                <p>Nu exista audituri pentru filtrele selectate.</p>
+                                <p className="sd-hint">Exportul XLSX include toate rezultatele filtrate, maxim {EXPORT_LIMIT} inregistrari.</p>
+                            </div>
+                        ) : (
+                            <>
+                                <table className="sd-table">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Data</th>
+                                            <th>Utilizator</th>
+                                            <th>Actiune</th>
+                                            <th>Tabel</th>
+                                            <th>Record</th>
+                                            <th>Detalii</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {auditLogs.map(log => (
+                                            <tr key={log.id}>
+                                                <td style={{ color: "#999" }}>{log.id}</td>
+                                                <td style={{ color: "#666", fontSize: "12px", whiteSpace: "nowrap" }}>
+                                                    {new Date(log.createdAt).toLocaleString("ro-RO")}
+                                                </td>
+                                                <td>{log.user.email}</td>
+                                                <td>
+                                                    <span className="sd-badge sd-badge-tehnic">{actionLabel(log.action)}</span>
+                                                </td>
+                                                <td>{log.tableAffected}</td>
+                                                <td>{log.recordId ?? "-"}</td>
+                                                <td className="sd-description-cell" title={formatDetails(log.details)}>
+                                                    {formatDetails(log.details)}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                                <div style={{ padding: "12px 16px", color: "#666", fontSize: "13px" }}>
+                                    Exportul XLSX include toate rezultatele filtrate, maxim {EXPORT_LIMIT} inregistrari.
+                                </div>
+                            </>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -247,7 +237,7 @@ export default async function AdminAuditPage({ searchParams }: AdminAuditPagePro
                         </Link>
                     )}
                     {currentPage < totalPages && (
-                        <Link href={buildHref({ ...filtersForLinks, page: currentPage + 1 })} className="sd-btn-primary">
+                        <Link href={buildHref({ ...filtersForLinks, page: currentPage + 1 })} className="sd-btn-secondary">
                             Inainte
                         </Link>
                     )}

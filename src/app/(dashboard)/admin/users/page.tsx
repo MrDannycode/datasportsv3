@@ -49,18 +49,22 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
 
     return (
         <main>
-            <div className="sd-page-title" style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-                <Link href="/admin" style={{ color: "#0070f3", textDecoration: "none", fontSize: "14px", fontWeight: "bold" }}>
-                    ← Inapoi la Dashboard
-                </Link>
-                <h1 style={{ margin: 0 }}>Gestionare Utilizatori</h1>
-            </div>
+            <div className="sd-box">
+                <div className="sd-box-header">
+                    <Link href="/admin" className="sd-btn-secondary">Inapoi</Link>
+                    <h2 className="flex-1 text-center">Gestionare Utilizatori</h2>
+                    <div className="sd-btn-secondary invisible">Inapoi</div>
+                </div>
+                
+                <div className="sd-box-content">
 
-            <UsersManager
-                initialUsers={usersWithLocation}
-                shouldOpenNewUserModal={resolvedSearchParams?.open === "new"}
-                initialRoleFilter={resolvedSearchParams?.role}
-            />
+                    <UsersManager
+                        initialUsers={usersWithLocation}
+                        shouldOpenNewUserModal={resolvedSearchParams?.open === "new"}
+                        initialRoleFilter={resolvedSearchParams?.role}
+                    />
+                </div>
+            </div>
         </main>
     )
 }

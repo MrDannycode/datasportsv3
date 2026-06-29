@@ -48,13 +48,16 @@ export default async function InvitatiiPage({ searchParams }: InvitatiiPageProps
 
     return (
         <main>
-            <div className="sd-page-title" style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-                <Link href="/manager-fotbal" className="sd-btn-secondary">Inapoi</Link>
-                <h1>Invitatii atleti fotbal</h1>
-            </div>
-            <div className="sd-panels" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-                <AthleteInviteManager teams={teams} shouldOpenInviteModal={resolvedSearchParams?.open === "new"} />
-                <PlayerManager players={players} teams={teams} />
+            <div className="sd-box">
+                <div className="sd-box-header">
+                    <Link href="/manager-fotbal" className="sd-btn-secondary">Inapoi</Link>
+                    <h2 className="flex-1 text-center">Gestionare Atleti Fotbal</h2>
+                    <div className="sd-btn-secondary invisible">Inapoi</div>
+                </div>
+                <div className="sd-box-content">
+                    <AthleteInviteManager shouldOpenInviteModal={resolvedSearchParams?.open === "new"} />
+                    <PlayerManager players={players} teams={teams} />
+                </div>
             </div>
         </main>
     )

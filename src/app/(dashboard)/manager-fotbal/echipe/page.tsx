@@ -38,11 +38,16 @@ export default async function EchipePage() {
 
     return (
         <main>
-            <div className="sd-page-title" style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-                <Link href="/manager-fotbal" className="sd-btn-secondary">Inapoi</Link>
-                <h1>Echipe fotbal</h1>
+            <div className="sd-box">
+                <div className="sd-box-header">
+                    <Link href="/manager-fotbal" className="sd-btn-secondary">Inapoi</Link>
+                    <h2 className="flex-1 text-center">Gestionare Echipe Fotbal</h2>
+                    <div className="sd-btn-secondary invisible">Inapoi</div>
+                </div>
+                <div className="sd-box-content">
+                    <TeamManager initialTeams={teams} leagues={leagues} assignedCountry={assignedCountry} assignedContinent={null} />
+                </div>
             </div>
-            <TeamManager initialTeams={teams} leagues={leagues} assignedCountry={assignedCountry} assignedContinent={null} />
         </main>
     )
 }

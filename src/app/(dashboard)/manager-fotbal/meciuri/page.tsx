@@ -38,6 +38,15 @@ export default async function MeciuriPage({ searchParams }: MeciuriPageProps) {
             orderBy: { name: "asc" },
         }),
         prisma.footballMatch.findMany({
+            where: managerAssignment
+                ? {
+                    OR: [
+                        { teamHome: { country: managerAssignment.country } },
+                        { teamAway: { country: managerAssignment.country } },
+                        { competition: { country: managerAssignment.country } },
+                    ],
+                }
+                : { id: -1 },
             include: {
                 teamHome: { select: { id: true, name: true, country: true } },
                 teamAway: { select: { id: true, name: true, country: true } },
@@ -49,11 +58,16 @@ export default async function MeciuriPage({ searchParams }: MeciuriPageProps) {
 
     return (
         <main>
-            <div className="sd-page-title" style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-                <Link href="/manager-fotbal" className="sd-btn-secondary">Inapoi</Link>
-                <h1>Meciuri fotbal</h1>
+            <div className="sd-box">
+                <div className="sd-box-header">
+                    <Link href="/manager-fotbal" className="sd-btn-secondary">Inapoi</Link>
+                    <h2 className="flex-1 text-center">Gestionare Meciuri Fotbal</h2>
+                    <div className="sd-btn-secondary invisible">Inapoi</div>
+                </div>
+                <div className="sd-box-content">
+                    <MatchManager initialMatches={matches} teams={teams} competitions={competitions} shouldOpenMatchModal={resolvedSearchParams?.open === "match"} />
+                </div>
             </div>
-            <MatchManager initialMatches={matches} teams={teams} competitions={competitions} shouldOpenMatchModal={resolvedSearchParams?.open === "match"} />
         </main>
     )
 }

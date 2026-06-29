@@ -45,14 +45,17 @@ export default async function AdminManageriPage() {
 
     return (
         <main>
-            <div className="sd-page-title" style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-                <Link href="/admin" style={{ color: "#0070f3", textDecoration: "none", fontSize: "14px", fontWeight: "bold" }}>
-                    Inapoi la Dashboard
-                </Link>
-                <h1 style={{ margin: 0 }}>Gestiune Manageri</h1>
-            </div>
+            <div className="sd-box">
+                <div className="sd-box-header">
+                    <Link href="/admin" className="sd-btn-secondary">Inapoi</Link>
+                    <h2 className="flex-1 text-center">Gestiune Manageri</h2>
+                    <div className="sd-btn-secondary invisible">Inapoi</div>
+                </div>
+                <div className="sd-box-content">
 
-            <ManagerAssignmentManager initialManagers={managers} locationOptions={MANAGER_LOCATION_OPTIONS} />
+                    <ManagerAssignmentManager initialManagers={managers} locationOptions={MANAGER_LOCATION_OPTIONS} />
+                </div>
+            </div>
         </main>
     )
 }

@@ -107,12 +107,27 @@ export default function MyProfileModal({
   }
 
   return (
-    <div style={{
-      position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: "rgba(0,0,0,0.5)", zIndex: 9999,
-      display: "flex", justifyContent: "center", alignItems: "center", padding: "20px"
-    }}>
-      <div style={{
+    <div
+    role="dialog"
+    aria-modal="true"
+    onClick={onClose}
+    style={{
+      position: "fixed",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: "rgba(0,0,0,0.5)",
+      zIndex: 9999,
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      padding: "20px",
+    }}
+  >
+    <div
+      onClick={e => e.stopPropagation()}
+      style={{
         backgroundColor: "#fff",
         borderRadius: "6px",
         width: "100%",
@@ -121,8 +136,9 @@ export default function MyProfileModal({
         overflowY: "auto",
         display: "flex",
         flexDirection: "column",
-        boxShadow: "0 10px 25px rgba(0,0,0,0.2)"
-      }}>
+        boxShadow: "0 10px 25px rgba(0,0,0,0.2)",
+      }}
+    >
         <div style={{ padding: "16px 20px", borderBottom: "1px solid #eee", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <h2 style={{ margin: 0, fontSize: "16px", color: "#333" }}>Profilul Meu</h2>
           <button type="button" onClick={onClose} style={{ background: "none", border: "none", fontSize: "20px", cursor: "pointer", color: "#999" }}>&times;</button>

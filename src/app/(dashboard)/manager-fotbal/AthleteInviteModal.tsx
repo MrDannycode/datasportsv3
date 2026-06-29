@@ -2,14 +2,11 @@
 
 import type { AthleteInviteInput, AthleteInviteResult } from "./athlete-actions"
 
-type Team = { id: number; name: string }
-
 const fieldStyle = { border: "1px solid #cbd5e1", borderRadius: "4px", padding: "8px 10px", fontSize: "13px", background: "#fff", minWidth: 0 }
 const labelStyle = { display: "grid", gap: "5px", fontSize: "12px", fontWeight: 700 }
 
 interface Props {
     invite: AthleteInviteInput
-    teams: Team[]
     busy: boolean
     inviteResult: AthleteInviteResult | null
     onUpdate: (name: keyof AthleteInviteInput, value: string) => void
@@ -17,7 +14,7 @@ interface Props {
     onSubmit: (event: React.FormEvent) => Promise<void>
 }
 
-export default function AthleteInviteModal({ invite, teams, busy, inviteResult, onUpdate, onClose, onSubmit }: Props) {
+export default function AthleteInviteModal({ invite, busy, inviteResult, onUpdate, onClose, onSubmit }: Props) {
     return (
         <div
             role="dialog"
@@ -76,10 +73,6 @@ export default function AthleteInviteModal({ invite, teams, busy, inviteResult, 
                         <label style={labelStyle}>Email<input type="email" required value={invite.email} onChange={e => onUpdate("email", e.target.value)} style={fieldStyle} /></label>
                         <label style={labelStyle}>Prenume<input required value={invite.firstName} onChange={e => onUpdate("firstName", e.target.value)} style={fieldStyle} /></label>
                         <label style={labelStyle}>Nume<input required value={invite.lastName} onChange={e => onUpdate("lastName", e.target.value)} style={fieldStyle} /></label>
-                        <label style={labelStyle}>Pozitie<select value={invite.position} onChange={e => onUpdate("position", e.target.value)} style={fieldStyle}><option value="portar">Portar</option><option value="fundas">Fundas</option><option value="mijlocas">Mijlocas</option><option value="atacant">Atacant</option></select></label>
-                        <label style={labelStyle}>Picior preferat<select value={invite.preferredFoot} onChange={e => onUpdate("preferredFoot", e.target.value)} style={fieldStyle}><option value="stanga">Stangul</option><option value="dreapta">Dreptul</option><option value="ambele">Ambele</option></select></label>
-                        <label style={labelStyle}>Echipa<select value={invite.teamId ?? ""} onChange={e => onUpdate("teamId", e.target.value)} style={fieldStyle}><option value="">Fara echipa</option>{teams.map(team => <option key={team.id} value={team.id}>{team.name}</option>)}</select></label>
-                        <label style={labelStyle}>Numar tricou<input type="number" min="1" max="99" value={invite.jerseyNumber ?? ""} onChange={e => onUpdate("jerseyNumber", e.target.value)} style={fieldStyle} /></label>
                         <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", gridColumn: "1 / -1", marginTop: "6px" }}>
                             <button type="button" onClick={onClose} style={{ ...fieldStyle, cursor: "pointer" }}>Anuleaza</button>
                             <button disabled={busy} style={{ ...fieldStyle, border: 0, background: "#0056b3", color: "#fff", fontWeight: 700, cursor: "pointer" }}>{busy ? "Se creeaza..." : "Trimite invitatia"}</button>

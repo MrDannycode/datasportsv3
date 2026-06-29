@@ -66,48 +66,37 @@ export default async function ActivityPage({ searchParams }: ActivityPageProps) 
 
   return (
     <main>
-      <div className="sd-page-title" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div>
-          <h1>Activitatile mele</h1>
-          <p style={{ fontSize: "13px", color: "#666", marginTop: "4px" }}>
-            {profile.firstName} {profile.lastName} - Training Load Dashboard
-          </p>
+      <div className="sd-box">
+        <div className="sd-box-header">
+          <Link href="/atlet-tenis" className="sd-btn-secondary">Inapoi</Link>
+          <h2 className="flex-1 text-center">Gestioneaza Activitati</h2>
+          <div className="sd-btn-secondary invisible">Inapoi</div>
         </div>
-        <Link
-          href="/atlet-tenis"
-          style={{
-            fontSize: "13px",
-            color: "#0056b3",
-            textDecoration: "none",
-            border: "1px solid #0056b3",
-            padding: "6px 14px",
-          }}
-        >
-          Inapoi la Dashboard
-        </Link>
-      </div>
+        <div className="sd-box-content">
 
-      <ActivityManager
-        initialActivities={activities.map((activity) => ({
-          ...activity,
-          date: activity.date.toISOString(),
-          avgHeartRate: activity.avgHeartRate ?? null,
-        }))}
-        latestLoad={
-          latestLoad
-            ? {
-                ...latestLoad,
-                date: latestLoad.date.toISOString(),
-              }
-            : null
-        }
-        profile={{
-          restingHeartRate: profile.restingHeartRate ?? null,
-          maxHeartRate: profile.maxHeartRate ?? null,
-          gender: profile.gender ?? null,
-        }}
-        shouldOpenNewActivityModal={resolvedSearchParams?.open === "new"}
-      />
+          <ActivityManager
+            initialActivities={activities.map((activity) => ({
+              ...activity,
+              date: activity.date.toISOString(),
+              avgHeartRate: activity.avgHeartRate ?? null,
+            }))}
+            latestLoad={
+              latestLoad
+                ? {
+                  ...latestLoad,
+                  date: latestLoad.date.toISOString(),
+                }
+                : null
+            }
+            profile={{
+              restingHeartRate: profile.restingHeartRate ?? null,
+              maxHeartRate: profile.maxHeartRate ?? null,
+              gender: profile.gender ?? null,
+            }}
+            shouldOpenNewActivityModal={resolvedSearchParams?.open === "new"}
+          />
+        </div>
+      </div>
     </main>
   )
 }

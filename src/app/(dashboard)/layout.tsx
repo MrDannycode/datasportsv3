@@ -1,7 +1,7 @@
 import "../dashboard.css"
 import DashboardHeader from "@/components/layout/DashboardHeader"
 import DashboardSidebar from "@/components/layout/DashboardSidebar"
-import type { SidebarStanding } from "@/components/layout/DashboardSidebar"
+import type { SidebarRecentInjury, SidebarStanding } from "@/components/layout/DashboardSidebar"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
@@ -34,7 +34,6 @@ async function getSidebarPlayers(userId?: string) {
         },
         select: {
             id: true,
-
             user: {
                 select: {
                     profile: {
@@ -42,15 +41,11 @@ async function getSidebarPlayers(userId?: string) {
                             id: true,
                             firstName: true,
                             lastName: true,
-                            team: {
-                                select: {
-                                    name: true,
-                                },
-                            },
                             dailyLoads: {
                                 orderBy: { date: "desc" },
                                 take: 1,
                                 select: {
+                                    ctl: true,
                                     atl: true,
                                     tsb: true,
                                 },
@@ -74,7 +69,7 @@ async function getSidebarPlayers(userId?: string) {
             return {
                 id: athlete.id,
                 name: profile ? profile.firstName + " " + profile.lastName : "Jucator fara profil",
-                team: profile?.team?.name ?? "-",
+                ctl: latestLoad?.ctl ?? null,
                 atl: latestLoad?.atl ?? null,
                 tsb: latestLoad?.tsb ?? null,
             }
@@ -195,6 +190,65 @@ async function getSidebarStandings(userId?: string): Promise<{ leagueName: strin
     }
 }
 
+async function getSidebarRecentInjuries(userId?: string): Promise<SidebarRecentInjury[]> {
+    const parsedUserId = Number(userId)
+    if (!Number.isInteger(parsedUserId)) return []
+
+    const profile = await prisma.profile.findUnique({
+        where: { userId: parsedUserId },
+        select: { teamId: true },
+    })
+
+    if (!profile?.teamId) return []
+
+    const injuries = await prisma.injury.findMany({
+        where: {
+            medicalRecord: {
+                athlete: {
+                    user: {
+                        profile: {
+                            teamId: profile.teamId,
+                        },
+                    },
+                },
+            },
+        },
+        include: {
+            medicalRecord: {
+                include: {
+                    athlete: {
+                        include: {
+                            user: {
+                                include: {
+                                    profile: true,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        orderBy: { medicalRecord: { createdAt: "desc" } },
+        take: 3,
+    })
+
+    return injuries.map((injury) => {
+        const athleteProfile = injury.medicalRecord.athlete.user.profile
+        const athleteName = athleteProfile
+            ? [athleteProfile.firstName, athleteProfile.lastName].join(" ")
+            : injury.medicalRecord.athlete.user.email
+
+        return {
+            id: injury.id,
+            athleteName,
+            injuryType: injury.injuryType,
+            bodyPart: injury.bodyPart,
+            severity: injury.severity,
+            createdAt: injury.medicalRecord.createdAt.toISOString(),
+        }
+    })
+}
+
 export default async function DashboardLayout({
     children,
 }: {
@@ -202,12 +256,16 @@ export default async function DashboardLayout({
 }) {
     const session = await getServerSession(authOptions)
     const showSidebar = !session?.user.role || !rolesWithoutSidebar.has(session.user.role)
-    const [sidebarPlayers, sidebarStandingsData] = showSidebar
+    const shouldShowRecentInjuries = session?.user.role === "antrenor_fotbal"
+    const [sidebarPlayers, sidebarStandingsData, sidebarRecentInjuries] = showSidebar
         ? await Promise.all([
             getSidebarPlayers(session?.user.id),
             getSidebarStandings(session?.user.id),
+            shouldShowRecentInjuries
+                ? getSidebarRecentInjuries(session?.user.id)
+                : Promise.resolve([]),
         ])
-        : [[], { leagueName: null, standings: [] }]
+        : [[], { leagueName: null, standings: [] }, []]
 
     return (
         <div className="sd-container">
@@ -222,6 +280,7 @@ export default async function DashboardLayout({
                             players={sidebarPlayers}
                             standings={sidebarStandingsData.standings}
                             standingsLeagueName={sidebarStandingsData.leagueName}
+                            recentInjuries={shouldShowRecentInjuries ? sidebarRecentInjuries : undefined}
                         />
                     )}
                 </div>

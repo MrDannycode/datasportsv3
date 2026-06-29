@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react"
 import AthleteInviteModal from "./AthleteInviteModal"
 import { importAthletes, inviteAthlete, type AthleteInviteInput, type AthleteInviteResult } from "./athlete-actions"
 
-type Team = { id: number; name: string }
 const emptyInvite: AthleteInviteInput = { email: "", firstName: "", lastName: "", position: "mijlocas", preferredFoot: "dreapta", teamId: "", jerseyNumber: "" }
 const fieldStyle = { border: "1px solid #cbd5e1", borderRadius: "4px", padding: "8px 10px", fontSize: "13px", background: "#fff", minWidth: 0 }
 const labelStyle = { display: "grid", gap: "5px", fontSize: "12px", fontWeight: 700 }
@@ -30,11 +29,10 @@ function parseCsv(text: string) {
 }
 
 interface Props {
-    teams: Team[]
     shouldOpenInviteModal?: boolean
 }
 
-export default function AthleteInviteManager({ teams, shouldOpenInviteModal = false }: Props) {
+export default function AthleteInviteManager({ shouldOpenInviteModal = false }: Props) {
     const [invite, setInvite] = useState<AthleteInviteInput>(emptyInvite)
     const [inviteResult, setInviteResult] = useState<AthleteInviteResult | null>(null)
     const [importResults, setImportResults] = useState<AthleteInviteResult[]>([])
@@ -93,10 +91,6 @@ export default function AthleteInviteManager({ teams, shouldOpenInviteModal = fa
                 <label style={labelStyle}>Email<input type="email" required value={invite.email} onChange={e => update("email", e.target.value)} style={fieldStyle} /></label>
                 <label style={labelStyle}>Prenume<input required value={invite.firstName} onChange={e => update("firstName", e.target.value)} style={fieldStyle} /></label>
                 <label style={labelStyle}>Nume<input required value={invite.lastName} onChange={e => update("lastName", e.target.value)} style={fieldStyle} /></label>
-                <label style={labelStyle}>Pozitie<select value={invite.position} onChange={e => update("position", e.target.value)} style={fieldStyle}><option value="portar">Portar</option><option value="fundas">Fundas</option><option value="mijlocas">Mijlocas</option><option value="atacant">Atacant</option></select></label>
-                <label style={labelStyle}>Picior preferat<select value={invite.preferredFoot} onChange={e => update("preferredFoot", e.target.value)} style={fieldStyle}><option value="stanga">Stangul</option><option value="dreapta">Dreptul</option><option value="ambele">Ambele</option></select></label>
-                <label style={labelStyle}>Echipa<select value={invite.teamId ?? ""} onChange={e => update("teamId", e.target.value)} style={fieldStyle}><option value="">Fara echipa</option>{teams.map(team => <option key={team.id} value={team.id}>{team.name}</option>)}</select></label>
-                <label style={labelStyle}>Numar tricou<input type="number" min="1" max="99" value={invite.jerseyNumber ?? ""} onChange={e => update("jerseyNumber", e.target.value)} style={fieldStyle} /></label>
                 <button disabled={busy !== null} style={{ ...fieldStyle, border: 0, background: "#0056b3", color: "#fff", fontWeight: 700, cursor: "pointer" }}>{busy === "invite" ? "Se creeaza..." : "Trimite invitatia"}</button>
             </form>
             {inviteResult && <div role="status" style={{ marginTop: 12, padding: 10, background: inviteResult.success ? "#ecfdf5" : "#fef2f2", color: inviteResult.success ? "#166534" : "#b91c1c", fontSize: 13 }}>{inviteResult.success ? <>Cont creat pentru <strong>{inviteResult.email}</strong>. Parola temporara: <strong style={{ userSelect: "all" }}>{inviteResult.temporaryPassword}</strong></> : inviteResult.error}</div>}
@@ -112,7 +106,6 @@ export default function AthleteInviteManager({ teams, shouldOpenInviteModal = fa
         {isInviteModalOpen && (
             <AthleteInviteModal
                 invite={invite}
-                teams={teams}
                 busy={busy === "invite"}
                 inviteResult={inviteResult}
                 onUpdate={update}

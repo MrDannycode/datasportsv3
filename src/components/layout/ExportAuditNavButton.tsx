@@ -70,17 +70,7 @@ export default function ExportAuditNavButton({ label, isActive = false, ignoreFi
             type="button"
             onClick={handleExport}
             disabled={isExporting}
-            className={isActive ? "active" : ""}
-            style={{
-                margin: "0 10px",
-                fontWeight: "bold",
-                color: "#555",
-                fontSize: "14px",
-                background: "none",
-                border: "none",
-                padding: 0,
-                cursor: isExporting ? "wait" : "pointer",
-            }}
+            className={`sd-nav-button${isActive ? " active" : ""}`}
         >
             {isExporting ? "Se exporta..." : label}
         </button>

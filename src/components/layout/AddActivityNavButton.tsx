@@ -83,17 +83,7 @@ export default function AddActivityNavButton({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className={isActive ? "active" : ""}
-        style={{
-          margin: "0 10px",
-          fontWeight: "bold",
-          color: "#555",
-          fontSize: "14px",
-          background: "none",
-          border: "none",
-          padding: 0,
-          cursor: "pointer",
-        }}
+        className={`sd-nav-button${isActive ? " active" : ""}`}
       >
         {label}
       </button>

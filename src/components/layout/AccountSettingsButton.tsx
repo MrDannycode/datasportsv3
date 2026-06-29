@@ -63,7 +63,7 @@ export default function AccountSettingsButton({ account }: Props) {
             <button
                 type="button"
                 onClick={() => setIsOpen(true)}
-                style={{ border: "none", background: "transparent", color: "#0056b3", cursor: "pointer", font: "inherit", padding: 0 }}
+                className="sd-user-link-button"
             >
                 Account settings
             </button>

@@ -68,80 +68,110 @@ export default async function AdminPage() {
                     <h2>Dashboard overview</h2>
                 </div>
                 <div className="sd-box-content">
-                    <div className="sd-metrics">
-                        <div className="sd-box sd-metric-box" style={{ flex: 1 }}>
-                            <div className="sd-metric-title">Utilizatori</div>
-                            <div className="sd-metric-value" style={{ fontSize: "14px", marginTop: "8px", color: "#0056b3" }}>
-                                <Link href="/admin/users" style={{ color: "inherit", textDecoration: "none" }}>Gestioneaza &gt;</Link>
-                                <span style={{ color: "#999", margin: "0 6px" }}>|</span>
-                                <Link href="/admin/manageri" style={{ color: "inherit", textDecoration: "none" }}>Gestiune Manageri &gt;</Link>
+                    <div className="sd-admin-tables-grid">
+                        <div className="sd-box sd-hover-box">
+                            <div className="sd-box-header">
+                                <h2>Utilizatori</h2>
+                                <Link href="/admin/users">Gestioneaza</Link>
                             </div>
-                            <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "14px" }}>
-                                {ROLE_LABELS.map((role) => (
-                                    <div key={role.value} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px", borderTop: "1px solid #eee", paddingTop: "8px" }}>
-                                        <span style={{ color: "#333", fontSize: "12px", fontWeight: 600 }}>{role.label}</span>
-                                        <span style={{ color: "#666", fontSize: "12px" }}>{countByRole.get(role.value) ?? 0}</span>
-                                        <Link
-                                            href={`/admin/users?role=${role.value}`}
-                                            style={{ border: "1px solid #0056b3", color: "#0056b3", backgroundColor: "transparent", padding: "2px 8px", fontSize: "11px", textDecoration: "none" }}
-                                        >
-                                            Vezi
-                                        </Link>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                        <div className="sd-box sd-metric-box" style={{ flex: 1 }}>
-                            <div className="sd-metric-title">Competitii</div>
-                            <div className="sd-metric-value" style={{ fontSize: "14px", marginTop: "8px", color: "#0056b3" }}>
-                                <Link href="/admin/competitions" style={{ color: "inherit", textDecoration: "none" }}>Gestioneaza &gt;</Link>
-                            </div>
-                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto auto", gap: "8px", alignItems: "center", marginTop: "14px" }}>
-                                <span style={{ color: "#666", fontSize: "11px", fontWeight: 700 }}>Sport</span>
-                                <span style={{ color: "#666", fontSize: "11px", fontWeight: 700 }}>Continent</span>
-                                <span style={{ color: "#666", fontSize: "11px", fontWeight: 700 }}>Nr competitii</span>
-                                <span style={{ color: "#666", fontSize: "11px", fontWeight: 700 }}>Vezi</span>
-                                {competitionCounts.map((item) => (
-                                    <div key={`${item.sport}-${item.continent}`} style={{ display: "contents" }}>
-                                        <span style={{ borderTop: "1px solid #eee", paddingTop: "8px", color: "#333", fontSize: "12px", fontWeight: 600 }}>{item.sport === "fotbal" ? "Fotbal" : "Tenis"}</span>
-                                        <span style={{ borderTop: "1px solid #eee", paddingTop: "8px", color: "#333", fontSize: "12px" }}>{item.continent}</span>
-                                        <span style={{ borderTop: "1px solid #eee", paddingTop: "8px", color: "#666", fontSize: "12px" }}>{item._count._all}</span>
-                                        <Link
-                                            href={`/admin/competitions?sport=${item.sport}&continent=${encodeURIComponent(item.continent)}`}
-                                            style={{ border: "1px solid #0056b3", color: "#0056b3", backgroundColor: "transparent", padding: "2px 8px", fontSize: "11px", textDecoration: "none" }}
-                                        >
-                                            Vezi
-                                        </Link>
-                                    </div>
-                                ))}
+                            <div className="sd-box-content" style={{ padding: 0 }}>
+                                <table className="sd-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Rol</th>
+                                            <th>Total</th>
+                                            <th>Actiune</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {ROLE_LABELS.map((role) => (
+                                            <tr key={role.value}>
+                                                <td>{role.label}</td>
+                                                <td>{countByRole.get(role.value) ?? 0}</td>
+                                                <td>
+                                                    <Link href={`/admin/users?role=${role.value}`} style={{ color: "#0056b3", textDecoration: "none", fontWeight: 700 }}>
+                                                        Vezi
+                                                    </Link>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
-                        <div className="sd-box sd-metric-box" style={{ flex: 1 }}>
-                            <div className="sd-metric-title">Audituri</div>
-                            <div className="sd-metric-value" style={{ fontSize: "14px", marginTop: "8px", color: "#0056b3" }}>
-                                <Link href="/admin/audituri" style={{ color: "inherit", textDecoration: "none" }}>Vezi audituri &gt;</Link>
+
+                        <div className="sd-box sd-hover-box">
+                            <div className="sd-box-header">
+                                <h2>Competitii</h2>
+                                <Link href="/admin/competitions">Gestioneaza</Link>
                             </div>
-                            <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "14px" }}>
-                                <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", borderTop: "1px solid #eee", paddingTop: "8px" }}>
-                                    <span style={{ color: "#333", fontSize: "12px", fontWeight: 600 }}>Total inregistrari</span>
-                                    <span style={{ color: "#666", fontSize: "12px" }}>{auditLogsCount}</span>
-                                </div>
-                                <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", borderTop: "1px solid #eee", paddingTop: "8px" }}>
-                                    <span style={{ color: "#333", fontSize: "12px", fontWeight: 600 }}>Actiuni azi</span>
-                                    <span style={{ color: "#666", fontSize: "12px" }}>{auditLogsTodayCount}</span>
-                                </div>
-                                <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", borderTop: "1px solid #eee", paddingTop: "8px" }}>
-                                    <span style={{ color: "#333", fontSize: "12px", fontWeight: 600 }}>Ultima actiune</span>
-                                    <span style={{ color: "#666", fontSize: "12px", textAlign: "right" }}>{latestAuditLabel}</span>
-                                </div>
-                                <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", borderTop: "1px solid #eee", paddingTop: "8px" }}>
-                                    <span style={{ color: "#333", fontSize: "12px", fontWeight: 600 }}>Top utilizator</span>
-                                    <span style={{ color: "#666", fontSize: "12px", textAlign: "right" }}>{topAuditUser ? `${topAuditUser.email} (${topAuditUsers[0]._count._all})` : "-"}</span>
-                                </div>
-                                <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", borderTop: "1px solid #eee", paddingTop: "8px" }}>
-                                    <span style={{ color: "#333", fontSize: "12px", fontWeight: 600 }}>Utilizatori activi azi</span>
-                                    <span style={{ color: "#666", fontSize: "12px" }}>{activeAuditUsersCount.length}</span>
-                                </div>
+                            <div className="sd-box-content" style={{ padding: 0 }}>
+                                <table className="sd-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Sport</th>
+                                            <th>Continent</th>
+                                            <th>Nr</th>
+                                            <th>Actiune</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {competitionCounts.map((item) => (
+                                            <tr key={`${item.sport}-${item.continent}`}>
+                                                <td>{item.sport === "fotbal" ? "Fotbal" : "Tenis"}</td>
+                                                <td>{item.continent}</td>
+                                                <td>{item._count._all}</td>
+                                                <td>
+                                                    <Link
+                                                        href={`/admin/competitions?sport=${item.sport}&continent=${encodeURIComponent(item.continent)}`}
+                                                        style={{ color: "#0056b3", textDecoration: "none", fontWeight: 700 }}
+                                                    >
+                                                        Vezi
+                                                    </Link>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div className="sd-box sd-hover-box">
+                            <div className="sd-box-header">
+                                <h2>Audituri</h2>
+                                <Link href="/admin/audituri">Vezi toate</Link>
+                            </div>
+                            <div className="sd-box-content" style={{ padding: 0 }}>
+                                <table className="sd-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Indicator</th>
+                                            <th>Valoare</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Total inregistrari</td>
+                                            <td>{auditLogsCount}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Actiuni azi</td>
+                                            <td>{auditLogsTodayCount}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Ultima actiune</td>
+                                            <td>{latestAuditLabel}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Utilizatori activi</td>
+                                            <td>{topAuditUser ? `${topAuditUser.email} (${topAuditUsers[0]._count._all})` : "-"}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Utilizatori activi azi</td>
+                                            <td>{activeAuditUsersCount.length}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
