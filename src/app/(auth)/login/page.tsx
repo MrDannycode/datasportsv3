@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useSyncExternalStore } from "react"
 import { signIn } from "next-auth/react"
 import { useTheme } from "next-themes"
 import { useRouter } from "next/navigation"
@@ -24,7 +24,8 @@ export default function LoginPage() {
     const [password, setPassword] = useState("")
     const [error, setError] = useState("")
     const [loading, setLoading] = useState(false)
-    const isDark = theme !== "light"
+    const isMounted = useSyncExternalStore(() => () => {}, () => true, () => false)
+    const isDark = isMounted && theme === "dark"
     const isNormal = tableMode === "normal"
     const colors = isDark
         ? {

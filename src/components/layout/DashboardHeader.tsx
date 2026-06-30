@@ -75,6 +75,7 @@ const defaultNavItems: NavItem[] = [
     { label: "Adauga Accidentare", href: "#" },
     { label: "Dosar Medical", href: "#" },
     { label: "Adauga Activitate", href: "/atlet-fotbal/activity?open=new" },
+    { label: "Adauga Antrenament", href: "" },
     { label: "Gestioneaza Activitati", href: "/atlet-fotbal/activity" },
     { label: "Profil Sportiv", href: "#" },
     { label: "Toti Atletii", href: "#" },
