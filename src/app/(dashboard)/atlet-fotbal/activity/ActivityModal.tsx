@@ -31,7 +31,9 @@ type Props = {
 const INPUT_STYLE: CSSProperties = {
   width: "100%",
   padding: "8px 10px",
-  border: "1px solid #ddd",
+  border: "1px solid var(--sd-border)",
+  backgroundColor: "var(--sd-box-bg)",
+  color: "var(--sd-text)",
   fontSize: "13px",
   outline: "none",
   boxSizing: "border-box",
@@ -40,9 +42,19 @@ const INPUT_STYLE: CSSProperties = {
 const LABEL_STYLE: CSSProperties = {
   fontSize: "12px",
   fontWeight: "bold",
-  color: "#555",
+  color: "var(--sd-text)",
   display: "block",
   marginBottom: "4px",
+}
+
+const SECONDARY_BUTTON_STYLE: CSSProperties = {
+  fontSize: "13px",
+  border: "1px solid var(--sd-border)",
+  color: "var(--sd-text)",
+  backgroundColor: "var(--sd-box-bg)",
+  padding: "7px 20px",
+  fontWeight: "bold",
+  cursor: "pointer",
 }
 
 const FIELD_STYLE: CSSProperties = {
@@ -92,7 +104,9 @@ export default function ActivityModal({
         style={{
           width: "100%",
           maxWidth: "900px",
-          backgroundColor: "#fff",
+          backgroundColor: "var(--sd-box-bg)",
+          color: "var(--sd-text)",
+          border: "1px solid var(--sd-border)",
           borderRadius: "8px",
           boxShadow: "0 24px 60px rgba(0, 0, 0, 0.18)",
           overflow: "hidden",
@@ -104,19 +118,19 @@ export default function ActivityModal({
             justifyContent: "space-between",
             alignItems: "center",
             padding: "18px 22px",
-            borderBottom: "1px solid #e5e7eb",
+            borderBottom: "1px solid var(--sd-border)",
           }}
         >
           <div>
             <h2 id="activity-modal-title" style={{ margin: 0 }}>Adauga activitate noua</h2>
-            <p style={{ margin: "6px 0 0", color: "#666", fontSize: "13px" }}>
+            <p style={{ margin: "6px 0 0", color: "color-mix(in srgb, var(--sd-text) 68%, transparent)", fontSize: "13px" }}>
               Completeaza rapid o activitate noua pentru dashboard-ul tau de load.
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            style={{ border: "none", background: "transparent", fontSize: "24px", lineHeight: 1, cursor: "pointer", color: "#666" }}
+            style={{ border: "none", background: "transparent", fontSize: "24px", lineHeight: 1, cursor: "pointer", color: "var(--sd-text)" }}
             aria-label="Inchide"
           >
             x
@@ -135,12 +149,12 @@ export default function ActivityModal({
             </div>
             <div style={{ ...FIELD_STYLE, flex: "1 1 160px" }}>
               <label htmlFor="activity-modal-sport" style={LABEL_STYLE}>Sport</label>
-              <select id="activity-modal-sport" value={sport} onChange={(e) => onSportChange(e.target.value)} style={{ ...INPUT_STYLE, backgroundColor: "#fff" }}>
+              <select id="activity-modal-sport" value={sport} onChange={(e) => onSportChange(e.target.value)} style={INPUT_STYLE}>
                 {sportOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
               </select>
             </div>
             <div style={{ ...FIELD_STYLE, flex: "1 1 160px" }}>
-              <label htmlFor="activity-modal-hr" style={LABEL_STYLE}>FC medie (bpm){!hasCardiacData && <span style={{ color: "#b36000", marginLeft: "4px" }}>- necesar profil</span>}</label>
+              <label htmlFor="activity-modal-hr" style={LABEL_STYLE}>FC medie (bpm){!hasCardiacData && <span style={{ color: "#f59e0b", marginLeft: "4px" }}>- necesar profil</span>}</label>
               <input id="activity-modal-hr" type="number" value={avgHeartRate} onChange={(e) => onHeartRateChange(e.target.value)} min="30" max="250" step="1" placeholder="ex. 155" style={INPUT_STYLE} />
             </div>
             <div style={{ ...FIELD_STYLE, flex: "1 1 100%", width: "100%" }}>
@@ -148,7 +162,7 @@ export default function ActivityModal({
               <textarea id="activity-modal-notes" value={notes} onChange={(e) => onNotesChange(e.target.value)} rows={3} maxLength={500} placeholder="ex. Antrenament tactic, teren greu, recuperare dupa meci..." style={{ ...INPUT_STYLE, resize: "vertical" }} />
             </div>
             <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", width: "100%", marginTop: "8px" }}>
-              <button type="button" onClick={onClose} style={{ fontSize: "13px", border: "1px solid #ccc", color: "#333", backgroundColor: "#fff", padding: "7px 20px", fontWeight: "bold", cursor: "pointer" }}>
+              <button type="button" onClick={onClose} style={SECONDARY_BUTTON_STYLE}>
                 Inchide
               </button>
               <button id="activity-modal-submit" type="submit" disabled={isPending} style={{ backgroundColor: isPending ? "#aaa" : "#0056b3", color: "#fff", border: "none", padding: "7px 20px", fontSize: "13px", fontWeight: "bold", cursor: isPending ? "not-allowed" : "pointer" }}>
@@ -156,8 +170,8 @@ export default function ActivityModal({
               </button>
             </div>
           </form>
-          {formError && <p style={{ color: "#c00", fontSize: "12px", marginTop: "10px" }}>Eroare: {formError}</p>}
-          {formSuccess && <p style={{ color: "#2a7a2a", fontSize: "12px", marginTop: "10px" }}>{formSuccess}</p>}
+          {formError && <p style={{ color: "#f87171", fontSize: "12px", marginTop: "10px" }}>Eroare: {formError}</p>}
+          {formSuccess && <p style={{ color: "#22c55e", fontSize: "12px", marginTop: "10px" }}>{formSuccess}</p>}
         </div>
       </div>
     </div>

@@ -45,7 +45,9 @@ type Props = {
 const INPUT_STYLE: React.CSSProperties = {
   width: "100%",
   padding: "7px 10px",
-  border: "1px solid #ddd",
+  border: "1px solid var(--sd-border)",
+  backgroundColor: "var(--sd-box-bg)",
+  color: "var(--sd-text)",
   fontSize: "13px",
   outline: "none",
   boxSizing: "border-box",
@@ -54,9 +56,26 @@ const INPUT_STYLE: React.CSSProperties = {
 const LABEL_STYLE: React.CSSProperties = {
   fontSize: "12px",
   fontWeight: "bold",
-  color: "#555",
+  color: "var(--sd-text)",
   display: "block",
   marginBottom: "4px",
+}
+
+const SECTION_TITLE_STYLE: React.CSSProperties = {
+  fontSize: "14px",
+  borderBottom: "1px solid var(--sd-border)",
+  paddingBottom: "4px",
+  marginBottom: "12px",
+  color: "#60a5fa",
+}
+
+const SECONDARY_BUTTON_STYLE: React.CSSProperties = {
+  padding: "8px 16px",
+  backgroundColor: "var(--sd-box-bg)",
+  color: "var(--sd-text)",
+  border: "1px solid var(--sd-border)",
+  cursor: "pointer",
+  fontSize: "13px",
 }
 
 const FIELD_STYLE: React.CSSProperties = {
@@ -128,7 +147,9 @@ export default function MyProfileModal({
     <div
       onClick={e => e.stopPropagation()}
       style={{
-        backgroundColor: "#fff",
+        backgroundColor: "var(--sd-box-bg)",
+        color: "var(--sd-text)",
+        border: "1px solid var(--sd-border)",
         borderRadius: "6px",
         width: "100%",
         maxWidth: "500px",
@@ -139,14 +160,14 @@ export default function MyProfileModal({
         boxShadow: "0 10px 25px rgba(0,0,0,0.2)",
       }}
     >
-        <div style={{ padding: "16px 20px", borderBottom: "1px solid #eee", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h2 style={{ margin: 0, fontSize: "16px", color: "#333" }}>Profilul Meu</h2>
-          <button type="button" onClick={onClose} style={{ background: "none", border: "none", fontSize: "20px", cursor: "pointer", color: "#999" }}>&times;</button>
+        <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--sd-border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <h2 style={{ margin: 0, fontSize: "16px", color: "var(--sd-text)" }}>Profilul Meu</h2>
+          <button type="button" onClick={onClose} style={{ background: "none", border: "none", fontSize: "20px", cursor: "pointer", color: "var(--sd-text)" }}>&times;</button>
         </div>
 
         <div style={{ padding: "20px" }}>
           <form onSubmit={handleSubmit}>
-            <h3 style={{ fontSize: "14px", borderBottom: "1px solid #ddd", paddingBottom: "4px", marginBottom: "12px", color: "#0056b3" }}>Date Personale</h3>
+            <h3 style={SECTION_TITLE_STYLE}>Date Personale</h3>
             <div style={{ display: "flex", gap: "12px" }}>
               <div style={{ ...FIELD_STYLE, flex: 1 }}>
                 <label style={LABEL_STYLE}>Prenume *</label>
@@ -165,7 +186,7 @@ export default function MyProfileModal({
               </div>
               <div style={{ ...FIELD_STYLE, flex: 1 }}>
                 <label style={LABEL_STYLE}>Gen</label>
-                <select value={gender} onChange={e => setGender(e.target.value)} style={{ ...INPUT_STYLE, backgroundColor: "#fff" }}>
+                <select value={gender} onChange={e => setGender(e.target.value)} style={INPUT_STYLE}>
                   <option value="">Neselectat</option>
                   <option value="MALE">Masculin (MALE)</option>
                   <option value="FEMALE">Feminin (FEMALE)</option>
@@ -178,8 +199,8 @@ export default function MyProfileModal({
               <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} style={INPUT_STYLE} />
             </div>
 
-            <h3 style={{ fontSize: "14px", borderBottom: "1px solid #ddd", paddingBottom: "4px", marginTop: "20px", marginBottom: "12px", color: "#0056b3" }}>Date Sănătate & Ritm Cardiac</h3>
-            <p style={{ fontSize: "11px", color: "#666", marginBottom: "12px" }}>Ritmul cardiac este folosit la calcularea efortului sportiv (Training Load / TRIMP).</p>
+            <h3 style={{ ...SECTION_TITLE_STYLE, marginTop: "20px" }}>Date Sănătate & Ritm Cardiac</h3>
+            <p style={{ fontSize: "11px", color: "color-mix(in srgb, var(--sd-text) 68%, transparent)", marginBottom: "12px" }}>Ritmul cardiac este folosit la calcularea efortului sportiv (Training Load / TRIMP).</p>
             <div style={{ display: "flex", gap: "12px" }}>
               <div style={{ ...FIELD_STYLE, flex: 1 }}>
                 <label style={LABEL_STYLE}>HR Minim (Repaus)</label>
@@ -193,7 +214,7 @@ export default function MyProfileModal({
 
             {(initialData.sportType === "fotbal" || initialData.sportType === "tenis") && (
               <>
-                <h3 style={{ fontSize: "14px", borderBottom: "1px solid #ddd", paddingBottom: "4px", marginTop: "20px", marginBottom: "12px", color: "#0056b3" }}>Date Sportive</h3>
+                <h3 style={{ ...SECTION_TITLE_STYLE, marginTop: "20px" }}>Date Sportive</h3>
                 <div style={{ display: "flex", gap: "12px" }}>
                   <div style={{ ...FIELD_STYLE, flex: 1 }}>
                     <label style={LABEL_STYLE}>Înălțime (cm)</label>
@@ -208,7 +229,7 @@ export default function MyProfileModal({
                 {initialData.sportType === "fotbal" && (
                   <div style={{ ...FIELD_STYLE }}>
                     <label style={LABEL_STYLE}>Picior Preferat</label>
-                    <select value={preferredFoot} onChange={e => setPreferredFoot(e.target.value)} style={{ ...INPUT_STYLE, backgroundColor: "#fff" }}>
+                    <select value={preferredFoot} onChange={e => setPreferredFoot(e.target.value)} style={INPUT_STYLE}>
                       <option value="">Neselectat</option>
                       <option value="dreapta">Dreapta</option>
                       <option value="stanga">Stânga</option>
@@ -221,7 +242,7 @@ export default function MyProfileModal({
                   <>
                   <div style={{ ...FIELD_STYLE }}>
                     <label style={LABEL_STYLE}>Mână Preferată</label>
-                    <select value={preferredHand} onChange={e => setPreferredHand(e.target.value)} style={{ ...INPUT_STYLE, backgroundColor: "#fff" }}>
+                    <select value={preferredHand} onChange={e => setPreferredHand(e.target.value)} style={INPUT_STYLE}>
                       <option value="">Neselectat</option>
                       <option value="dreapta">Dreapta</option>
                       <option value="stanga">Stânga</option>
@@ -236,11 +257,11 @@ export default function MyProfileModal({
               </>
             )}
 
-            {formError && <p style={{ color: "#c00", fontSize: "12px", marginTop: "10px" }}>❌ {formError}</p>}
-            {formSuccess && <p style={{ color: "#2a7a2a", fontSize: "12px", marginTop: "10px" }}>✅ {formSuccess}</p>}
+            {formError && <p style={{ color: "#f87171", fontSize: "12px", marginTop: "10px" }}>❌ {formError}</p>}
+            {formSuccess && <p style={{ color: "#22c55e", fontSize: "12px", marginTop: "10px" }}>✅ {formSuccess}</p>}
 
             <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "20px" }}>
-              <button type="button" onClick={onClose} style={{ padding: "8px 16px", backgroundColor: "#f5f5f5", border: "1px solid #ddd", cursor: "pointer", fontSize: "13px" }}>
+              <button type="button" onClick={onClose} style={SECONDARY_BUTTON_STYLE}>
                 Anulează
               </button>
               <button type="submit" disabled={isPending} style={{ padding: "8px 16px", backgroundColor: isPending ? "#aaa" : "#0056b3", color: "#fff", border: "none", cursor: isPending ? "not-allowed" : "pointer", fontWeight: "bold", fontSize: "13px" }}>
@@ -253,5 +274,3 @@ export default function MyProfileModal({
     </div>
   )
 }
-
-

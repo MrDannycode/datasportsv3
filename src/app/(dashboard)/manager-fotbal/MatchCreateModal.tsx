@@ -16,6 +16,15 @@ type MatchFormData = {
     scoreAway: string
 }
 
+const fieldStyle = {
+    width: "100%",
+    padding: "8px",
+    borderRadius: "3px",
+    border: "1px solid var(--sd-border)",
+    background: "var(--sd-box-bg)",
+    color: "var(--sd-text)",
+}
+
 interface Props {
     formData: MatchFormData
     teams: Team[]
@@ -51,7 +60,9 @@ export default function MatchCreateModal({ formData, teams, competitions, loadin
                 style={{
                     width: "100%",
                     maxWidth: "960px",
-                    backgroundColor: "#fff",
+                    backgroundColor: "var(--sd-box-bg)",
+                    color: "var(--sd-text)",
+                    border: "1px solid var(--sd-border)",
                     borderRadius: "8px",
                     boxShadow: "0 24px 60px rgba(0, 0, 0, 0.18)",
                     overflow: "hidden",
@@ -63,19 +74,19 @@ export default function MatchCreateModal({ formData, teams, competitions, loadin
                         justifyContent: "space-between",
                         alignItems: "center",
                         padding: "18px 22px",
-                        borderBottom: "1px solid #e5e7eb",
+                        borderBottom: "1px solid var(--sd-border)",
                     }}
                 >
                     <div>
                         <h2 id="match-modal-title" style={{ margin: 0 }}>{isEditing ? "Editeaza meci" : "Adauga meci"}</h2>
-                        <p style={{ margin: "6px 0 0", color: "#666", fontSize: "13px" }}>
+                        <p style={{ margin: "6px 0 0", color: "color-mix(in srgb, var(--sd-text) 68%, transparent)", fontSize: "13px" }}>
                             Configureaza rapid un meci nou pentru calendarul echipei.
                         </p>
                     </div>
                     <button
                         type="button"
                         onClick={onClose}
-                        style={{ border: "none", background: "transparent", fontSize: "24px", lineHeight: 1, cursor: "pointer", color: "#666" }}
+                        style={{ border: "none", background: "transparent", fontSize: "24px", lineHeight: 1, cursor: "pointer", color: "var(--sd-text)" }}
                         aria-label="Inchide"
                     >
                         x
@@ -83,7 +94,7 @@ export default function MatchCreateModal({ formData, teams, competitions, loadin
                 </div>
 
                 <div style={{ padding: "22px" }}>
-                    {error && <div style={{ color: "red", marginBottom: "10px" }}>{error}</div>}
+                    {error && <div style={{ color: "#f87171", marginBottom: "10px" }}>{error}</div>}
 
                     <form onSubmit={onSubmit} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
                         <div>
@@ -92,7 +103,7 @@ export default function MatchCreateModal({ formData, teams, competitions, loadin
                                 required
                                 value={formData.teamHomeId}
                                 onChange={e => onChange("teamHomeId", e.target.value)}
-                                style={{ width: "100%", padding: "8px", borderRadius: "3px", border: "1px solid #ccc" }}
+                                style={fieldStyle}
                             >
                                 <option value="">-- Selecteaza --</option>
                                 {teams.map(team => <option key={team.id} value={team.id}>{team.name}</option>)}
@@ -104,7 +115,7 @@ export default function MatchCreateModal({ formData, teams, competitions, loadin
                                 required
                                 value={formData.teamAwayId}
                                 onChange={e => onChange("teamAwayId", e.target.value)}
-                                style={{ width: "100%", padding: "8px", borderRadius: "3px", border: "1px solid #ccc" }}
+                                style={fieldStyle}
                             >
                                 <option value="">-- Selecteaza --</option>
                                 {teams.map(team => <option key={team.id} value={team.id}>{team.name}</option>)}
@@ -117,7 +128,7 @@ export default function MatchCreateModal({ formData, teams, competitions, loadin
                                 type="datetime-local"
                                 value={formData.matchDate}
                                 onChange={e => onChange("matchDate", e.target.value)}
-                                style={{ width: "100%", padding: "8px", borderRadius: "3px", border: "1px solid #ccc" }}
+                                style={fieldStyle}
                             />
                         </div>
                         <div>
@@ -127,7 +138,7 @@ export default function MatchCreateModal({ formData, teams, competitions, loadin
                                 type="text"
                                 value={formData.location}
                                 onChange={e => onChange("location", e.target.value)}
-                                style={{ width: "100%", padding: "8px", borderRadius: "3px", border: "1px solid #ccc" }}
+                                style={fieldStyle}
                             />
                         </div>
                         <div>
@@ -136,7 +147,7 @@ export default function MatchCreateModal({ formData, teams, competitions, loadin
                                 required
                                 value={formData.competitionId}
                                 onChange={e => onChange("competitionId", e.target.value)}
-                                style={{ width: "100%", padding: "8px", borderRadius: "3px", border: "1px solid #ccc" }}
+                                style={fieldStyle}
                             >
                                 <option value="">-- Selecteaza --</option>
                                 {competitions.map(competition => <option key={competition.id} value={competition.id}>{competition.name}</option>)}
@@ -149,7 +160,7 @@ export default function MatchCreateModal({ formData, teams, competitions, loadin
                                     type="number"
                                     value={formData.scoreHome}
                                     onChange={e => onChange("scoreHome", e.target.value)}
-                                    style={{ width: "100%", padding: "8px", borderRadius: "3px", border: "1px solid #ccc" }}
+                                    style={fieldStyle}
                                 />
                             </div>
                             <div style={{ flex: 1 }}>
@@ -158,13 +169,13 @@ export default function MatchCreateModal({ formData, teams, competitions, loadin
                                     type="number"
                                     value={formData.scoreAway}
                                     onChange={e => onChange("scoreAway", e.target.value)}
-                                    style={{ width: "100%", padding: "8px", borderRadius: "3px", border: "1px solid #ccc" }}
+                                    style={fieldStyle}
                                 />
                             </div>
                         </div>
 
                         <div style={{ gridColumn: "1 / -1", display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "10px" }}>
-                            <button type="button" onClick={onClose} style={{ padding: "8px 15px", background: "#ccc", color: "#333", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }}>
+                            <button type="button" onClick={onClose} style={{ padding: "8px 15px", background: "var(--sd-box-bg)", color: "var(--sd-text)", border: "1px solid var(--sd-border)", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }}>
                                 Inchide
                             </button>
                             <button disabled={loading} type="submit" style={{ padding: "8px 15px", background: "#0070f3", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }}>

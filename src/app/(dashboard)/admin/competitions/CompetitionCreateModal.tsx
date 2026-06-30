@@ -24,6 +24,15 @@ interface Props {
 
 const continentOptions = Array.from(new Set(MANAGER_LOCATION_OPTIONS.map(option => option.continent)))
 
+const inputStyle = {
+    width: "100%",
+    padding: "10px 12px",
+    borderRadius: "4px",
+    border: "1px solid var(--sd-border)",
+    backgroundColor: "var(--sd-box-bg)",
+    color: "var(--sd-text)",
+}
+
 export default function CompetitionCreateModal({
     name,
     sport,
@@ -74,7 +83,9 @@ export default function CompetitionCreateModal({
                 style={{
                     width: "100%",
                     maxWidth: "720px",
-                    backgroundColor: "#fff",
+                    backgroundColor: "var(--sd-box-bg)",
+                    color: "var(--sd-text)",
+                    border: "1px solid var(--sd-border)",
                     borderRadius: "8px",
                     boxShadow: "0 24px 60px rgba(0, 0, 0, 0.18)",
                     overflow: "hidden",
@@ -86,19 +97,19 @@ export default function CompetitionCreateModal({
                         justifyContent: "space-between",
                         alignItems: "center",
                         padding: "18px 22px",
-                        borderBottom: "1px solid #e5e7eb",
+                        borderBottom: "1px solid var(--sd-border)",
                     }}
                 >
                     <div>
                         <h2 id="new-competition-modal-title" style={{ margin: 0 }}>Adauga competitie noua</h2>
-                        <p style={{ margin: "6px 0 0", color: "#666", fontSize: "13px" }}>
+                        <p style={{ margin: "6px 0 0", color: "color-mix(in srgb, var(--sd-text) 68%, transparent)", fontSize: "13px" }}>
                             Completeaza datele de baza si durata de desfasurare.
                         </p>
                     </div>
                     <button
                         type="button"
                         onClick={onClose}
-                        style={{ border: "none", background: "transparent", fontSize: "24px", lineHeight: 1, cursor: "pointer", color: "#666" }}
+                        style={{ border: "none", background: "transparent", fontSize: "24px", lineHeight: 1, cursor: "pointer", color: "var(--sd-text)" }}
                         aria-label="Inchide"
                     >
                         x
@@ -106,8 +117,8 @@ export default function CompetitionCreateModal({
                 </div>
 
                 <div style={{ padding: "22px" }}>
-                    {error && <div style={{ color: "red", marginBottom: "10px", padding: "10px", background: "#fee", borderRadius: "5px" }}>{error}</div>}
-                    {success && <div style={{ color: "green", marginBottom: "10px", padding: "10px", background: "#efe", borderRadius: "5px" }}>{success}</div>}
+                    {error && <div style={{ color: "#f87171", marginBottom: "10px", padding: "10px", background: "rgba(248, 113, 113, 0.14)", borderRadius: "5px" }}>{error}</div>}
+                    {success && <div style={{ color: "#22c55e", marginBottom: "10px", padding: "10px", background: "rgba(34, 197, 94, 0.14)", borderRadius: "5px" }}>{success}</div>}
 
                     <form onSubmit={onSubmit} style={{ display: "flex", gap: "10px", alignItems: "flex-end", flexWrap: "wrap" }}>
                         <div style={{ flex: "2 1 280px" }}>
@@ -118,7 +129,7 @@ export default function CompetitionCreateModal({
                                 placeholder="ex: Liga 1"
                                 value={name}
                                 onChange={e => onNameChange(e.target.value)}
-                                style={{ width: "100%", padding: "10px 12px", borderRadius: "4px", border: "1px solid #ccc" }}
+                                style={inputStyle}
                             />
                         </div>
                         <div style={{ flex: "1 1 180px" }}>
@@ -127,7 +138,7 @@ export default function CompetitionCreateModal({
                                 required
                                 value={sport}
                                 onChange={e => onSportChange(e.target.value as "fotbal" | "tenis")}
-                                style={{ width: "100%", padding: "10px 12px", borderRadius: "4px", border: "1px solid #ccc" }}
+                                style={inputStyle}
                             >
                                 <option value="fotbal">Fotbal</option>
                                 <option value="tenis">Tenis</option>
@@ -139,7 +150,7 @@ export default function CompetitionCreateModal({
                                 required
                                 value={continent}
                                 onChange={e => handleContinentChange(e.target.value)}
-                                style={{ width: "100%", padding: "10px 12px", borderRadius: "4px", border: "1px solid #ccc" }}
+                                style={inputStyle}
                             >
                                 <option value="">Selecteaza continent</option>
                                 {continentOptions.map(option => (
@@ -154,7 +165,7 @@ export default function CompetitionCreateModal({
                                 value={country}
                                 onChange={e => onCountryChange(e.target.value)}
                                 disabled={!continent}
-                                style={{ width: "100%", padding: "10px 12px", borderRadius: "4px", border: "1px solid #ccc", backgroundColor: !continent ? "#f3f4f6" : "#fff" }}
+                                style={{ ...inputStyle, backgroundColor: !continent ? "color-mix(in srgb, var(--sd-box-bg) 82%, var(--sd-border))" : "var(--sd-box-bg)" }}
                             >
                                 <option value="">Selecteaza tara</option>
                                 {countryOptions.map(option => (
@@ -168,7 +179,7 @@ export default function CompetitionCreateModal({
                                 type="date"
                                 value={startDate}
                                 onChange={e => onStartDateChange(e.target.value)}
-                                style={{ width: "100%", padding: "10px 12px", borderRadius: "4px", border: "1px solid #ccc" }}
+                                style={inputStyle}
                             />
                         </div>
                         <div style={{ flex: "1 1 180px" }}>
@@ -178,14 +189,14 @@ export default function CompetitionCreateModal({
                                 value={endDate}
                                 min={startDate || undefined}
                                 onChange={e => onEndDateChange(e.target.value)}
-                                style={{ width: "100%", padding: "10px 12px", borderRadius: "4px", border: "1px solid #ccc" }}
+                                style={inputStyle}
                             />
                         </div>
                         <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", width: "100%", marginTop: "8px" }}>
                             <button
                                 type="button"
                                 onClick={onClose}
-                                style={{ border: "1px solid #ccc", background: "#fff", padding: "9px 18px", cursor: "pointer" }}
+                                style={{ border: "1px solid var(--sd-border)", background: "var(--sd-box-bg)", color: "var(--sd-text)", padding: "9px 18px", cursor: "pointer" }}
                             >
                                 Anuleaza
                             </button>

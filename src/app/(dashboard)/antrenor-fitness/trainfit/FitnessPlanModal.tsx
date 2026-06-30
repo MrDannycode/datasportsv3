@@ -20,9 +20,18 @@ interface Props {
     onSubmit: (e: React.FormEvent) => Promise<void>
 }
 
-const INPUT_STYLE = { border: "1px solid #ccc", padding: "8px 10px", fontSize: "13px" } as const
+const INPUT_STYLE = { border: "1px solid var(--sd-border)", backgroundColor: "var(--sd-box-bg)", color: "var(--sd-text)", padding: "8px 10px", fontSize: "13px" } as const
 const LABEL_STYLE = { fontSize: "12px", fontWeight: "bold" } as const
 const FIELD_STYLE = { display: "flex", flexDirection: "column" as const, gap: "4px" }
+const SECONDARY_BUTTON_STYLE = {
+    fontSize: "13px",
+    border: "1px solid var(--sd-border)",
+    color: "var(--sd-text)",
+    backgroundColor: "var(--sd-box-bg)",
+    padding: "7px 20px",
+    fontWeight: "bold",
+    cursor: "pointer",
+} as const
 
 export default function FitnessPlanModal({
     editMode,
@@ -63,7 +72,9 @@ export default function FitnessPlanModal({
                 style={{
                     width: "100%",
                     maxWidth: "900px",
-                    backgroundColor: "#fff",
+                    backgroundColor: "var(--sd-box-bg)",
+                    color: "var(--sd-text)",
+                    border: "1px solid var(--sd-border)",
                     borderRadius: "8px",
                     boxShadow: "0 24px 60px rgba(0, 0, 0, 0.18)",
                     overflow: "hidden",
@@ -75,19 +86,19 @@ export default function FitnessPlanModal({
                         justifyContent: "space-between",
                         alignItems: "center",
                         padding: "18px 22px",
-                        borderBottom: "1px solid #e5e7eb",
+                        borderBottom: "1px solid var(--sd-border)",
                     }}
                 >
                     <div>
                         <h2 id="fitness-plan-modal-title" style={{ margin: 0 }}>{editMode ? "Editeaza plan" : "Adauga plan nou"}</h2>
-                        <p style={{ margin: "6px 0 0", color: "#666", fontSize: "13px" }}>
+                        <p style={{ margin: "6px 0 0", color: "color-mix(in srgb, var(--sd-text) 68%, transparent)", fontSize: "13px" }}>
                             Configureaza rapid un plan nou de fitness.
                         </p>
                     </div>
                     <button
                         type="button"
                         onClick={onClose}
-                        style={{ border: "none", background: "transparent", fontSize: "24px", lineHeight: 1, cursor: "pointer", color: "#666" }}
+                        style={{ border: "none", background: "transparent", fontSize: "24px", lineHeight: 1, cursor: "pointer", color: "var(--sd-text)" }}
                         aria-label="Inchide"
                     >
                         x
@@ -117,7 +128,7 @@ export default function FitnessPlanModal({
                                 value={type}
                                 onChange={(e) => onTypeChange(e.target.value as PlanType)}
                                 required
-                                style={{ ...INPUT_STYLE, backgroundColor: "#fff" }}
+                                style={INPUT_STYLE}
                             >
                                 <option value="forta">Forta</option>
                                 <option value="rezistenta">Rezistenta</option>
@@ -157,7 +168,7 @@ export default function FitnessPlanModal({
                                 <button
                                     type="button"
                                     onClick={onCancelEdit}
-                                    style={{ fontSize: "13px", border: "1px solid #ccc", color: "#333", backgroundColor: "#fff", padding: "7px 20px", fontWeight: "bold", cursor: "pointer" }}
+                                    style={SECONDARY_BUTTON_STYLE}
                                 >
                                     Anuleaza editarea
                                 </button>
@@ -165,7 +176,7 @@ export default function FitnessPlanModal({
                             <button
                                 type="button"
                                 onClick={onClose}
-                                style={{ fontSize: "13px", border: "1px solid #ccc", color: "#333", backgroundColor: "#fff", padding: "7px 20px", fontWeight: "bold", cursor: "pointer" }}
+                                style={SECONDARY_BUTTON_STYLE}
                             >
                                 Inchide
                             </button>
@@ -180,8 +191,8 @@ export default function FitnessPlanModal({
                         </div>
                     </form>
 
-                    {formError && <p style={{ color: "#c00", fontSize: "12px", marginTop: "10px" }}>{formError}</p>}
-                    {formSuccess && <p style={{ color: "#2a7a2a", fontSize: "12px", marginTop: "10px" }}>{formSuccess}</p>}
+                    {formError && <p style={{ color: "#f87171", fontSize: "12px", marginTop: "10px" }}>{formError}</p>}
+                    {formSuccess && <p style={{ color: "#22c55e", fontSize: "12px", marginTop: "10px" }}>{formSuccess}</p>}
                 </div>
             </div>
         </div>

@@ -86,7 +86,9 @@ export default function DosarMedicalModal({ editingRecord, athletes, onClose, on
             <div
                 onClick={e => e.stopPropagation()}
                 style={{
-                    background: "white",
+                    background: "var(--sd-box-bg)",
+                    color: "var(--sd-text)",
+                    border: "1px solid var(--sd-border)",
                     padding: "24px",
                     borderRadius: "8px",
                     width: "600px",
@@ -103,7 +105,7 @@ export default function DosarMedicalModal({ editingRecord, athletes, onClose, on
                             value={athleteId}
                             onChange={e => setAthleteId(e.target.value ? Number(e.target.value) : "")}
                             required
-                            style={{ width: "100%", padding: "8px", border: "1px solid #ccc", borderRadius: "4px" }}
+                            style={{ width: "100%", padding: "8px", border: "1px solid var(--sd-border)", background: "var(--sd-box-bg)", color: "var(--sd-text)", borderRadius: "4px" }}
                         >
                             <option value="">Selectează atlet</option>
                             {athletes.map((athlete) => (
@@ -121,7 +123,7 @@ export default function DosarMedicalModal({ editingRecord, athletes, onClose, on
                             value={diagnosis}
                             onChange={e => setDiagnosis(e.target.value)}
                             required
-                            style={{ width: "100%", padding: "8px", border: "1px solid #ccc", borderRadius: "4px" }}
+                            style={{ width: "100%", padding: "8px", border: "1px solid var(--sd-border)", background: "var(--sd-box-bg)", color: "var(--sd-text)", borderRadius: "4px" }}
                         />
                     </div>
 
@@ -132,7 +134,7 @@ export default function DosarMedicalModal({ editingRecord, athletes, onClose, on
                             onChange={e => setTreatment(e.target.value)}
                             required
                             rows={3}
-                            style={{ width: "100%", padding: "8px", border: "1px solid #ccc", borderRadius: "4px" }}
+                            style={{ width: "100%", padding: "8px", border: "1px solid var(--sd-border)", background: "var(--sd-box-bg)", color: "var(--sd-text)", borderRadius: "4px" }}
                         />
                     </div>
 
@@ -144,7 +146,7 @@ export default function DosarMedicalModal({ editingRecord, athletes, onClose, on
                                 value={startDate}
                                 onChange={e => setStartDate(e.target.value)}
                                 required
-                                style={{ width: "100%", padding: "8px", border: "1px solid #ccc", borderRadius: "4px" }}
+                                style={{ width: "100%", padding: "8px", border: "1px solid var(--sd-border)", background: "var(--sd-box-bg)", color: "var(--sd-text)", borderRadius: "4px" }}
                             />
                         </div>
                         <div style={{ flex: 1 }}>
@@ -153,7 +155,7 @@ export default function DosarMedicalModal({ editingRecord, athletes, onClose, on
                                 type="date"
                                 value={endDate}
                                 onChange={e => setEndDate(e.target.value)}
-                                style={{ width: "100%", padding: "8px", border: "1px solid #ccc", borderRadius: "4px" }}
+                                style={{ width: "100%", padding: "8px", border: "1px solid var(--sd-border)", background: "var(--sd-box-bg)", color: "var(--sd-text)", borderRadius: "4px" }}
                             />
                         </div>
                     </div>
@@ -169,14 +171,14 @@ export default function DosarMedicalModal({ editingRecord, athletes, onClose, on
                         </label>
                     </div>
 
-                    <div style={{ marginBottom: "16px", borderTop: "1px solid #eee", paddingTop: "16px" }}>
+                    <div style={{ marginBottom: "16px", borderTop: "1px solid var(--sd-border)", paddingTop: "16px" }}>
 
 
                         {injuries.map((injury, index) => (
-                            <div key={index} style={{ background: "#f9f9f9", padding: "12px", borderRadius: "4px", marginBottom: "8px", border: "1px solid #e0e0e0" }}>
+                            <div key={index} style={{ background: "color-mix(in srgb, var(--sd-box-bg) 88%, var(--sd-border))", padding: "12px", borderRadius: "4px", marginBottom: "8px", border: "1px solid var(--sd-border)" }}>
                                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
                                     <strong>Accidentare #{index + 1}</strong>
-                                    <button type="button" onClick={() => handleRemoveInjury(index)} style={{ color: "red", background: "none", border: "none", cursor: "pointer" }}>Șterge</button>
+                                    <button type="button" onClick={() => handleRemoveInjury(index)} style={{ color: "#f87171", background: "none", border: "none", cursor: "pointer" }}>Șterge</button>
                                 </div>
                                 <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
                                     <input
@@ -185,7 +187,7 @@ export default function DosarMedicalModal({ editingRecord, athletes, onClose, on
                                         value={injury.injuryType}
                                         onChange={e => handleInjuryChange(index, "injuryType", e.target.value)}
                                         required
-                                        style={{ flex: 1, padding: "6px", border: "1px solid #ccc", borderRadius: "4px" }}
+                                        style={{ flex: 1, padding: "6px", border: "1px solid var(--sd-border)", background: "var(--sd-box-bg)", color: "var(--sd-text)", borderRadius: "4px" }}
                                     />
                                     <input
                                         type="text"
@@ -193,14 +195,14 @@ export default function DosarMedicalModal({ editingRecord, athletes, onClose, on
                                         value={injury.bodyPart}
                                         onChange={e => handleInjuryChange(index, "bodyPart", e.target.value)}
                                         required
-                                        style={{ flex: 1, padding: "6px", border: "1px solid #ccc", borderRadius: "4px" }}
+                                        style={{ flex: 1, padding: "6px", border: "1px solid var(--sd-border)", background: "var(--sd-box-bg)", color: "var(--sd-text)", borderRadius: "4px" }}
                                     />
                                 </div>
                                 <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
                                     <select
                                         value={injury.severity}
                                         onChange={e => handleInjuryChange(index, "severity", e.target.value as Severity)}
-                                        style={{ flex: 1, padding: "6px", border: "1px solid #ccc", borderRadius: "4px" }}
+                                        style={{ flex: 1, padding: "6px", border: "1px solid var(--sd-border)", background: "var(--sd-box-bg)", color: "var(--sd-text)", borderRadius: "4px" }}
                                     >
                                         <option value={Severity.usoara}>Ușoară</option>
                                         <option value={Severity.medie}>Medie</option>
@@ -213,7 +215,7 @@ export default function DosarMedicalModal({ editingRecord, athletes, onClose, on
                                         onChange={e => handleInjuryChange(index, "recoveryDays", e.target.value)}
                                         required
                                         min="0"
-                                        style={{ flex: 1, padding: "6px", border: "1px solid #ccc", borderRadius: "4px" }}
+                                        style={{ flex: 1, padding: "6px", border: "1px solid var(--sd-border)", background: "var(--sd-box-bg)", color: "var(--sd-text)", borderRadius: "4px" }}
                                     />
                                 </div>
                                 <div>
@@ -222,7 +224,7 @@ export default function DosarMedicalModal({ editingRecord, athletes, onClose, on
                                         placeholder="Note (opțional)"
                                         value={injury.notes || ""}
                                         onChange={e => handleInjuryChange(index, "notes", e.target.value)}
-                                        style={{ width: "100%", padding: "6px", border: "1px solid #ccc", borderRadius: "4px" }}
+                                        style={{ width: "100%", padding: "6px", border: "1px solid var(--sd-border)", background: "var(--sd-box-bg)", color: "var(--sd-text)", borderRadius: "4px" }}
                                     />
                                 </div>
                             </div>
@@ -230,7 +232,7 @@ export default function DosarMedicalModal({ editingRecord, athletes, onClose, on
                     </div>
 
                     <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "24px" }}>
-                        <button type="button" onClick={onClose} style={{ padding: "8px 16px", background: "white", border: "1px solid #ccc", borderRadius: "4px", cursor: "pointer" }}>
+                        <button type="button" onClick={onClose} style={{ padding: "8px 16px", background: "var(--sd-box-bg)", color: "var(--sd-text)", border: "1px solid var(--sd-border)", borderRadius: "4px", cursor: "pointer" }}>
                             Anulează
                         </button>
                         <button type="submit" disabled={loading} style={{ padding: "8px 16px", background: "#0056b3", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>

@@ -11,6 +11,14 @@ const ALL_ROLES = [
     { value: "atlet_tenis", label: "Atlet Tenis" },
 ]
 
+const inputStyle = {
+    border: "1px solid var(--sd-border)",
+    backgroundColor: "var(--sd-box-bg)",
+    color: "var(--sd-text)",
+    padding: "10px 12px",
+    fontSize: "13px",
+}
+
 interface Props {
     email: string
     password: string
@@ -60,7 +68,9 @@ export default function UserCreateModal({
                 style={{
                     width: "100%",
                     maxWidth: "760px",
-                    backgroundColor: "#fff",
+                    backgroundColor: "var(--sd-box-bg)",
+                    color: "var(--sd-text)",
+                    border: "1px solid var(--sd-border)",
                     borderRadius: "8px",
                     boxShadow: "0 24px 60px rgba(0, 0, 0, 0.18)",
                     overflow: "hidden",
@@ -72,19 +82,19 @@ export default function UserCreateModal({
                         justifyContent: "space-between",
                         alignItems: "center",
                         padding: "18px 22px",
-                        borderBottom: "1px solid #e5e7eb",
+                        borderBottom: "1px solid var(--sd-border)",
                     }}
                 >
                     <div>
                         <h2 id="new-user-modal-title" style={{ margin: 0 }}>Adauga utilizator nou</h2>
-                        <p style={{ margin: "6px 0 0", color: "#666", fontSize: "13px" }}>
+                        <p style={{ margin: "6px 0 0", color: "color-mix(in srgb, var(--sd-text) 68%, transparent)", fontSize: "13px" }}>
                             Completeaza datele de baza pentru contul nou.
                         </p>
                     </div>
                     <button
                         type="button"
                         onClick={onClose}
-                        style={{ border: "none", background: "transparent", fontSize: "24px", lineHeight: 1, cursor: "pointer", color: "#666" }}
+                        style={{ border: "none", background: "transparent", fontSize: "24px", lineHeight: 1, cursor: "pointer", color: "var(--sd-text)" }}
                         aria-label="Inchide"
                     >
                         x
@@ -102,7 +112,7 @@ export default function UserCreateModal({
                                 onChange={e => onEmailChange(e.target.value)}
                                 required
                                 placeholder="user@example.com"
-                                style={{ border: "1px solid #ccc", padding: "10px 12px", fontSize: "13px" }}
+                                style={inputStyle}
                             />
                         </div>
 
@@ -115,7 +125,7 @@ export default function UserCreateModal({
                                 onChange={e => onPasswordChange(e.target.value)}
                                 required
                                 placeholder="parola temporara"
-                                style={{ border: "1px solid #ccc", padding: "10px 12px", fontSize: "13px" }}
+                                style={inputStyle}
                             />
                         </div>
 
@@ -125,7 +135,7 @@ export default function UserCreateModal({
                                 id="new-user-role"
                                 value={role}
                                 onChange={e => onRoleChange(e.target.value)}
-                                style={{ border: "1px solid #ccc", padding: "10px 12px", fontSize: "13px", backgroundColor: "#fff" }}
+                                style={inputStyle}
                             >
                                 {ALL_ROLES.map(currentRole => (
                                     <option key={currentRole.value} value={currentRole.value}>{currentRole.label}</option>
@@ -137,7 +147,7 @@ export default function UserCreateModal({
                             <button
                                 type="button"
                                 onClick={onClose}
-                                style={{ border: "1px solid #ccc", background: "#fff", padding: "9px 18px", cursor: "pointer" }}
+                                style={{ border: "1px solid var(--sd-border)", background: "var(--sd-box-bg)", color: "var(--sd-text)", padding: "9px 18px", cursor: "pointer" }}
                             >
                                 Anuleaza
                             </button>
