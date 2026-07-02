@@ -27,17 +27,18 @@ model User {
 }
 
 model Team {
-  id          Int             @id @default(autoincrement())
+  id          Int                 @id @default(autoincrement())
   name        String
   sport       Sport
   country     String
   continent   String
-  createdAt   DateTime        @default(now()) @map("created_at")
-  updatedAt   DateTime        @updatedAt @map("updated_at")
-  awayMatches  FootballMatch[]      @relation("AwayTeam")
-  homeMatches  FootballMatch[]      @relation("HomeTeam")
-  profiles     Profile[]
-  weeklyGoals  FitnessWeeklyGoal[]
+  createdAt   DateTime            @default(now()) @map("created_at")
+  updatedAt           DateTime             @updatedAt @map("updated_at")
+  weeklyGoals         FitnessWeeklyGoal[]
+  footballWeeklyGoals FootballWeeklyGoal[]
+  awayMatches         FootballMatch[]      @relation("AwayTeam")
+  homeMatches         FootballMatch[]      @relation("HomeTeam")
+  profiles            Profile[]
 
   @@map("teams")
 }
@@ -375,6 +376,21 @@ model FitnessWeeklyGoal {
   @@index([teamId])
   @@map("fitness_weekly_goals")
 }
+
+model FootballWeeklyGoal {
+  id          Int      @id @default(autoincrement())
+  teamId      Int      @map("team_id")
+  weekStart   DateTime @map("week_start") @db.Date
+  targetTrimp Float    @map("target_trimp")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  team        Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, weekStart])
+  @@index([teamId])
+  @@map("football_weekly_goals")
+}
+
 
 model ManagerAssignment {
   id        Int      @id @default(autoincrement())

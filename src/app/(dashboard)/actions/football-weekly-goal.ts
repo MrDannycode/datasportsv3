@@ -7,8 +7,6 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { logAudit } from "@/lib/audit"
 
-const allowedRoles = new Set(["antrenor_fitness"])
-
 function hasPostgresCode(error: unknown, code: string) {
     if (typeof error !== "object" || error === null) return false
 
@@ -32,10 +30,10 @@ function startOfUtcWeek(value: Date) {
     return date
 }
 
-export async function setFitnessWeeklyGoal(payload: { weekStart?: string; targetTrimp: number }) {
+export async function setFootballTrainingWeeklyGoal(payload: { weekStart?: string; targetTrimp: number }) {
     const session = await getServerSession(authOptions)
 
-    if (!session || !allowedRoles.has(session.user.role)) {
+    if (!session || session.user.role !== "antrenor_fotbal") {
         redirect("/login")
     }
 
@@ -64,7 +62,7 @@ export async function setFitnessWeeklyGoal(payload: { weekStart?: string; target
 
     try {
         goals = await prisma.$queryRaw<{ id: number }[]>`
-            INSERT INTO fitness_weekly_goals (team_id, week_start, target_trimp, updated_at)
+            INSERT INTO football_weekly_goals (team_id, week_start, target_trimp, updated_at)
             VALUES (${profile.teamId}, ${weekStart}::date, ${targetTrimp}, NOW())
             ON CONFLICT (team_id, week_start)
             DO UPDATE SET target_trimp = EXCLUDED.target_trimp, updated_at = NOW()
@@ -72,7 +70,7 @@ export async function setFitnessWeeklyGoal(payload: { weekStart?: string; target
         `
     } catch (error) {
         if (hasPostgresCode(error, "42P01")) {
-            return { error: "Tabela pentru Fitness Weekly Goal lipseste. Ruleaza: npx prisma migrate dev" }
+            return { error: "Tabela pentru Fotbal Training Weekly Goal lipseste. Ruleaza migrarea pentru football_weekly_goals." }
         }
 
         throw error
@@ -81,13 +79,12 @@ export async function setFitnessWeeklyGoal(payload: { weekStart?: string; target
     await logAudit({
         userId: session.user.id,
         action: "update",
-        tableAffected: "fitness_weekly_goals",
+        tableAffected: "football_weekly_goals",
         recordId: goals[0]?.id,
         details: { teamId: profile.teamId, weekStart: weekStart.toISOString(), targetTrimp },
     })
 
     revalidatePath("/")
-    revalidatePath("/antrenor-fitness")
     revalidatePath("/antrenor-fotbal")
 
     return { success: true }

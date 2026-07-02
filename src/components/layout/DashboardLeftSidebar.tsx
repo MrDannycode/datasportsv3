@@ -34,6 +34,7 @@ export type SidebarWeeklyGoal = {
 type DashboardLeftSidebarProps = {
     recentInjuries?: SidebarRecentInjury[]
     weeklyGoal?: SidebarWeeklyGoal | null
+    footballWeeklyGoal?: SidebarWeeklyGoal | null
 }
 
 function formatNumber(value: number | null | undefined, digits = 0) {
@@ -78,70 +79,76 @@ function renderWeeklyAthletes(athletes: SidebarWeeklyGoalAthlete[], emptyMessage
     )
 }
 
-export default function DashboardLeftSidebar({
-    recentInjuries,
-    weeklyGoal,
-}: DashboardLeftSidebarProps) {
-    const weeklyGoalProgress = weeklyGoal?.targetTrimp
+function WeeklyGoalCard({ title, weeklyGoal }: { title: string; weeklyGoal: SidebarWeeklyGoal }) {
+    const weeklyGoalProgress = weeklyGoal.targetTrimp
         ? Math.round((weeklyGoal.currentTrimp / weeklyGoal.targetTrimp) * 100)
         : 0
     const weeklyGoalProgressWidth = Math.min(weeklyGoalProgress, 100)
 
-    if (!weeklyGoal && !recentInjuries) return null
+    return (
+        <div className="sd-box">
+            <div className="sd-box-header">
+                <h2>{title}</h2>
+            </div>
+            <div className="sd-box-content" style={{ display: "grid", gap: "12px" }}>
+                <div>
+                    <div className="sd-metric-title">Saptamana</div>
+                    <div style={{ fontWeight: "bold" }}>{weeklyGoal.weekLabel}</div>
+                </div>
+
+                <div>
+                    <div className="sd-metric-title">TRIMP echipa</div>
+                    <div className="sd-metric-value" style={{ fontSize: "18px" }}>
+                        {formatNumber(weeklyGoal.currentTrimp)} / {formatNumber(weeklyGoal.targetTrimp)}
+                    </div>
+                </div>
+
+                <div>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center" }}>
+                        <div className="sd-metric-title" style={{ marginBottom: 0 }}>Progres</div>
+                        <strong>{weeklyGoalProgress}%</strong>
+                    </div>
+                    <div className="sd-progress-bar" aria-label={`${title} ${weeklyGoalProgress}%`}>
+                        <div
+                            className="sd-progress-fill"
+                            style={{ width: `${weeklyGoalProgressWidth}%` }}
+                        />
+                    </div>
+                </div>
+
+                <details>
+                    <summary className="sd-btn-secondary" style={{ width: "100%", textAlign: "center" }}>
+                        Atleti cu A:C risk ({weeklyGoal.acRiskAthletes.length})
+                    </summary>
+                    <div style={{ marginTop: "10px" }}>
+                        {renderWeeklyAthletes(weeklyGoal.acRiskAthletes, "Nu exista atleti cu A:C risk.")}
+                    </div>
+                </details>
+
+                <details>
+                    <summary className="sd-btn-secondary" style={{ width: "100%", textAlign: "center" }}>
+                        Atleti sub media asteptata ({weeklyGoal.underExpectedAthletes.length})
+                    </summary>
+                    <div style={{ marginTop: "10px" }}>
+                        {renderWeeklyAthletes(weeklyGoal.underExpectedAthletes, "Nu exista atleti sub media asteptata.")}
+                    </div>
+                </details>
+            </div>
+        </div>
+    )
+}
+
+export default function DashboardLeftSidebar({
+    recentInjuries,
+    weeklyGoal,
+    footballWeeklyGoal,
+}: DashboardLeftSidebarProps) {
+    if (!weeklyGoal && !footballWeeklyGoal && !recentInjuries) return null
 
     return (
         <aside className="sd-athlete-left-sidebar sd-sticky-sidebar">
-            {weeklyGoal && (
-                <div className="sd-box">
-                    <div className="sd-box-header">
-                        <h2>Fitness Weekly Goal</h2>
-                    </div>
-                    <div className="sd-box-content" style={{ display: "grid", gap: "12px" }}>
-                        <div>
-                            <div className="sd-metric-title">Saptamana</div>
-                            <div style={{ fontWeight: "bold" }}>{weeklyGoal.weekLabel}</div>
-                        </div>
-
-                        <div>
-                            <div className="sd-metric-title">TRIMP echipa</div>
-                            <div className="sd-metric-value" style={{ fontSize: "18px" }}>
-                                {formatNumber(weeklyGoal.currentTrimp)} / {formatNumber(weeklyGoal.targetTrimp)}
-                            </div>
-                        </div>
-
-                        <div>
-                            <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center" }}>
-                                <div className="sd-metric-title" style={{ marginBottom: 0 }}>Progres</div>
-                                <strong>{weeklyGoalProgress}%</strong>
-                            </div>
-                            <div className="sd-progress-bar" aria-label={`Weekly Goal ${weeklyGoalProgress}%`}>
-                                <div
-                                    className="sd-progress-fill"
-                                    style={{ width: `${weeklyGoalProgressWidth}%` }}
-                                />
-                            </div>
-                        </div>
-
-                        <details>
-                            <summary className="sd-btn-secondary" style={{ width: "100%", textAlign: "center" }}>
-                                Atleti cu A:C risk ({weeklyGoal.acRiskAthletes.length})
-                            </summary>
-                            <div style={{ marginTop: "10px" }}>
-                                {renderWeeklyAthletes(weeklyGoal.acRiskAthletes, "Nu exista atleti cu A:C risk.")}
-                            </div>
-                        </details>
-
-                        <details>
-                            <summary className="sd-btn-secondary" style={{ width: "100%", textAlign: "center" }}>
-                                Atleti sub media asteptata ({weeklyGoal.underExpectedAthletes.length})
-                            </summary>
-                            <div style={{ marginTop: "10px" }}>
-                                {renderWeeklyAthletes(weeklyGoal.underExpectedAthletes, "Nu exista atleti sub media asteptata.")}
-                            </div>
-                        </details>
-                    </div>
-                </div>
-            )}
+            {weeklyGoal && <WeeklyGoalCard title="Fitness Weekly Goal" weeklyGoal={weeklyGoal} />}
+            {footballWeeklyGoal && <WeeklyGoalCard title="Fotbal Training Weekly Goal" weeklyGoal={footballWeeklyGoal} />}
 
             {recentInjuries && (
                 <div className="sd-box">

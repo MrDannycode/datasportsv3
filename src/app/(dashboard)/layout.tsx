@@ -41,6 +41,15 @@ function sumTrimp(items: { trimp: number | null }[]) {
     return items.reduce((total, item) => total + (item.trimp ?? 0), 0)
 }
 
+function hasPostgresCode(error: unknown, code: string) {
+    if (typeof error !== "object" || error === null) return false
+
+    const directCode = "code" in error ? error.code : null
+    const meta = "meta" in error ? error.meta : null
+    const metaCode = typeof meta === "object" && meta !== null && "code" in meta ? meta.code : null
+
+    return directCode === code || metaCode === code
+}
 const rolesWithoutSidebar = new Set([
     "admin_global",
     "manager_fotbal",
@@ -284,7 +293,16 @@ async function getSidebarRecentInjuries(userId?: string): Promise<SidebarRecentI
     })
 }
 
-async function getSidebarWeeklyGoal(userId?: string): Promise<SidebarWeeklyGoal | null> {
+type SidebarWeeklyGoalOptions = {
+    targetTable: "fitness_weekly_goals" | "football_weekly_goals"
+    activitySport: "fitness" | "fotbal"
+    activityNotesPrefix: string
+}
+
+async function getSidebarWeeklyGoal(
+    userId: string | undefined,
+    options: SidebarWeeklyGoalOptions
+): Promise<SidebarWeeklyGoal | null> {
     const parsedUserId = Number(userId)
     if (!Number.isInteger(parsedUserId)) return null
 
@@ -306,15 +324,23 @@ async function getSidebarWeeklyGoal(userId?: string): Promise<SidebarWeeklyGoal 
     let savedWeeklyGoals: { target_trimp: number }[] = []
 
     try {
-        savedWeeklyGoals = await prisma.$queryRaw<{ target_trimp: number }[]>`
-            SELECT target_trimp
-            FROM fitness_weekly_goals
-            WHERE team_id = ${coachProfile.teamId}
-              AND week_start = ${currentWeekStart}::date
-            LIMIT 1
-        `
+        savedWeeklyGoals = options.targetTable === "football_weekly_goals"
+            ? await prisma.$queryRaw<{ target_trimp: number }[]>`
+                SELECT target_trimp
+                FROM football_weekly_goals
+                WHERE team_id = ${coachProfile.teamId}
+                  AND week_start = ${currentWeekStart}::date
+                LIMIT 1
+            `
+            : await prisma.$queryRaw<{ target_trimp: number }[]>`
+                SELECT target_trimp
+                FROM fitness_weekly_goals
+                WHERE team_id = ${coachProfile.teamId}
+                  AND week_start = ${currentWeekStart}::date
+                LIMIT 1
+            `
     } catch (error) {
-        if (!(typeof error === "object" && error !== null && "code" in error && error.code === "42P01")) {
+        if (!hasPostgresCode(error, "42P01")) {
             throw error
         }
     }
@@ -338,9 +364,9 @@ async function getSidebarWeeklyGoal(userId?: string): Promise<SidebarWeeklyGoal 
                         gte: expectedFromDate,
                         lt: currentWeekEnd,
                     },
-                    sport: "fitness",
+                    sport: options.activitySport,
                     notes: {
-                        startsWith: "Rezultat antrenament Fitness:",
+                        startsWith: options.activityNotesPrefix,
                     },
                 },
                 orderBy: { date: "asc" },
@@ -414,30 +440,47 @@ export default async function DashboardLayout({
     const session = await getServerSession(authOptions)
     const showSidebar = !session?.user.role || !rolesWithoutSidebar.has(session.user.role)
     const shouldShowRecentInjuries = session?.user.role === "antrenor_fotbal" || session?.user.role === "antrenor_fitness"
-    const shouldShowWeeklyGoal = session?.user.role === "antrenor_fitness" || session?.user.role === "antrenor_fotbal"
-    const shouldShowLeftSidebar = shouldShowRecentInjuries || shouldShowWeeklyGoal
-    const [sidebarPlayers, sidebarStandingsData, sidebarRecentInjuries, sidebarWeeklyGoal] = showSidebar
+    const shouldShowFitnessWeeklyGoal = session?.user.role === "antrenor_fitness" || session?.user.role === "antrenor_fotbal"
+    const shouldShowFootballWeeklyGoal = session?.user.role === "antrenor_fotbal"
+    const shouldShowLeftSidebar = shouldShowRecentInjuries || shouldShowFitnessWeeklyGoal || shouldShowFootballWeeklyGoal
+    const [sidebarPlayers, sidebarStandingsData, sidebarRecentInjuries, sidebarWeeklyGoal, sidebarFootballWeeklyGoal] = showSidebar
         ? await Promise.all([
             getSidebarPlayers(session?.user.id),
             getSidebarStandings(session?.user.id),
             shouldShowRecentInjuries
                 ? getSidebarRecentInjuries(session?.user.id)
                 : Promise.resolve([]),
-            shouldShowWeeklyGoal
-                ? getSidebarWeeklyGoal(session?.user.id)
+            shouldShowFitnessWeeklyGoal
+                ? getSidebarWeeklyGoal(session?.user.id, {
+                    targetTable: "fitness_weekly_goals",
+                    activitySport: "fitness",
+                    activityNotesPrefix: "Rezultat antrenament Fitness:",
+                })
+                : Promise.resolve(null),
+            shouldShowFootballWeeklyGoal
+                ? getSidebarWeeklyGoal(session?.user.id, {
+                    targetTable: "football_weekly_goals",
+                    activitySport: "fotbal",
+                    activityNotesPrefix: "Rezultat antrenament Fotbal:",
+                })
                 : Promise.resolve(null),
         ])
-        : [[], { leagueName: null, standings: [] }, [], null]
+        : [[], { leagueName: null, standings: [] }, [], null, null]
 
     return (
         <div className="sd-container">
             <div className="sd-inner">
-                <DashboardHeader activeHref="#" weeklyGoal={shouldShowWeeklyGoal ? sidebarWeeklyGoal : null} />
+                <DashboardHeader
+                    activeHref="#"
+                    weeklyGoal={shouldShowFitnessWeeklyGoal ? sidebarWeeklyGoal : null}
+                    footballWeeklyGoal={shouldShowFootballWeeklyGoal ? sidebarFootballWeeklyGoal : null}
+                />
                 <div className="sd-with-sidebar" style={{ gap: "20px" }}>
                     {showSidebar && shouldShowLeftSidebar && (
                         <DashboardLeftSidebar
                             recentInjuries={shouldShowRecentInjuries ? sidebarRecentInjuries : undefined}
-                            weeklyGoal={shouldShowWeeklyGoal ? sidebarWeeklyGoal : undefined}
+                            weeklyGoal={shouldShowFitnessWeeklyGoal ? sidebarWeeklyGoal : undefined}
+                            footballWeeklyGoal={shouldShowFootballWeeklyGoal ? sidebarFootballWeeklyGoal : undefined}
                         />
                     )}
                     <div className="sd-main-content">

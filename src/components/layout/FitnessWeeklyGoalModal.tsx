@@ -3,6 +3,9 @@
 type FitnessWeeklyGoalModalProps = {
     targetTrimp: string
     weekLabel?: string
+    title?: string
+    description?: string
+    inputLabel?: string
     formLoading: boolean
     formError: string
     onTargetTrimpChange: (value: string) => void
@@ -21,6 +24,9 @@ const INPUT_STYLE = {
 export default function FitnessWeeklyGoalModal({
     targetTrimp,
     weekLabel,
+    title = "Fitness Weekly Goal",
+    description = "Seteaza targetul TRIMP pentru echipa in saptamana curenta.",
+    inputLabel = "Target TRIMP echipa",
     formLoading,
     formError,
     onTargetTrimpChange,
@@ -42,8 +48,8 @@ export default function FitnessWeeklyGoalModal({
                 aria-labelledby="fitness-weekly-goal-title"
                 style={{ maxWidth: 480 }}
             >
-                <h3 id="fitness-weekly-goal-title">Fitness Weekly Goal</h3>
-                <p>Seteaza targetul TRIMP pentru echipa in saptamana curenta.</p>
+                <h3 id="fitness-weekly-goal-title">{title}</h3>
+                <p>{description}</p>
 
                 <form onSubmit={onSubmit} style={{ display: "grid", gap: "14px" }}>
                     {weekLabel && (
@@ -54,7 +60,7 @@ export default function FitnessWeeklyGoalModal({
                     )}
 
                     <label style={{ display: "grid", gap: "6px", fontSize: "12px", fontWeight: "bold" }}>
-                        Target TRIMP echipa
+                        {inputLabel}
                         <input
                             type="number"
                             value={targetTrimp}

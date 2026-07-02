@@ -21,6 +21,7 @@ import ExportAuditNavButton from "@/components/layout/ExportAuditNavButton"
 import MyProfileNavButton from "@/components/layout/MyProfileNavButton"
 import AccountSettingsButton from "@/components/layout/AccountSettingsButton"
 import FitnessWeeklyGoalNavButton from "@/components/layout/FitnessWeeklyGoalNavButton"
+import FootballWeeklyGoalNavButton from "@/components/layout/FootballWeeklyGoalNavButton"
 import { prisma } from "@/lib/prisma"
 import type { SidebarWeeklyGoal } from "@/components/layout/DashboardLeftSidebar"
 
@@ -74,6 +75,7 @@ interface DashboardHeaderProps {
     navItems?: NavItem[]
     activeHref?: string
     weeklyGoal?: SidebarWeeklyGoal | null
+    footballWeeklyGoal?: SidebarWeeklyGoal | null
 }
 
 const defaultNavItems: NavItem[] = [
@@ -109,6 +111,7 @@ export default async function DashboardHeader({
     navItems = defaultNavItems,
     activeHref,
     weeklyGoal,
+    footballWeeklyGoal,
 }: DashboardHeaderProps) {
     const session = await getServerSession(authOptions)
     const teamAthleteRoles = ["antrenor_fotbal", "antrenor_fitness", "medic", "atlet_fotbal"]
@@ -466,6 +469,10 @@ export default async function DashboardHeader({
 
                         if (item.label === "Adauga antrenament") {
                             return <AddTrainingNavButton key={item.href + item.label} label={item.label} isActive={isItemActive(item.href)} />
+                        }
+
+                        if (item.label === "Fotbal Training Weekly Goal") {
+                            return <FootballWeeklyGoalNavButton key={item.href + item.label} label={item.label} isActive={isItemActive(item.href)} weekStart={footballWeeklyGoal?.weekStart} weekLabel={footballWeeklyGoal?.weekLabel} targetTrimp={footballWeeklyGoal?.targetTrimp} />
                         }
 
                         if (item.label === "Adauga Sesiune Fitness") {
