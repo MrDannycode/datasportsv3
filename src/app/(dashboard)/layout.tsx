@@ -338,6 +338,10 @@ async function getSidebarWeeklyGoal(userId?: string): Promise<SidebarWeeklyGoal 
                         gte: expectedFromDate,
                         lt: currentWeekEnd,
                     },
+                    sport: "fitness",
+                    notes: {
+                        startsWith: "Rezultat antrenament Fitness:",
+                    },
                 },
                 orderBy: { date: "asc" },
                 select: {
@@ -434,7 +438,6 @@ export default async function DashboardLayout({
                         <DashboardLeftSidebar
                             recentInjuries={shouldShowRecentInjuries ? sidebarRecentInjuries : undefined}
                             weeklyGoal={shouldShowWeeklyGoal ? sidebarWeeklyGoal : undefined}
-                            canEditWeeklyGoal={session?.user.role === "antrenor_fitness"}
                         />
                     )}
                     <div className="sd-main-content">

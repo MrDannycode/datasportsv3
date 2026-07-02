@@ -87,6 +87,7 @@ const defaultNavItems: NavItem[] = [
     { label: "Adauga antrenament", href: "/antrenor-fotbal/antrenamente" },
     { label: "Gestioneaza Antrenamente", href: "/antrenor-fotbal/antrenamente" },
     { label: "Gestioneaza Atletii", href: "#" },
+    { label: "Fotbal Training Weekly Goal", href: "#" },
     { label: "Adauga Sesiune Fitness", href: "/antrenor-fitness/trainfit?open=new" },
     { label: "Gestioneaza Sesiune Fitness", href: "/antrenor-fitness/trainfit" },
     { label: "Fitness Weekly Goal", href: "#" },
@@ -388,7 +389,7 @@ export default async function DashboardHeader({
                 ? session?.user?.role === "admin_global"
                 : ["Adauga Atleti", "Gestiune Antrenori", "Adauga Meci"].includes(item.label)
                     ? session?.user?.role === "manager_fotbal"
-                    : ["Adauga antrenament", "Gestioneaza Antrenamente", "Gestioneaza Atletii"].includes(item.label)
+                    : ["Adauga antrenament", "Gestioneaza Antrenamente", "Gestioneaza Atletii", "Fotbal Training Weekly Goal"].includes(item.label)
                         ? session?.user?.role === "antrenor_fotbal"
                         : ["Adauga Sesiune Fitness", "Gestioneaza Sesiune Fitness"].includes(item.label)
                             ? session?.user?.role === "antrenor_fitness"
