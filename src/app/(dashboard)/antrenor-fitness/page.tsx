@@ -5,7 +5,6 @@ import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import LoadQualityChart from "@/components/sport-science/LoadQualityChart"
 import ActivitiesCalendar from "../atlet-fotbal/ActivitiesCalendar"
-import WeeklyGoal from "./WeeklyGoal"
 import type { Prisma } from "@prisma/client"
 
 const FITNESS_TYPE_LABELS: Record<string, string> = {
@@ -44,8 +43,6 @@ type TeamLoadPoint = {
     acRatio: number | null
 }
 
-const DAY_MS = 24 * 60 * 60 * 1000
-
 function formatShortDate(date: Date) {
     return date.toLocaleDateString("ro-RO", {
         day: "2-digit",
@@ -53,29 +50,6 @@ function formatShortDate(date: Date) {
     })
 }
 
-function startOfUtcDay(date: Date) {
-    const result = new Date(date)
-    result.setUTCHours(0, 0, 0, 0)
-    return result
-}
-
-function startOfUtcWeek(date: Date) {
-    const result = startOfUtcDay(date)
-    const day = result.getUTCDay()
-    const daysSinceMonday = day === 0 ? 6 : day - 1
-    result.setUTCDate(result.getUTCDate() - daysSinceMonday)
-    return result
-}
-
-function addUtcDays(date: Date, days: number) {
-    const result = new Date(date)
-    result.setUTCDate(result.getUTCDate() + days)
-    return result
-}
-
-function sumTrimp(items: { trimp: number | null }[]) {
-    return items.reduce((total, item) => total + (item.trimp ?? 0), 0)
-}
 
 export default async function AntrenorFitnessPage() {
     const session = await getServerSession(authOptions)
@@ -94,12 +68,9 @@ export default async function AntrenorFitnessPage() {
     let assignedFitnessPlans: AssignedFitnessPlan[] = []
 
     const today = new Date()
-    const todayStart = startOfUtcDay(today)
-    const currentWeekStart = startOfUtcWeek(today)
-    const currentWeekEnd = addUtcDays(currentWeekStart, 7)
-    const expectedFromDate = addUtcDays(currentWeekStart, -28)
-    const loadsFromDate = addUtcDays(todayStart, -42)
-    const elapsedWeekDays = Math.min(7, Math.max(1, Math.floor((todayStart.getTime() - currentWeekStart.getTime()) / DAY_MS) + 1))
+    const loadsFromDate = new Date()
+    loadsFromDate.setUTCDate(loadsFromDate.getUTCDate() - 42)
+    loadsFromDate.setUTCHours(0, 0, 0, 0)
 
     const [fitnessPlans, teamProfiles] = await Promise.all([
         prisma.fitnessPlan.findMany({
@@ -118,23 +89,8 @@ export default async function AntrenorFitnessPage() {
                     },
                 },
                 select: {
-                    id: true,
                     firstName: true,
                     lastName: true,
-                    activities: {
-                        where: {
-                            date: {
-                                gte: expectedFromDate,
-                                lt: currentWeekEnd,
-                            },
-                        },
-                        orderBy: { date: "asc" },
-                        select: {
-                            id: true,
-                            date: true,
-                            trimp: true,
-                        },
-                    },
                     dailyLoads: {
                         where: {
                             date: {
@@ -282,44 +238,6 @@ export default async function AntrenorFitnessPage() {
             acRatio: value.acRatioCount > 0 ? value.acRatioSum / value.acRatioCount : null,
         }))
 
-    const weeklyAthletes = teamProfiles.map((profile) => {
-        const name = `${profile.firstName} ${profile.lastName}`.trim()
-        const currentWeekActivities = profile.activities.filter(
-            (activity) => activity.date >= currentWeekStart && activity.date < currentWeekEnd
-        )
-        const previousActivities = profile.activities.filter(
-            (activity) => activity.date >= expectedFromDate && activity.date < currentWeekStart
-        )
-        const currentWeekTrimp = sumTrimp(currentWeekActivities)
-        const expectedWeeklyTrimp = sumTrimp(previousActivities) / 4
-        const expectedTrimpToDate = expectedWeeklyTrimp * (elapsedWeekDays / 7)
-        const latestLoad = profile.dailyLoads[profile.dailyLoads.length - 1] ?? null
-
-        return {
-            id: profile.id,
-            name,
-            acRatio: latestLoad?.acRatio ?? null,
-            currentWeekTrimp,
-            expectedTrimp: expectedTrimpToDate,
-            expectedWeeklyTrimp,
-            trainings: currentWeekActivities.map((activity) => ({
-                id: activity.id,
-                date: activity.date.toISOString(),
-                trimp: activity.trimp,
-            })),
-        }
-    })
-    const weeklyGoalData = {
-        currentTrimp: weeklyAthletes.reduce((total, athlete) => total + athlete.currentWeekTrimp, 0),
-        targetTrimp: weeklyAthletes.reduce((total, athlete) => total + athlete.expectedWeeklyTrimp, 0),
-        weekLabel: `${formatShortDate(currentWeekStart)} - ${formatShortDate(addUtcDays(currentWeekEnd, -1))}`,
-        acRiskAthletes: weeklyAthletes
-            .filter((athlete) => athlete.acRatio != null && athlete.acRatio > 1.3)
-            .sort((left, right) => (right.acRatio ?? 0) - (left.acRatio ?? 0)),
-        underExpectedAthletes: weeklyAthletes
-            .filter((athlete) => athlete.expectedTrimp > 0 && athlete.currentWeekTrimp < athlete.expectedTrimp)
-            .sort((left, right) => (left.currentWeekTrimp / left.expectedTrimp) - (right.currentWeekTrimp / right.expectedTrimp)),
-    }
     const fitnessEvents: ActivityCalendarEvent[] = assignedFitnessPlans.map((plan) => {
         const coachName = plan.creator.profile
             ? `${plan.creator.profile.firstName} ${plan.creator.profile.lastName}`.trim()
@@ -393,8 +311,6 @@ export default async function AntrenorFitnessPage() {
                             <LoadQualityChart points={loadQualityPoints} />
                         </div>
                     </div>
-
-                    <WeeklyGoal {...weeklyGoalData} />
 
                     <div className="sd-panels">
                         <div className="sd-box sd-activities">

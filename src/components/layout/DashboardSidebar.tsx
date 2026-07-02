@@ -13,7 +13,31 @@ export type SidebarRecentInjury = {
     createdAt: string
 }
 
+export type SidebarWeeklyGoalTraining = {
+    id: number
+    date: string
+    trimp: number | null
+}
+
+export type SidebarWeeklyGoalAthlete = {
+    id: number
+    name: string
+    acRatio: number | null
+    currentWeekTrimp: number
+    expectedTrimp: number
+    trainings: SidebarWeeklyGoalTraining[]
+}
+
+export type SidebarWeeklyGoal = {
+    currentTrimp: number
+    targetTrimp: number
+    weekLabel: string
+    acRiskAthletes: SidebarWeeklyGoalAthlete[]
+    underExpectedAthletes: SidebarWeeklyGoalAthlete[]
+}
+
 export type SidebarPlayer = {
+
     id: number
     name: string
     ctl: number | null
@@ -36,10 +60,53 @@ type DashboardSidebarProps = {
     standings: SidebarStanding[]
     standingsLeagueName: string | null
     recentInjuries?: SidebarRecentInjury[]
+    weeklyGoal?: SidebarWeeklyGoal | null
 }
 
 function formatMetric(value: number | null) {
     return value === null ? "-" : value.toFixed(1)
+}
+
+function formatNumber(value: number | null | undefined, digits = 0) {
+    if (value == null || Number.isNaN(value)) return "-"
+    return value.toLocaleString("ro-RO", {
+        maximumFractionDigits: digits,
+        minimumFractionDigits: digits,
+    })
+}
+
+function formatShortDate(value: string) {
+    return new Date(value).toLocaleDateString("ro-RO", {
+        day: "2-digit",
+        month: "short",
+    })
+}
+
+function renderWeeklyAthletes(athletes: SidebarWeeklyGoalAthlete[], emptyMessage: string) {
+    if (athletes.length === 0) {
+        return <p className="sd-progress-text">{emptyMessage}</p>
+    }
+
+    return (
+        <ul className="sd-list">
+            {athletes.map((athlete) => (
+                <li key={athlete.id}>
+                    <strong>{athlete.name}</strong>
+                    <br />
+                    A:C {formatNumber(athlete.acRatio, 2)} | TRIMP {formatNumber(athlete.currentWeekTrimp)} / {formatNumber(athlete.expectedTrimp)}
+                    {athlete.trainings.length > 0 && (
+                        <div style={{ display: "grid", gap: "4px", marginTop: "6px" }}>
+                            {athlete.trainings.map((training) => (
+                                <span key={training.id} className="sd-progress-text">
+                                    {formatShortDate(training.date)} | A:C {formatNumber(athlete.acRatio, 2)} | {formatNumber(training.trimp)} TRIMP
+                                </span>
+                            ))}
+                        </div>
+                    )}
+                </li>
+            ))}
+        </ul>
+    )
 }
 
 export default function DashboardSidebar({
@@ -47,12 +114,63 @@ export default function DashboardSidebar({
     standings,
     standingsLeagueName,
     recentInjuries,
+    weeklyGoal,
 }: DashboardSidebarProps) {
     const [activeTab, setActiveTab] = useState<SidebarTab>("clasament")
 
     return (
         <aside className="dsb-sidebar">
+            {weeklyGoal && (
+                <div className="sd-box">
+                    <div className="sd-box-header">
+                        <h2>Weekly Goal</h2>
+                    </div>
+                    <div className="sd-box-content" style={{ display: "grid", gap: "12px" }}>
+                        <div>
+                            <div className="sd-metric-title">{weeklyGoal.weekLabel}</div>
+                            <div className="sd-metric-value" style={{ fontSize: "18px" }}>
+                                {formatNumber(weeklyGoal.currentTrimp)} / {formatNumber(weeklyGoal.targetTrimp)}
+                            </div>
+                            <div className="sd-progress-bar" aria-label={`Weekly Goal ${weeklyGoal.targetTrimp > 0 ? Math.round((weeklyGoal.currentTrimp / weeklyGoal.targetTrimp) * 100) : 0}%`}>
+                                <div
+                                    className="sd-progress-fill"
+                                    style={{
+                                        width: `${weeklyGoal.targetTrimp > 0 ? Math.min(Math.round((weeklyGoal.currentTrimp / weeklyGoal.targetTrimp) * 100), 100) : 0}%`,
+                                    }}
+                                />
+                            </div>
+                        </div>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                            <div className="sd-box sd-metric-box" style={{ marginBottom: 0, padding: "10px" }}>
+                                <div className="sd-metric-title">A:C risk</div>
+                                <div className="sd-metric-value" style={{ fontSize: "20px" }}>{weeklyGoal.acRiskAthletes.length}</div>
+                            </div>
+                            <div className="sd-box sd-metric-box" style={{ marginBottom: 0, padding: "10px" }}>
+                                <div className="sd-metric-title">Sub medie</div>
+                                <div className="sd-metric-value" style={{ fontSize: "20px" }}>{weeklyGoal.underExpectedAthletes.length}</div>
+                            </div>
+                        </div>
+                        <details>
+                            <summary className="sd-btn-secondary" style={{ width: "100%", textAlign: "center" }}>
+                                Atleti cu A:C risk
+                            </summary>
+                            <div style={{ marginTop: "10px" }}>
+                                {renderWeeklyAthletes(weeklyGoal.acRiskAthletes, "Nu exista atleti cu A:C risk.")}
+                            </div>
+                        </details>
+                        <details>
+                            <summary className="sd-btn-secondary" style={{ width: "100%", textAlign: "center" }}>
+                                Atleti sub media asteptata
+                            </summary>
+                            <div style={{ marginTop: "10px" }}>
+                                {renderWeeklyAthletes(weeklyGoal.underExpectedAthletes, "Nu exista atleti sub media asteptata.")}
+                            </div>
+                        </details>
+                    </div>
+                </div>
+            )}
             {recentInjuries && (
+
                 <div className="sd-box">
                     <div className="sd-box-header">
                         <h2>Accidentari Recente</h2>
