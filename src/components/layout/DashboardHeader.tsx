@@ -20,7 +20,9 @@ import MedicalRecordNavButton, { type AthleteMedicalRecord } from "@/components/
 import ExportAuditNavButton from "@/components/layout/ExportAuditNavButton"
 import MyProfileNavButton from "@/components/layout/MyProfileNavButton"
 import AccountSettingsButton from "@/components/layout/AccountSettingsButton"
+import FitnessWeeklyGoalNavButton from "@/components/layout/FitnessWeeklyGoalNavButton"
 import { prisma } from "@/lib/prisma"
+import type { SidebarWeeklyGoal } from "@/components/layout/DashboardLeftSidebar"
 
 interface NavItem {
     label: string
@@ -71,6 +73,7 @@ type ProfileNavData = {
 interface DashboardHeaderProps {
     navItems?: NavItem[]
     activeHref?: string
+    weeklyGoal?: SidebarWeeklyGoal | null
 }
 
 const defaultNavItems: NavItem[] = [
@@ -86,6 +89,7 @@ const defaultNavItems: NavItem[] = [
     { label: "Gestioneaza Atletii", href: "#" },
     { label: "Adauga Sesiune Fitness", href: "/antrenor-fitness/trainfit?open=new" },
     { label: "Gestioneaza Sesiune Fitness", href: "/antrenor-fitness/trainfit" },
+    { label: "Fitness Weekly Goal", href: "#" },
     { label: "Adauga Dosar", href: "/medic/dosar-medical?open=new" },
     { label: "Gestioneaza Dosare Medicale", href: "/medic/dosar-medical" },
     { label: "Adauga Accidentare", href: "#" },
@@ -103,6 +107,7 @@ const defaultNavItems: NavItem[] = [
 export default async function DashboardHeader({
     navItems = defaultNavItems,
     activeHref,
+    weeklyGoal,
 }: DashboardHeaderProps) {
     const session = await getServerSession(authOptions)
     const teamAthleteRoles = ["antrenor_fotbal", "antrenor_fitness", "medic", "atlet_fotbal"]
@@ -387,6 +392,8 @@ export default async function DashboardHeader({
                         ? session?.user?.role === "antrenor_fotbal"
                         : ["Adauga Sesiune Fitness", "Gestioneaza Sesiune Fitness"].includes(item.label)
                             ? session?.user?.role === "antrenor_fitness"
+                            : ["Fitness Weekly Goal"].includes(item.label)
+                                ? session?.user?.role === "antrenor_fitness"
                             : ["Adauga Dosar", "Adauga Accidentare", "Gestioneaza Dosare Medicale"].includes(item.label)
                                 ? session?.user?.role === "medic"
                                 : item.label === "Dosar Medical"
@@ -462,6 +469,10 @@ export default async function DashboardHeader({
 
                         if (item.label === "Adauga Sesiune Fitness") {
                             return <AddFitnessSessionNavButton key={item.href + item.label} label={item.label} isActive={isItemActive(item.href)} />
+                        }
+
+                        if (item.label === "Fitness Weekly Goal") {
+                            return <FitnessWeeklyGoalNavButton key={item.href + item.label} label={item.label} isActive={isItemActive(item.href)} weekStart={weeklyGoal?.weekStart} weekLabel={weeklyGoal?.weekLabel} targetTrimp={weeklyGoal?.targetTrimp} />
                         }
 
                         if (item.label === "Adauga Dosar") {

@@ -34,9 +34,10 @@ model Team {
   continent   String
   createdAt   DateTime        @default(now()) @map("created_at")
   updatedAt   DateTime        @updatedAt @map("updated_at")
-  awayMatches FootballMatch[] @relation("AwayTeam")
-  homeMatches FootballMatch[] @relation("HomeTeam")
-  profiles    Profile[]
+  awayMatches  FootballMatch[]      @relation("AwayTeam")
+  homeMatches  FootballMatch[]      @relation("HomeTeam")
+  profiles     Profile[]
+  weeklyGoals  FitnessWeeklyGoal[]
 
   @@map("teams")
 }
@@ -106,8 +107,8 @@ model TennisAthlete {
   contractUntil DateTime?                @map("contract_until")
   user          User                     @relation(fields: [userId], references: [id])
   matches       TennisMatch[]
-  registrations TournamentRegistration[]
   stats         TennisStat[]
+  registrations TournamentRegistration[]
 
   @@map("tennis_athletes")
 }
@@ -149,8 +150,8 @@ model TournamentRegistration {
   status       RegistrationStatus @default(inscris)
   createdAt    DateTime           @default(now()) @map("created_at")
   updatedAt    DateTime           @updatedAt @map("updated_at")
-  tournament   Tournament         @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   athlete      TennisAthlete      @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  tournament   Tournament         @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
 
   @@unique([tournamentId, athleteId])
   @@index([athleteId])
@@ -359,6 +360,20 @@ model DailyLoad {
   @@unique([athleteId, date])
   @@index([athleteId])
   @@map("daily_loads")
+}
+
+model FitnessWeeklyGoal {
+  id          Int      @id @default(autoincrement())
+  teamId      Int      @map("team_id")
+  weekStart   DateTime @map("week_start") @db.Date
+  targetTrimp Float    @map("target_trimp")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  team        Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, weekStart])
+  @@index([teamId])
+  @@map("fitness_weekly_goals")
 }
 
 model ManagerAssignment {
