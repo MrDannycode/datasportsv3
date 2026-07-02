@@ -50,6 +50,7 @@ function formatShortDate(date: Date) {
     })
 }
 
+
 export default async function AntrenorFitnessPage() {
     const session = await getServerSession(authOptions)
 
@@ -66,6 +67,7 @@ export default async function AntrenorFitnessPage() {
     let assignedTrainingPlans: AssignedTrainingPlan[] = []
     let assignedFitnessPlans: AssignedFitnessPlan[] = []
 
+    const today = new Date()
     const loadsFromDate = new Date()
     loadsFromDate.setUTCDate(loadsFromDate.getUTCDate() - 42)
     loadsFromDate.setUTCHours(0, 0, 0, 0)
@@ -236,10 +238,6 @@ export default async function AntrenorFitnessPage() {
             acRatio: value.acRatioCount > 0 ? value.acRatioSum / value.acRatioCount : null,
         }))
 
-    const latestLoadQuality = loadQualityPoints[loadQualityPoints.length - 1] ?? null
-    const teamAthleteCount = teamProfiles.length
-    const safeDaysCount = loadQualityPoints.filter((point) => point.acRatio != null && point.acRatio >= 0.8 && point.acRatio <= 1.3).length
-    const today = new Date()
     const fitnessEvents: ActivityCalendarEvent[] = assignedFitnessPlans.map((plan) => {
         const coachName = plan.creator.profile
             ? `${plan.creator.profile.firstName} ${plan.creator.profile.lastName}`.trim()

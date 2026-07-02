@@ -4,15 +4,6 @@ import { useState } from "react"
 
 type SidebarTab = "clasament" | "jucatori"
 
-export type SidebarRecentInjury = {
-    id: number
-    athleteName: string
-    injuryType: string
-    bodyPart: string
-    severity: string
-    createdAt: string
-}
-
 export type SidebarPlayer = {
     id: number
     name: string
@@ -35,7 +26,6 @@ type DashboardSidebarProps = {
     players: SidebarPlayer[]
     standings: SidebarStanding[]
     standingsLeagueName: string | null
-    recentInjuries?: SidebarRecentInjury[]
 }
 
 function formatMetric(value: number | null) {
@@ -46,45 +36,11 @@ export default function DashboardSidebar({
     players,
     standings,
     standingsLeagueName,
-    recentInjuries,
 }: DashboardSidebarProps) {
     const [activeTab, setActiveTab] = useState<SidebarTab>("clasament")
 
     return (
         <aside className="dsb-sidebar">
-            {recentInjuries && (
-                <div className="sd-box">
-                    <div className="sd-box-header">
-                        <h2>Accidentari Recente</h2>
-                    </div>
-                    <div className="sd-box-content">
-                        {recentInjuries.length === 0 ? (
-                            <div className="sd-empty-state">
-                                <p>Nu exista accidentari recente.</p>
-                            </div>
-                        ) : (
-                            <ul className="sd-list">
-                                {recentInjuries.map((injury) => (
-                                    <li key={injury.id}>
-                                        <strong>{injury.athleteName}</strong>
-                                        <br />
-                                        {injury.injuryType} - {injury.bodyPart}
-                                        <br />
-                                        <span style={{ color: "#666" }}>
-                                            {injury.severity} - {" "}
-                                            {new Date(injury.createdAt).toLocaleDateString("ro-RO", {
-                                                day: "2-digit",
-                                                month: "2-digit",
-                                                year: "numeric",
-                                            })}
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                    </div>
-                </div>
-            )}
             <div className="dsb-tabs">
                 <button
                     id="dsb-btn-clasament"

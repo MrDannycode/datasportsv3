@@ -13,13 +13,17 @@ import AddMatchNavButton from "@/components/layout/AddMatchNavButton"
 import AddTrainingNavButton from "@/components/layout/AddTrainingNavButton"
 import AddFitnessSessionNavButton from "@/components/layout/AddFitnessSessionNavButton"
 import AddActivityNavButton from "@/components/layout/AddActivityNavButton"
+import AddTrainingResultNavButton, { type TrainingResultPlanOption } from "@/components/layout/AddTrainingResultNavButton"
 import TeamAthletesNavButton, { type TeamAthlete } from "@/components/layout/TeamAthletesNavButton"
 import CoachAthleteManagementNavButton from "@/components/layout/CoachAthleteManagementNavButton"
 import MedicalRecordNavButton, { type AthleteMedicalRecord } from "@/components/layout/MedicalRecordNavButton"
 import ExportAuditNavButton from "@/components/layout/ExportAuditNavButton"
 import MyProfileNavButton from "@/components/layout/MyProfileNavButton"
 import AccountSettingsButton from "@/components/layout/AccountSettingsButton"
+import FitnessWeeklyGoalNavButton from "@/components/layout/FitnessWeeklyGoalNavButton"
+import FootballWeeklyGoalNavButton from "@/components/layout/FootballWeeklyGoalNavButton"
 import { prisma } from "@/lib/prisma"
+import type { SidebarWeeklyGoal } from "@/components/layout/DashboardLeftSidebar"
 
 interface NavItem {
     label: string
@@ -29,6 +33,21 @@ interface NavItem {
 type BasicTeam = { id: number; name: string; country: string }
 type BasicCoach = { id: number; firstName: string; lastName: string; role: string; teamId: number | null; team: BasicTeam | null }
 type BasicCompetition = { id: number; name: string }
+type TrainingResultTrainingType = "fitness" | "fotbal"
+const FOOTBALL_TRAINING_TYPE_LABELS: Record<string, string> = {
+    tehnic: "Tehnic",
+    fizic: "Fizic",
+    tactic: "Tactic",
+}
+
+const FITNESS_TRAINING_TYPE_LABELS: Record<string, string> = {
+    forta: "Forta",
+    rezistenta: "Rezistenta",
+    vitezare: "Viteza",
+    flexibilitate: "Flexibilitate",
+    coordonare: "Coordonare",
+}
+
 type AccountSettingsData = {
     firstName: string
     lastName: string
@@ -55,6 +74,8 @@ type ProfileNavData = {
 interface DashboardHeaderProps {
     navItems?: NavItem[]
     activeHref?: string
+    weeklyGoal?: SidebarWeeklyGoal | null
+    footballWeeklyGoal?: SidebarWeeklyGoal | null
 }
 
 const defaultNavItems: NavItem[] = [
@@ -68,14 +89,16 @@ const defaultNavItems: NavItem[] = [
     { label: "Adauga antrenament", href: "/antrenor-fotbal/antrenamente" },
     { label: "Gestioneaza Antrenamente", href: "/antrenor-fotbal/antrenamente" },
     { label: "Gestioneaza Atletii", href: "#" },
+    { label: "Fotbal Training Weekly Goal", href: "#" },
     { label: "Adauga Sesiune Fitness", href: "/antrenor-fitness/trainfit?open=new" },
     { label: "Gestioneaza Sesiune Fitness", href: "/antrenor-fitness/trainfit" },
+    { label: "Fitness Weekly Goal", href: "#" },
     { label: "Adauga Dosar", href: "/medic/dosar-medical?open=new" },
     { label: "Gestioneaza Dosare Medicale", href: "/medic/dosar-medical" },
     { label: "Adauga Accidentare", href: "#" },
     { label: "Dosar Medical", href: "#" },
     { label: "Adauga Activitate", href: "/atlet-fotbal/activity?open=new" },
-    { label: "Adauga Antrenament", href: "" },
+    { label: "+ Rezultat Antrenament", href: "" },
     { label: "Gestioneaza Activitati", href: "/atlet-fotbal/activity" },
     { label: "Profil Sportiv", href: "#" },
     { label: "Toti Atletii", href: "#" },
@@ -87,6 +110,8 @@ const defaultNavItems: NavItem[] = [
 export default async function DashboardHeader({
     navItems = defaultNavItems,
     activeHref,
+    weeklyGoal,
+    footballWeeklyGoal,
 }: DashboardHeaderProps) {
     const session = await getServerSession(authOptions)
     const teamAthleteRoles = ["antrenor_fotbal", "antrenor_fitness", "medic", "atlet_fotbal"]
@@ -99,6 +124,7 @@ export default async function DashboardHeader({
     let athleteMedicalRecords: AthleteMedicalRecord[] = []
     let athleteHasCardiacData = false
     let myProfileData: ProfileNavData | null = null
+    let trainingResultPlans: TrainingResultPlanOption[] = []
     let accountSettingsData: AccountSettingsData | null = null
 
     if (session?.user?.id) {
@@ -265,7 +291,7 @@ export default async function DashboardHeader({
                 profile: {
                     select: {
                         firstName: true, lastName: true, phone: true, dateOfBirth: true, gender: true,
-                        restingHeartRate: true, maxHeartRate: true,
+                        restingHeartRate: true, maxHeartRate: true, teamId: true,
                     },
                 },
                 footballAthlete: {
@@ -298,6 +324,63 @@ export default async function DashboardHeader({
                 sportType: session?.user?.role === "atlet_fotbal" ? "fotbal" : session?.user?.role === "atlet_tenis" ? "tenis" : athleteUser.footballAthlete ? "fotbal" : athleteUser.tennisAthlete ? "tenis" : null
             }
         }
+            if (session?.user?.role === "atlet_fotbal" && athleteProfile?.teamId) {
+                const [footballTrainingPlans, fitnessTrainingPlans] = await Promise.all([
+                    prisma.trainingPlan.findMany({
+                        where: {
+                            creator: {
+                                role: "antrenor_fotbal",
+                                profile: { is: { teamId: athleteProfile.teamId } },
+                            },
+                        },
+                        select: {
+                            id: true,
+                            title: true,
+                            type: true,
+                            date: true,
+                            creator: { select: { email: true, profile: { select: { firstName: true, lastName: true } } } },
+                        },
+                        orderBy: { date: "desc" },
+                        take: 100,
+                    }),
+                    prisma.fitnessPlan.findMany({
+                        where: {
+                            creator: {
+                                role: "antrenor_fitness",
+                                profile: { is: { teamId: athleteProfile.teamId } },
+                            },
+                        },
+                        select: {
+                            id: true,
+                            title: true,
+                            type: true,
+                            date: true,
+                            creator: { select: { email: true, profile: { select: { firstName: true, lastName: true } } } },
+                        },
+                        orderBy: { date: "desc" },
+                        take: 100,
+                    }),
+                ])
+
+                const toCoachName = (creator: { email: string; profile: { firstName: string; lastName: string } | null }) => creator.profile
+                    ? `${creator.profile.firstName} ${creator.profile.lastName}`.trim()
+                    : creator.email
+                const toPlanOption = (trainingType: TrainingResultTrainingType, plan: { id: number; title: string; type: string; date: Date; creator: { email: string; profile: { firstName: string; lastName: string } | null } }): TrainingResultPlanOption => ({
+                    id: plan.id,
+                    trainingType,
+                    title: plan.title,
+                    typeLabel: trainingType === "fotbal"
+                        ? FOOTBALL_TRAINING_TYPE_LABELS[plan.type] ?? plan.type
+                        : FITNESS_TRAINING_TYPE_LABELS[plan.type] ?? plan.type,
+                    date: plan.date.toISOString(),
+                    coachName: toCoachName(plan.creator),
+                })
+
+                trainingResultPlans = [
+                    ...fitnessTrainingPlans.map((plan) => toPlanOption("fitness", { ...plan, type: String(plan.type) })),
+                    ...footballTrainingPlans.map((plan) => toPlanOption("fotbal", { ...plan, type: String(plan.type) })),
+                ]
+            }
     }
 
     const isItemActive = (href: string) => Boolean(activeHref) && href !== "#" && href === activeHref
@@ -309,10 +392,12 @@ export default async function DashboardHeader({
                 ? session?.user?.role === "admin_global"
                 : ["Adauga Atleti", "Gestiune Antrenori", "Adauga Meci"].includes(item.label)
                     ? session?.user?.role === "manager_fotbal"
-                    : ["Adauga antrenament", "Gestioneaza Antrenamente", "Gestioneaza Atletii"].includes(item.label)
+                    : ["Adauga antrenament", "Gestioneaza Antrenamente", "Gestioneaza Atletii", "Fotbal Training Weekly Goal"].includes(item.label)
                         ? session?.user?.role === "antrenor_fotbal"
                         : ["Adauga Sesiune Fitness", "Gestioneaza Sesiune Fitness"].includes(item.label)
                             ? session?.user?.role === "antrenor_fitness"
+                            : ["Fitness Weekly Goal"].includes(item.label)
+                                ? session?.user?.role === "antrenor_fitness"
                             : ["Adauga Dosar", "Adauga Accidentare", "Gestioneaza Dosare Medicale"].includes(item.label)
                                 ? session?.user?.role === "medic"
                                 : item.label === "Dosar Medical"
@@ -321,11 +406,13 @@ export default async function DashboardHeader({
                                         ? ["atlet_fotbal", "atlet_tenis"].includes(session?.user?.role ?? "")
                                         : item.label === "Gestioneaza Activitati"
                                             ? (session?.user?.role === "atlet_fotbal" && item.href.includes("atlet-fotbal")) || (session?.user?.role === "atlet_tenis" && item.href.includes("atlet-tenis"))
-                                            : item.label === "Profil Sportiv"
-                                                ? ["atlet_fotbal", "atlet_tenis"].includes(session?.user?.role ?? "")
-                                                : ["Turnee Tenis", "Turneele mele"].includes(item.label)
-                                                    ? session?.user?.role === "atlet_tenis"
-                                                    : true
+                                            : item.label === "+ Rezultat Antrenament"
+                                                ? session?.user?.role === "atlet_fotbal"
+                                                : item.label === "Profil Sportiv"
+                                                    ? ["atlet_fotbal", "atlet_tenis"].includes(session?.user?.role ?? "")
+                                                    : ["Turnee Tenis", "Turneele mele"].includes(item.label)
+                                                        ? session?.user?.role === "atlet_tenis"
+                                                        : true
     )
 
     return (
@@ -384,8 +471,16 @@ export default async function DashboardHeader({
                             return <AddTrainingNavButton key={item.href + item.label} label={item.label} isActive={isItemActive(item.href)} />
                         }
 
+                        if (item.label === "Fotbal Training Weekly Goal") {
+                            return <FootballWeeklyGoalNavButton key={item.href + item.label} label={item.label} isActive={isItemActive(item.href)} weekStart={footballWeeklyGoal?.weekStart} weekLabel={footballWeeklyGoal?.weekLabel} targetTrimp={footballWeeklyGoal?.targetTrimp} />
+                        }
+
                         if (item.label === "Adauga Sesiune Fitness") {
                             return <AddFitnessSessionNavButton key={item.href + item.label} label={item.label} isActive={isItemActive(item.href)} />
+                        }
+
+                        if (item.label === "Fitness Weekly Goal") {
+                            return <FitnessWeeklyGoalNavButton key={item.href + item.label} label={item.label} isActive={isItemActive(item.href)} weekStart={weeklyGoal?.weekStart} weekLabel={weeklyGoal?.weekLabel} targetTrimp={weeklyGoal?.targetTrimp} />
                         }
 
                         if (item.label === "Adauga Dosar") {
@@ -398,6 +493,10 @@ export default async function DashboardHeader({
 
                         if (item.label === "Adauga Activitate") {
                             return <AddActivityNavButton key={item.href + item.label} label={item.label} isActive={isItemActive(item.href)} hasCardiacData={athleteHasCardiacData} defaultSport={session?.user?.role === "atlet_tenis" ? "tenis" : "fotbal"} />
+                        }
+
+                        if (item.label === "+ Rezultat Antrenament") {
+                            return <AddTrainingResultNavButton key={item.href + item.label} label={item.label} plans={trainingResultPlans} hasCardiacData={athleteHasCardiacData} isActive={isItemActive(item.href)} />
                         }
 
                         if (item.label === "Toti Atletii") {

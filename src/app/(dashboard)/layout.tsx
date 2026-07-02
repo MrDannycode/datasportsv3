@@ -1,11 +1,55 @@
 import "../dashboard.css"
 import DashboardHeader from "@/components/layout/DashboardHeader"
+import DashboardLeftSidebar from "@/components/layout/DashboardLeftSidebar"
 import DashboardSidebar from "@/components/layout/DashboardSidebar"
-import type { SidebarRecentInjury, SidebarStanding } from "@/components/layout/DashboardSidebar"
+import type { SidebarRecentInjury, SidebarWeeklyGoal } from "@/components/layout/DashboardLeftSidebar"
+import type { SidebarStanding } from "@/components/layout/DashboardSidebar"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
+const DAY_MS = 24 * 60 * 60 * 1000
+
+function formatShortDate(date: Date) {
+    return date.toLocaleDateString("ro-RO", {
+        day: "2-digit",
+        month: "short",
+    })
+}
+
+function startOfUtcDay(date: Date) {
+    const result = new Date(date)
+    result.setUTCHours(0, 0, 0, 0)
+    return result
+}
+
+function startOfUtcWeek(date: Date) {
+    const result = startOfUtcDay(date)
+    const day = result.getUTCDay()
+    const daysSinceMonday = day === 0 ? 6 : day - 1
+    result.setUTCDate(result.getUTCDate() - daysSinceMonday)
+    return result
+}
+
+function addUtcDays(date: Date, days: number) {
+    const result = new Date(date)
+    result.setUTCDate(result.getUTCDate() + days)
+    return result
+}
+
+function sumTrimp(items: { trimp: number | null }[]) {
+    return items.reduce((total, item) => total + (item.trimp ?? 0), 0)
+}
+
+function hasPostgresCode(error: unknown, code: string) {
+    if (typeof error !== "object" || error === null) return false
+
+    const directCode = "code" in error ? error.code : null
+    const meta = "meta" in error ? error.meta : null
+    const metaCode = typeof meta === "object" && meta !== null && "code" in meta ? meta.code : null
+
+    return directCode === code || metaCode === code
+}
 const rolesWithoutSidebar = new Set([
     "admin_global",
     "manager_fotbal",
@@ -249,6 +293,145 @@ async function getSidebarRecentInjuries(userId?: string): Promise<SidebarRecentI
     })
 }
 
+type SidebarWeeklyGoalOptions = {
+    targetTable: "fitness_weekly_goals" | "football_weekly_goals"
+    activitySport: "fitness" | "fotbal"
+    activityNotesPrefix: string
+}
+
+async function getSidebarWeeklyGoal(
+    userId: string | undefined,
+    options: SidebarWeeklyGoalOptions
+): Promise<SidebarWeeklyGoal | null> {
+    const parsedUserId = Number(userId)
+    if (!Number.isInteger(parsedUserId)) return null
+
+    const coachProfile = await prisma.profile.findUnique({
+        where: { userId: parsedUserId },
+        select: { teamId: true },
+    })
+
+    if (!coachProfile?.teamId) return null
+
+    const today = new Date()
+    const todayStart = startOfUtcDay(today)
+    const currentWeekStart = startOfUtcWeek(today)
+    const currentWeekEnd = addUtcDays(currentWeekStart, 7)
+    const expectedFromDate = addUtcDays(currentWeekStart, -28)
+    const loadsFromDate = addUtcDays(todayStart, -42)
+    const elapsedWeekDays = Math.min(7, Math.max(1, Math.floor((todayStart.getTime() - currentWeekStart.getTime()) / DAY_MS) + 1))
+
+    let savedWeeklyGoals: { target_trimp: number }[] = []
+
+    try {
+        savedWeeklyGoals = options.targetTable === "football_weekly_goals"
+            ? await prisma.$queryRaw<{ target_trimp: number }[]>`
+                SELECT target_trimp
+                FROM football_weekly_goals
+                WHERE team_id = ${coachProfile.teamId}
+                  AND week_start = ${currentWeekStart}::date
+                LIMIT 1
+            `
+            : await prisma.$queryRaw<{ target_trimp: number }[]>`
+                SELECT target_trimp
+                FROM fitness_weekly_goals
+                WHERE team_id = ${coachProfile.teamId}
+                  AND week_start = ${currentWeekStart}::date
+                LIMIT 1
+            `
+    } catch (error) {
+        if (!hasPostgresCode(error, "42P01")) {
+            throw error
+        }
+    }
+
+    const teamProfiles = await prisma.profile.findMany({
+        where: {
+            teamId: coachProfile.teamId,
+            user: {
+                footballAthlete: {
+                    isNot: null,
+                },
+            },
+        },
+        select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            activities: {
+                where: {
+                    date: {
+                        gte: expectedFromDate,
+                        lt: currentWeekEnd,
+                    },
+                    sport: options.activitySport,
+                    notes: {
+                        startsWith: options.activityNotesPrefix,
+                    },
+                },
+                orderBy: { date: "asc" },
+                select: {
+                    id: true,
+                    date: true,
+                    trimp: true,
+                },
+            },
+            dailyLoads: {
+                where: {
+                    date: {
+                        gte: loadsFromDate,
+                    },
+                },
+                orderBy: { date: "asc" },
+                select: {
+                    acRatio: true,
+                },
+            },
+        },
+        orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
+    })
+
+    const weeklyAthletes = teamProfiles.map((profile) => {
+        const currentWeekActivities = profile.activities.filter(
+            (activity) => activity.date >= currentWeekStart && activity.date < currentWeekEnd
+        )
+        const previousActivities = profile.activities.filter(
+            (activity) => activity.date >= expectedFromDate && activity.date < currentWeekStart
+        )
+        const currentWeekTrimp = sumTrimp(currentWeekActivities)
+        const expectedWeeklyTrimp = sumTrimp(previousActivities) / 4
+        const expectedTrimp = expectedWeeklyTrimp * (elapsedWeekDays / 7)
+        const latestLoad = profile.dailyLoads[profile.dailyLoads.length - 1] ?? null
+
+        return {
+            id: profile.id,
+            name: `${profile.firstName} ${profile.lastName}`.trim(),
+            acRatio: latestLoad?.acRatio ?? null,
+            currentWeekTrimp,
+            expectedTrimp,
+            expectedWeeklyTrimp,
+            trainings: currentWeekActivities.map((activity) => ({
+                id: activity.id,
+                date: activity.date.toISOString(),
+                trimp: activity.trimp,
+            })),
+        }
+    })
+
+    return {
+        currentTrimp: weeklyAthletes.reduce((total, athlete) => total + athlete.currentWeekTrimp, 0),
+        targetTrimp: savedWeeklyGoals[0]?.target_trimp ?? weeklyAthletes.reduce((total, athlete) => total + athlete.expectedWeeklyTrimp, 0),
+        weekStart: currentWeekStart.toISOString(),
+        weekLabel: `${formatShortDate(currentWeekStart)} - ${formatShortDate(addUtcDays(currentWeekEnd, -1))}`,
+        acRiskAthletes: weeklyAthletes
+            .filter((athlete) => athlete.acRatio != null && athlete.acRatio > 1.3)
+            .sort((left, right) => (right.acRatio ?? 0) - (left.acRatio ?? 0)),
+        underExpectedAthletes: weeklyAthletes
+            .filter((athlete) => athlete.expectedTrimp > 0 && athlete.currentWeekTrimp < athlete.expectedTrimp)
+            .sort((left, right) => (left.currentWeekTrimp / left.expectedTrimp) - (right.currentWeekTrimp / right.expectedTrimp)),
+    }
+}
+
 export default async function DashboardLayout({
     children,
 }: {
@@ -256,22 +439,50 @@ export default async function DashboardLayout({
 }) {
     const session = await getServerSession(authOptions)
     const showSidebar = !session?.user.role || !rolesWithoutSidebar.has(session.user.role)
-    const shouldShowRecentInjuries = session?.user.role === "antrenor_fotbal"
-    const [sidebarPlayers, sidebarStandingsData, sidebarRecentInjuries] = showSidebar
+    const shouldShowRecentInjuries = session?.user.role === "antrenor_fotbal" || session?.user.role === "antrenor_fitness"
+    const shouldShowFitnessWeeklyGoal = session?.user.role === "antrenor_fitness" || session?.user.role === "antrenor_fotbal"
+    const shouldShowFootballWeeklyGoal = session?.user.role === "antrenor_fotbal"
+    const shouldShowLeftSidebar = shouldShowRecentInjuries || shouldShowFitnessWeeklyGoal || shouldShowFootballWeeklyGoal
+    const [sidebarPlayers, sidebarStandingsData, sidebarRecentInjuries, sidebarWeeklyGoal, sidebarFootballWeeklyGoal] = showSidebar
         ? await Promise.all([
             getSidebarPlayers(session?.user.id),
             getSidebarStandings(session?.user.id),
             shouldShowRecentInjuries
                 ? getSidebarRecentInjuries(session?.user.id)
                 : Promise.resolve([]),
+            shouldShowFitnessWeeklyGoal
+                ? getSidebarWeeklyGoal(session?.user.id, {
+                    targetTable: "fitness_weekly_goals",
+                    activitySport: "fitness",
+                    activityNotesPrefix: "Rezultat antrenament Fitness:",
+                })
+                : Promise.resolve(null),
+            shouldShowFootballWeeklyGoal
+                ? getSidebarWeeklyGoal(session?.user.id, {
+                    targetTable: "football_weekly_goals",
+                    activitySport: "fotbal",
+                    activityNotesPrefix: "Rezultat antrenament Fotbal:",
+                })
+                : Promise.resolve(null),
         ])
-        : [[], { leagueName: null, standings: [] }, []]
+        : [[], { leagueName: null, standings: [] }, [], null, null]
 
     return (
         <div className="sd-container">
             <div className="sd-inner">
-                <DashboardHeader activeHref="#" />
-                <div className="sd-with-sidebar">
+                <DashboardHeader
+                    activeHref="#"
+                    weeklyGoal={shouldShowFitnessWeeklyGoal ? sidebarWeeklyGoal : null}
+                    footballWeeklyGoal={shouldShowFootballWeeklyGoal ? sidebarFootballWeeklyGoal : null}
+                />
+                <div className="sd-with-sidebar" style={{ gap: "20px" }}>
+                    {showSidebar && shouldShowLeftSidebar && (
+                        <DashboardLeftSidebar
+                            recentInjuries={shouldShowRecentInjuries ? sidebarRecentInjuries : undefined}
+                            weeklyGoal={shouldShowFitnessWeeklyGoal ? sidebarWeeklyGoal : undefined}
+                            footballWeeklyGoal={shouldShowFootballWeeklyGoal ? sidebarFootballWeeklyGoal : undefined}
+                        />
+                    )}
                     <div className="sd-main-content">
                         {children}
                     </div>
@@ -280,7 +491,6 @@ export default async function DashboardLayout({
                             players={sidebarPlayers}
                             standings={sidebarStandingsData.standings}
                             standingsLeagueName={sidebarStandingsData.leagueName}
-                            recentInjuries={shouldShowRecentInjuries ? sidebarRecentInjuries : undefined}
                         />
                     )}
                 </div>
