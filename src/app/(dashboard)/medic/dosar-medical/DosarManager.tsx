@@ -49,10 +49,30 @@ interface Props {
     shouldOpenNewRecordModal?: boolean;
 }
 
+type AvailabilityFilter = "toate" | "disponibil" | "indisponibil"
+type SeverityFilter = "toate" | Severity
+
+const SEVERITY_LABELS: Record<Severity, string> = {
+    [Severity.usoara]: "Usoara",
+    [Severity.medie]: "Medie",
+    [Severity.grava]: "Grava",
+}
+
+const FILTER_FIELD_STYLE = { display: "flex", flexDirection: "column" as const, gap: "4px" }
+const FILTER_LABEL_STYLE = { fontSize: "12px", fontWeight: "bold" } as const
+
+function getAthleteName(athlete: Athlete) {
+    return `${athlete.user.profile?.firstName ?? ""} ${athlete.user.profile?.lastName ?? ""}`.trim()
+}
+
 export default function DosarManager({ initialRecords, athletes, shouldOpenNewRecordModal = false }: Props) {
     const [records, setRecords] = useState<MedicalRecord[]>(initialRecords)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingRecord, setEditingRecord] = useState<MedicalRecord | null>(null)
+    const [searchQuery, setSearchQuery] = useState("")
+    const [athleteFilter, setAthleteFilter] = useState<number | "">("")
+    const [availabilityFilter, setAvailabilityFilter] = useState<AvailabilityFilter>("toate")
+    const [severityFilter, setSeverityFilter] = useState<SeverityFilter>("toate")
     const [athleteId, setAthleteId] = useState<number | "">("")
     const [diagnosis, setDiagnosis] = useState("")
     const [treatment, setTreatment] = useState("")
@@ -69,8 +89,46 @@ export default function DosarManager({ initialRecords, athletes, shouldOpenNewRe
         }
 
         hasOpenedFromQueryRef.current = true
-        openModal()
+        setEditingRecord(null)
+        setIsModalOpen(true)
     }, [shouldOpenNewRecordModal])
+
+    const normalizedSearchQuery = searchQuery.trim().toLowerCase()
+    const hasActiveFilters = normalizedSearchQuery !== "" || athleteFilter !== "" || availabilityFilter !== "toate" || severityFilter !== "toate"
+    const filteredRecords = records.filter((record) => {
+        if (athleteFilter !== "" && record.athleteId !== athleteFilter) {
+            return false
+        }
+
+        if (availabilityFilter === "disponibil" && !record.isAvailable) {
+            return false
+        }
+
+        if (availabilityFilter === "indisponibil" && record.isAvailable) {
+            return false
+        }
+
+        if (severityFilter !== "toate" && !record.injuries.some((injury) => injury.severity === severityFilter)) {
+            return false
+        }
+
+        if (normalizedSearchQuery === "") {
+            return true
+        }
+
+        const searchableText = [
+            getAthleteName(record.athlete),
+            record.diagnosis,
+            record.treatment,
+            ...record.injuries.flatMap((injury) => [
+                injury.injuryType,
+                injury.bodyPart,
+                injury.notes ?? "",
+            ]),
+        ].join(" ").toLowerCase()
+
+        return searchableText.includes(normalizedSearchQuery)
+    })
 
     const openModal = (record?: MedicalRecord) => {
         setEditingRecord(record || null)
@@ -90,6 +148,13 @@ export default function DosarManager({ initialRecords, athletes, shouldOpenNewRe
         setEndDate("")
         setIsAvailable(true)
         setInjuries([])
+    }
+
+    const resetFilters = () => {
+        setSearchQuery("")
+        setAthleteFilter("")
+        setAvailabilityFilter("toate")
+        setSeverityFilter("toate")
     }
 
     const handleRemoveInjury = (index: number) => {
@@ -297,11 +362,78 @@ export default function DosarManager({ initialRecords, athletes, shouldOpenNewRe
 
             <div className="sd-box">
                 <div className="sd-box-header">
-                    <h2>Dosare medicale ({records.length})</h2>
+                    <h2>Dosare medicale ({filteredRecords.length}{hasActiveFilters ? ` din ${records.length}` : ""})</h2>
                 </div>
-                <div className="sd-box-content">
+                <div className="sd-box-content" style={{ padding: 0, overflowX: "auto" }}>
+                    <div className="sd-table-toolbar">
+                        <div style={{ ...FILTER_FIELD_STYLE, flex: "1 1 220px" }}>
+                            <label htmlFor="medical-record-search" className="sd-table-toolbar-label" style={FILTER_LABEL_STYLE}>Cauta</label>
+                            <input
+                                id="medical-record-search"
+                                type="search"
+                                className="sd-input"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Atlet, diagnostic, tratament..."
+                            />
+                        </div>
+                        <div style={{ ...FILTER_FIELD_STYLE, flex: "1 1 180px" }}>
+                            <label htmlFor="medical-record-athlete-filter" className="sd-table-toolbar-label" style={FILTER_LABEL_STYLE}>Atlet</label>
+                            <select
+                                id="medical-record-athlete-filter"
+                                className="sd-input"
+                                value={athleteFilter}
+                                onChange={(e) => setAthleteFilter(e.target.value ? Number(e.target.value) : "")}
+                            >
+                                <option value="">Toti atletii</option>
+                                {athletes.map((athlete) => (
+                                    <option key={athlete.id} value={athlete.id}>
+                                        {getAthleteName(athlete) || `Atlet #${athlete.id}`}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div style={{ ...FILTER_FIELD_STYLE, flex: "1 1 150px" }}>
+                            <label htmlFor="medical-record-availability-filter" className="sd-table-toolbar-label" style={FILTER_LABEL_STYLE}>Disponibilitate</label>
+                            <select
+                                id="medical-record-availability-filter"
+                                className="sd-input"
+                                value={availabilityFilter}
+                                onChange={(e) => setAvailabilityFilter(e.target.value as AvailabilityFilter)}
+                            >
+                                <option value="toate">Toate</option>
+                                <option value="disponibil">Disponibil</option>
+                                <option value="indisponibil">Indisponibil</option>
+                            </select>
+                        </div>
+                        <div style={{ ...FILTER_FIELD_STYLE, flex: "1 1 150px" }}>
+                            <label htmlFor="medical-record-severity-filter" className="sd-table-toolbar-label" style={FILTER_LABEL_STYLE}>Severitate</label>
+                            <select
+                                id="medical-record-severity-filter"
+                                className="sd-input"
+                                value={severityFilter}
+                                onChange={(e) => setSeverityFilter(e.target.value as SeverityFilter)}
+                            >
+                                <option value="toate">Toate</option>
+                                {Object.values(Severity).map((severity) => (
+                                    <option key={severity} value={severity}>{SEVERITY_LABELS[severity]}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="sd-table-toolbar-actions">
+                            <button
+                                type="button"
+                                className="sd-btn-secondary"
+                                onClick={resetFilters}
+                                disabled={!hasActiveFilters}
+                                style={{ cursor: hasActiveFilters ? "pointer" : "not-allowed", opacity: hasActiveFilters ? 1 : 0.55 }}
+                            >
+                                Reseteaza
+                            </button>
+                        </div>
+                    </div>
                     {records.length === 0 ? (
-                        <p>Nu exista dosare medicale inregistrate.</p>
+                        <p style={{ padding: "16px" }}>Nu exista dosare medicale inregistrate.</p>
                     ) : (
                         <table className="sd-table" style={{ width: "100%", borderCollapse: "collapse" }}>
                             <thead>
@@ -316,7 +448,7 @@ export default function DosarManager({ initialRecords, athletes, shouldOpenNewRe
                                 </tr>
                             </thead>
                             <tbody>
-                                {records.map((record) => (
+                                {filteredRecords.map((record) => (
                                     <tr key={record.id} style={{ borderBottom: "1px solid #eee" }}>
                                         <td style={{ padding: "12px" }}>
                                             {record.athlete.user.profile?.firstName} {record.athlete.user.profile?.lastName}
@@ -350,6 +482,13 @@ export default function DosarManager({ initialRecords, athletes, shouldOpenNewRe
                                         </td>
                                     </tr>
                                 ))}
+                                {filteredRecords.length === 0 && (
+                                    <tr>
+                                        <td colSpan={7} style={{ textAlign: "center", color: "#999", padding: "20px" }}>
+                                            Nu exista dosare medicale pentru filtrele selectate.
+                                        </td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     )}
