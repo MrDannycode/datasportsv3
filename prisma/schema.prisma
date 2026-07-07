@@ -203,6 +203,8 @@ model FootballMatch {
   location      String
   scoreHome     Int?           @map("score_home")
   scoreAway     Int?           @map("score_away")
+  matchDifficulty String?        @map("match_difficulty")
+  teamFormation   String?        @map("team_formation")
   competitionId Int            @map("competition_id")
   competition   Competition    @relation(fields: [competitionId], references: [id])
   teamAway      Team           @relation("AwayTeam", fields: [teamAwayId], references: [id])

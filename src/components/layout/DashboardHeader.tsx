@@ -17,11 +17,13 @@ import AddTrainingResultNavButton, { type TrainingResultPlanOption } from "@/com
 import TeamAthletesNavButton, { type TeamAthlete } from "@/components/layout/TeamAthletesNavButton"
 import CoachAthleteManagementNavButton from "@/components/layout/CoachAthleteManagementNavButton"
 import MedicalRecordNavButton, { type AthleteMedicalRecord } from "@/components/layout/MedicalRecordNavButton"
+import InjuryHistoryNavButton, { type MedicInjuryHistoryItem } from "@/components/layout/InjuryHistoryNavButton"
 import ExportAuditNavButton from "@/components/layout/ExportAuditNavButton"
 import MyProfileNavButton from "@/components/layout/MyProfileNavButton"
 import AccountSettingsButton from "@/components/layout/AccountSettingsButton"
 import FitnessWeeklyGoalNavButton from "@/components/layout/FitnessWeeklyGoalNavButton"
 import FootballWeeklyGoalNavButton from "@/components/layout/FootballWeeklyGoalNavButton"
+import NextMatchAnalysisNavButton from "@/components/layout/NextMatchAnalysisNavButton"
 import { prisma } from "@/lib/prisma"
 import type { SidebarWeeklyGoal } from "@/components/layout/DashboardLeftSidebar"
 
@@ -30,10 +32,22 @@ interface NavItem {
     href: string
 }
 
-type BasicTeam = { id: number; name: string; country: string }
+type BasicTeam = { id: number; name: string; country: string; continent: string }
 type BasicCoach = { id: number; firstName: string; lastName: string; role: string; teamId: number | null; team: BasicTeam | null }
 type BasicCompetition = { id: number; name: string }
 type TrainingResultTrainingType = "fitness" | "fotbal"
+type MatchDifficultyValue = "usor" | "mediu" | "greu"
+type TeamFormationValue = "4-3-3" | "4-4-2" | "4-2-3-1" | "3-5-2" | "3-4-3" | "5-3-2"
+function hasPostgresCode(error: unknown, code: string) {
+    if (typeof error !== "object" || error === null) return false
+
+    const directCode = "code" in error ? error.code : null
+    const meta = "meta" in error ? error.meta : null
+    const metaCode = typeof meta === "object" && meta !== null && "code" in meta ? meta.code : null
+
+    return directCode === code || metaCode === code
+}
+
 const FOOTBALL_TRAINING_TYPE_LABELS: Record<string, string> = {
     tehnic: "Tehnic",
     fizic: "Fizic",
@@ -86,6 +100,7 @@ const defaultNavItems: NavItem[] = [
     { label: "Adauga Atleti", href: "#" },
     { label: "Gestiune Antrenori", href: "#" },
     { label: "Adauga Meci", href: "#" },
+    { label: "Next Match Analysis", href: "/antrenor-fotbal" },
     { label: "Adauga antrenament", href: "/antrenor-fotbal/antrenamente" },
     { label: "Gestioneaza Antrenamente", href: "/antrenor-fotbal/antrenamente" },
     { label: "Gestioneaza Atletii", href: "#" },
@@ -96,6 +111,7 @@ const defaultNavItems: NavItem[] = [
     { label: "Adauga Dosar", href: "/medic/dosar-medical?open=new" },
     { label: "Gestioneaza Dosare Medicale", href: "/medic/dosar-medical" },
     { label: "Adauga Accidentare", href: "#" },
+    { label: "Istoric Accidentari", href: "#" },
     { label: "Dosar Medical", href: "#" },
     { label: "Adauga Activitate", href: "/atlet-fotbal/activity?open=new" },
     { label: "+ Rezultat Antrenament", href: "" },
@@ -122,10 +138,15 @@ export default async function DashboardHeader({
     let footballCoaches: BasicCoach[] = []
     let footballCompetitions: BasicCompetition[] = []
     let athleteMedicalRecords: AthleteMedicalRecord[] = []
+    let medicInjuryHistory: MedicInjuryHistoryItem[] = []
     let athleteHasCardiacData = false
     let myProfileData: ProfileNavData | null = null
     let trainingResultPlans: TrainingResultPlanOption[] = []
     let accountSettingsData: AccountSettingsData | null = null
+    let nextMatchAnalysisMatch = "Nu exista meci programat"
+    let nextMatchAnalysisMatchId: number | null = null
+    let nextMatchAnalysisDifficulty: MatchDifficultyValue = "mediu"
+    let nextMatchAnalysisFormation: TeamFormationValue = "4-3-3"
 
     if (session?.user?.id) {
         const accountUser = await prisma.user.findUnique({
@@ -157,7 +178,7 @@ export default async function DashboardHeader({
             where: managerAssignment
                 ? { sport: "fotbal", country: managerAssignment.country }
                 : { sport: "fotbal", id: -1 },
-            select: { id: true, name: true, country: true },
+            select: { id: true, name: true, country: true, continent: true },
             orderBy: { name: "asc" },
         })
 
@@ -173,7 +194,7 @@ export default async function DashboardHeader({
             where: { role: "antrenor_fotbal" },
             include: {
                 profile: {
-                    include: { team: { select: { id: true, name: true, country: true } } },
+                    include: { team: { select: { id: true, name: true, country: true, continent: true } } },
                 },
             },
             orderBy: { email: "asc" },
@@ -195,6 +216,7 @@ export default async function DashboardHeader({
             select: {
                 team: {
                     select: {
+                        id: true,
                         name: true,
                         profiles: {
                             where: { user: { footballAthlete: { isNot: null } } },
@@ -240,6 +262,61 @@ export default async function DashboardHeader({
                 isAvailable: footballAthlete.medicalRecords.length === 0,
             }]
         }) ?? []
+
+        if (session.user.role === "antrenor_fotbal" && profile?.team?.id) {
+            const nextMatch = await prisma.footballMatch.findFirst({
+                where: {
+                    OR: [
+                        { teamHomeId: profile.team.id },
+                        { teamAwayId: profile.team.id },
+                    ],
+                    matchDate: {
+                        gte: new Date(),
+                    },
+                },
+                include: {
+                    teamHome: true,
+                    teamAway: true,
+                },
+                orderBy: {
+                    matchDate: "asc",
+                },
+            })
+
+            nextMatchAnalysisMatch = nextMatch
+                ? nextMatch.teamHome.name + " vs " + nextMatch.teamAway.name
+                : "Nu exista meci programat"
+            nextMatchAnalysisMatchId = nextMatch?.id ?? null
+
+            if (nextMatch) {
+                try {
+                    const analysisRows = await prisma.$queryRaw<{ match_difficulty: string | null; team_formation: string | null }[]>`
+                        SELECT match_difficulty, team_formation
+                        FROM football_matches
+                        WHERE id = ${nextMatch.id}
+                        LIMIT 1
+                    `
+                    const analysis = analysisRows[0]
+
+                    if (analysis?.match_difficulty === "usor" || analysis?.match_difficulty === "mediu" || analysis?.match_difficulty === "greu") {
+                        nextMatchAnalysisDifficulty = analysis.match_difficulty
+                    }
+
+                    if (
+                        analysis?.team_formation === "4-3-3" ||
+                        analysis?.team_formation === "4-4-2" ||
+                        analysis?.team_formation === "4-2-3-1" ||
+                        analysis?.team_formation === "3-5-2" ||
+                        analysis?.team_formation === "3-4-3" ||
+                        analysis?.team_formation === "5-3-2"
+                    ) {
+                        nextMatchAnalysisFormation = analysis.team_formation
+                    }
+                } catch (error) {
+                    if (!hasPostgresCode(error, "42703")) throw error
+                }
+            }
+        }
     }
 
     if (session?.user?.role === "atlet_fotbal") {
@@ -280,6 +357,60 @@ export default async function DashboardHeader({
                     notes: injury.notes,
                 })),
             }
+        })
+    }
+
+    if (session?.user?.role === "medic") {
+        const medicProfile = await prisma.profile.findUnique({
+            where: { userId: Number(session.user.id) },
+            select: { teamId: true },
+        })
+
+        const records = await prisma.medicalRecord.findMany({
+            where: medicProfile?.teamId
+                ? {
+                    athlete: {
+                        user: {
+                            profile: {
+                                is: { teamId: medicProfile.teamId },
+                            },
+                        },
+                    },
+                }
+                : { medicId: Number(session.user.id) },
+            include: {
+                athlete: {
+                    include: {
+                        user: {
+                            include: {
+                                profile: true,
+                            },
+                        },
+                    },
+                },
+                injuries: true,
+            },
+            orderBy: { startDate: "desc" },
+            take: 100,
+        })
+
+        medicInjuryHistory = records.flatMap((record) => {
+            const athleteName = ((record.athlete.user.profile?.firstName ?? "") + " " + (record.athlete.user.profile?.lastName ?? "")).trim()
+                || record.athlete.user.email
+
+            return record.injuries.map((injury) => ({
+                id: injury.id,
+                athleteName,
+                diagnosis: record.diagnosis,
+                startDate: record.startDate.toISOString(),
+                endDate: record.endDate?.toISOString() ?? null,
+                isAvailable: record.isAvailable,
+                injuryType: injury.injuryType,
+                bodyPart: injury.bodyPart,
+                severity: injury.severity,
+                recoveryDays: injury.recoveryDays,
+                notes: injury.notes,
+            }))
         })
     }
 
@@ -392,13 +523,13 @@ export default async function DashboardHeader({
                 ? session?.user?.role === "admin_global"
                 : ["Adauga Atleti", "Gestiune Antrenori", "Adauga Meci"].includes(item.label)
                     ? session?.user?.role === "manager_fotbal"
-                    : ["Adauga antrenament", "Gestioneaza Antrenamente", "Gestioneaza Atletii", "Fotbal Training Weekly Goal"].includes(item.label)
+                    : ["Next Match Analysis", "Adauga antrenament", "Gestioneaza Antrenamente", "Gestioneaza Atletii", "Fotbal Training Weekly Goal"].includes(item.label)
                         ? session?.user?.role === "antrenor_fotbal"
                         : ["Adauga Sesiune Fitness", "Gestioneaza Sesiune Fitness"].includes(item.label)
                             ? session?.user?.role === "antrenor_fitness"
                             : ["Fitness Weekly Goal"].includes(item.label)
                                 ? session?.user?.role === "antrenor_fitness"
-                            : ["Adauga Dosar", "Adauga Accidentare", "Gestioneaza Dosare Medicale"].includes(item.label)
+                            : ["Adauga Dosar", "Adauga Accidentare", "Istoric Accidentari", "Gestioneaza Dosare Medicale"].includes(item.label)
                                 ? session?.user?.role === "medic"
                                 : item.label === "Dosar Medical"
                                     ? session?.user?.role === "atlet_fotbal"
@@ -467,6 +598,10 @@ export default async function DashboardHeader({
                             return <AddMatchNavButton key={item.href + item.label} label={item.label} teams={footballTeams} competitions={footballCompetitions} isActive={isItemActive(item.href)} />
                         }
 
+                        if (item.label === "Next Match Analysis") {
+                            return <NextMatchAnalysisNavButton key={item.href + item.label} label={item.label} isActive={isItemActive(item.href)} nextMatch={nextMatchAnalysisMatch} nextMatchId={nextMatchAnalysisMatchId} initialMatchDifficulty={nextMatchAnalysisDifficulty} initialTeamFormation={nextMatchAnalysisFormation} />
+                        }
+
                         if (item.label === "Adauga antrenament") {
                             return <AddTrainingNavButton key={item.href + item.label} label={item.label} isActive={isItemActive(item.href)} />
                         }
@@ -489,6 +624,10 @@ export default async function DashboardHeader({
 
                         if (item.label === "Adauga Accidentare") {
                             return <AddInjuryNavButton key={item.href + item.label} label={item.label} isActive={isItemActive(item.href)} />
+                        }
+
+                        if (item.label === "Istoric Accidentari") {
+                            return <InjuryHistoryNavButton key={item.href + item.label} label={item.label} records={medicInjuryHistory} />
                         }
 
                         if (item.label === "Adauga Activitate") {

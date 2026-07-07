@@ -4,6 +4,7 @@ type Team = {
     id: number
     name: string
     country: string
+    continent: string
 }
 
 type MatchFormData = {
@@ -38,6 +39,11 @@ interface Props {
 }
 
 export default function MatchCreateModal({ formData, teams, competitions, loading, error, isEditing, onChange, onClose, onSubmit }: Props) {
+    const selectedCompetition = competitions.find(competition => competition.id === Number(formData.competitionId))
+    const filteredTeams = selectedCompetition
+        ? teams.filter(team => team.continent === selectedCompetition.name)
+        : []
+
     return (
         <div
             role="dialog"
@@ -97,16 +103,29 @@ export default function MatchCreateModal({ formData, teams, competitions, loadin
                     {error && <div style={{ color: "#f87171", marginBottom: "10px" }}>{error}</div>}
 
                     <form onSubmit={onSubmit} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                        <div style={{ gridColumn: "1 / -1" }}>
+                            <label style={{ display: "block", marginBottom: "5px" }}>Competitie</label>
+                            <select
+                                required
+                                value={formData.competitionId}
+                                onChange={e => onChange("competitionId", e.target.value)}
+                                style={fieldStyle}
+                            >
+                                <option value="">-- Selecteaza --</option>
+                                {competitions.map(competition => <option key={competition.id} value={competition.id}>{competition.name}</option>)}
+                            </select>
+                        </div>
                         <div>
                             <label style={{ display: "block", marginBottom: "5px" }}>Echipa Gazda</label>
                             <select
                                 required
                                 value={formData.teamHomeId}
                                 onChange={e => onChange("teamHomeId", e.target.value)}
+                                disabled={!selectedCompetition}
                                 style={fieldStyle}
                             >
-                                <option value="">-- Selecteaza --</option>
-                                {teams.map(team => <option key={team.id} value={team.id}>{team.name}</option>)}
+                                <option value="">{selectedCompetition ? "-- Selecteaza --" : "-- Selecteaza competitia --"}</option>
+                                {filteredTeams.map(team => <option key={team.id} value={team.id}>{team.name}</option>)}
                             </select>
                         </div>
                         <div>
@@ -115,10 +134,11 @@ export default function MatchCreateModal({ formData, teams, competitions, loadin
                                 required
                                 value={formData.teamAwayId}
                                 onChange={e => onChange("teamAwayId", e.target.value)}
+                                disabled={!selectedCompetition}
                                 style={fieldStyle}
                             >
-                                <option value="">-- Selecteaza --</option>
-                                {teams.map(team => <option key={team.id} value={team.id}>{team.name}</option>)}
+                                <option value="">{selectedCompetition ? "-- Selecteaza --" : "-- Selecteaza competitia --"}</option>
+                                {filteredTeams.map(team => <option key={team.id} value={team.id}>{team.name}</option>)}
                             </select>
                         </div>
                         <div>
@@ -141,18 +161,7 @@ export default function MatchCreateModal({ formData, teams, competitions, loadin
                                 style={fieldStyle}
                             />
                         </div>
-                        <div>
-                            <label style={{ display: "block", marginBottom: "5px" }}>Competitie</label>
-                            <select
-                                required
-                                value={formData.competitionId}
-                                onChange={e => onChange("competitionId", e.target.value)}
-                                style={fieldStyle}
-                            >
-                                <option value="">-- Selecteaza --</option>
-                                {competitions.map(competition => <option key={competition.id} value={competition.id}>{competition.name}</option>)}
-                            </select>
-                        </div>
+
                         <div style={{ display: "flex", gap: "10px" }}>
                             <div style={{ flex: 1 }}>
                                 <label style={{ display: "block", marginBottom: "5px" }}>Scor Gazda</label>

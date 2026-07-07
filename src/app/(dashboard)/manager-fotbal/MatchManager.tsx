@@ -8,6 +8,7 @@ type Team = {
     id: number
     name: string
     country: string
+    continent: string
 }
 
 type Match = {
@@ -63,6 +64,11 @@ export default function MatchManager({
         scoreAway: ""
     })
 
+    const selectedCompetition = competitions.find(competition => competition.id === Number(formData.competitionId))
+    const filteredTeams = selectedCompetition
+        ? teams.filter(team => team.continent === selectedCompetition.name)
+        : []
+
     useEffect(() => {
         if (!shouldOpenMatchModal || hasOpenedFromQueryRef.current) {
             return
@@ -110,6 +116,10 @@ export default function MatchManager({
 
     const updateField = (field: keyof MatchFormData, value: string) => {
         setFormData(current => {
+            if (field === "competitionId") {
+                return { ...current, competitionId: value, teamHomeId: "", teamAwayId: "", location: "" }
+            }
+
             if (field !== "teamHomeId") {
                 return { ...current, [field]: value }
             }
@@ -182,18 +192,25 @@ export default function MatchManager({
                 {error && <div style={{ color: "red", marginBottom: "10px" }}>{error}</div>}
 
                 <form onSubmit={handleSubmit} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "20px", padding: "15px", border: "1px solid #ddd", borderRadius: "5px", background: "#f9f9f9" }}>
+                    <div style={{ gridColumn: "1 / -1" }}>
+                        <label style={{ display: "block", marginBottom: "5px" }}>Competitie</label>
+                        <select required value={formData.competitionId} onChange={e => updateField("competitionId", e.target.value)} style={{ width: "100%", padding: "5px", borderRadius: "3px", border: "1px solid #ccc" }}>
+                            <option value="">-- Selecteaza --</option>
+                            {competitions.map(competition => <option key={competition.id} value={competition.id}>{competition.name}</option>)}
+                        </select>
+                    </div>
                     <div>
                         <label style={{ display: "block", marginBottom: "5px" }}>Echipa Gazda</label>
-                        <select required value={formData.teamHomeId} onChange={e => updateField("teamHomeId", e.target.value)} style={{ width: "100%", padding: "5px", borderRadius: "3px", border: "1px solid #ccc" }}>
-                            <option value="">-- Selecteaza --</option>
-                            {teams.map(team => <option key={team.id} value={team.id}>{team.name}</option>)}
+                        <select required value={formData.teamHomeId} onChange={e => updateField("teamHomeId", e.target.value)} disabled={!selectedCompetition} style={{ width: "100%", padding: "5px", borderRadius: "3px", border: "1px solid #ccc" }}>
+                            <option value="">{selectedCompetition ? "-- Selecteaza --" : "-- Selecteaza competitia --"}</option>
+                            {filteredTeams.map(team => <option key={team.id} value={team.id}>{team.name}</option>)}
                         </select>
                     </div>
                     <div>
                         <label style={{ display: "block", marginBottom: "5px" }}>Echipa Oaspete</label>
-                        <select required value={formData.teamAwayId} onChange={e => updateField("teamAwayId", e.target.value)} style={{ width: "100%", padding: "5px", borderRadius: "3px", border: "1px solid #ccc" }}>
-                            <option value="">-- Selecteaza --</option>
-                            {teams.map(team => <option key={team.id} value={team.id}>{team.name}</option>)}
+                        <select required value={formData.teamAwayId} onChange={e => updateField("teamAwayId", e.target.value)} disabled={!selectedCompetition} style={{ width: "100%", padding: "5px", borderRadius: "3px", border: "1px solid #ccc" }}>
+                            <option value="">{selectedCompetition ? "-- Selecteaza --" : "-- Selecteaza competitia --"}</option>
+                            {filteredTeams.map(team => <option key={team.id} value={team.id}>{team.name}</option>)}
                         </select>
                     </div>
                     <div>
@@ -204,13 +221,7 @@ export default function MatchManager({
                         <label style={{ display: "block", marginBottom: "5px" }}>Stadion</label>
                         <input required type="text" value={formData.location} onChange={e => updateField("location", e.target.value)} style={{ width: "100%", padding: "5px", borderRadius: "3px", border: "1px solid #ccc" }} />
                     </div>
-                    <div>
-                        <label style={{ display: "block", marginBottom: "5px" }}>Competitie</label>
-                        <select required value={formData.competitionId} onChange={e => updateField("competitionId", e.target.value)} style={{ width: "100%", padding: "5px", borderRadius: "3px", border: "1px solid #ccc" }}>
-                            <option value="">-- Selecteaza --</option>
-                            {competitions.map(competition => <option key={competition.id} value={competition.id}>{competition.name}</option>)}
-                        </select>
-                    </div>
+
                     <div style={{ display: "flex", gap: "10px" }}>
                         <div style={{ flex: 1 }}>
                             <label style={{ display: "block", marginBottom: "5px" }}>Scor Gazda</label>

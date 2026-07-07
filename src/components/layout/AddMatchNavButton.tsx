@@ -4,7 +4,7 @@ import { useState } from "react"
 import MatchCreateModal from "@/app/(dashboard)/manager-fotbal/MatchCreateModal"
 import { createMatch } from "@/app/(dashboard)/manager-fotbal/actions"
 
-type Team = { id: number; name: string; country: string }
+type Team = { id: number; name: string; country: string; continent: string }
 type MatchFormData = {
     teamHomeId: string
     teamAwayId: string
@@ -40,6 +40,10 @@ export default function AddMatchNavButton({ label, teams, competitions, isActive
 
     const updateField = (field: keyof MatchFormData, value: string) => {
         setFormData(current => {
+            if (field === "competitionId") {
+                return { ...current, competitionId: value, teamHomeId: "", teamAwayId: "", location: "" }
+            }
+
             if (field !== "teamHomeId") {
                 return { ...current, [field]: value }
             }

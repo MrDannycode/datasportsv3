@@ -37,6 +37,49 @@ function validateAssignedTeamLocation(data: { country: string; continent: string
     }
 }
 
+async function validateMatchSelection(data: { teamHomeId: string; teamAwayId: string; competitionId: string }, assignedCountry: string) {
+    const teamHomeId = Number(data.teamHomeId)
+    const teamAwayId = Number(data.teamAwayId)
+    const competitionId = Number(data.competitionId)
+
+    if (!Number.isInteger(teamHomeId) || !Number.isInteger(teamAwayId) || !Number.isInteger(competitionId)) {
+        throw new Error('Selecteaza competitia si ambele echipe.')
+    }
+
+    if (teamHomeId === teamAwayId) {
+        throw new Error('Echipa gazda si echipa oaspete trebuie sa fie diferite.')
+    }
+
+    const [competition, homeTeam, awayTeam] = await Promise.all([
+        prisma.competition.findFirst({
+            where: { id: competitionId, sport: 'fotbal', country: assignedCountry },
+            select: { id: true, name: true },
+        }),
+        prisma.team.findFirst({
+            where: { id: teamHomeId, sport: 'fotbal', country: assignedCountry },
+            select: { id: true, continent: true },
+        }),
+        prisma.team.findFirst({
+            where: { id: teamAwayId, sport: 'fotbal', country: assignedCountry },
+            select: { id: true, continent: true },
+        }),
+    ])
+
+    if (!competition) {
+        throw new Error('Selecteaza o competitie valida pentru tara ta.')
+    }
+
+    if (!homeTeam || !awayTeam) {
+        throw new Error('Selecteaza echipe valide pentru tara ta.')
+    }
+
+    if (homeTeam.continent !== competition.name || awayTeam.continent !== competition.name) {
+        throw new Error('Echipele selectate trebuie sa apartina competitiei alese.')
+    }
+
+    return { teamHomeId, teamAwayId, competitionId }
+}
+
 export async function createMatch(data: {
     teamHomeId: string
     teamAwayId: string
@@ -46,18 +89,16 @@ export async function createMatch(data: {
     scoreHome?: string
     scoreAway?: string
 }) {
-    const session = await getServerSession(authOptions)
-    if (!session || session.user.role !== "manager_fotbal") {
-        throw new Error("Unauthorized")
-    }
+    const { session, assignedCountry } = await requireFootballManagerAssignment()
+    const { teamHomeId, teamAwayId, competitionId } = await validateMatchSelection(data, assignedCountry)
 
     const match = await prisma.footballMatch.create({
         data: {
-            teamHomeId: parseInt(data.teamHomeId),
-            teamAwayId: parseInt(data.teamAwayId),
+            teamHomeId,
+            teamAwayId,
             matchDate: new Date(data.matchDate),
             location: data.location,
-            competitionId: parseInt(data.competitionId),
+            competitionId,
             scoreHome: data.scoreHome ? parseInt(data.scoreHome) : null,
             scoreAway: data.scoreAway ? parseInt(data.scoreAway) : null,
         }
@@ -76,19 +117,26 @@ export async function updateMatch(id: number, data: {
     scoreHome?: string
     scoreAway?: string
 }) {
-    const session = await getServerSession(authOptions)
-    if (!session || session.user.role !== "manager_fotbal") {
-        throw new Error("Unauthorized")
+    const { session, assignedCountry } = await requireFootballManagerAssignment()
+    const { teamHomeId, teamAwayId, competitionId } = await validateMatchSelection(data, assignedCountry)
+
+    const existingMatch = await prisma.footballMatch.findFirst({
+        where: { id, competition: { country: assignedCountry } },
+        select: { id: true },
+    })
+
+    if (!existingMatch) {
+        throw new Error('Poti modifica doar meciuri din tara ta.')
     }
 
     const match = await prisma.footballMatch.update({
         where: { id },
         data: {
-            teamHomeId: parseInt(data.teamHomeId),
-            teamAwayId: parseInt(data.teamAwayId),
+            teamHomeId,
+            teamAwayId,
             matchDate: new Date(data.matchDate),
             location: data.location,
-            competitionId: parseInt(data.competitionId),
+            competitionId,
             scoreHome: data.scoreHome !== undefined && data.scoreHome !== "" ? parseInt(data.scoreHome) : null,
             scoreAway: data.scoreAway !== undefined && data.scoreAway !== "" ? parseInt(data.scoreAway) : null,
         }

@@ -19,6 +19,10 @@ type RecentActivity = {
     notes: string | null
     trimp: number | null
 }
+type NextMatchAnalysisValues = {
+    matchDifficulty: string | null
+    teamFormation: string | null
+}
 type ActivityCalendarEvent = {
     id: string
     date: Date
@@ -41,6 +45,16 @@ const FITNESS_TYPE_LABELS: Record<string, string> = {
     vitezare: "Viteza",
     flexibilitate: "Flexibilitate",
     coordonare: "Coordonare",
+}
+
+function hasPostgresCode(error: unknown, code: string) {
+    if (typeof error !== "object" || error === null) return false
+
+    const directCode = "code" in error ? error.code : null
+    const meta = "meta" in error ? error.meta : null
+    const metaCode = typeof meta === "object" && meta !== null && "code" in meta ? meta.code : null
+
+    return directCode === code || metaCode === code
 }
 
 const SPORT_LABELS: Record<string, string> = {
@@ -68,6 +82,64 @@ function formatDuration(minutes: number) {
     if (hours === 0) return String(remainingMinutes) + " min"
     return String(hours) + "h " + String(remainingMinutes) + "min"
 }
+function formatMatchDate(date: Date) {
+    return date.toLocaleDateString("ro-RO", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+    })
+}
+
+function formatMatchDifficulty(value: string | null | undefined) {
+    if (value === "usor") return "Usor"
+    if (value === "mediu") return "Mediu"
+    if (value === "greu") return "Greu"
+    return "-"
+}
+
+function NextMatchAnalysis({
+    match,
+    analysis,
+}: {
+    match: UpcomingMatch | null
+    analysis: NextMatchAnalysisValues | null
+}) {
+    const difficulty = formatMatchDifficulty(analysis?.matchDifficulty)
+    const nextMatchLabel = match
+        ? match.teamHome.name + " vs " + match.teamAway.name
+        : "Nu exista meci programat"
+
+    return (
+        <div className="sd-box">
+            <div className="sd-box-header">
+                <h2>Next Match Analysis</h2>
+            </div>
+            <div className="sd-box-content">
+                <div style={{ display: "grid", gap: "12px" }}>
+                    <div>
+                        <div className="sd-metric-title">Next Match:</div>
+                        <div style={{ fontWeight: 700, marginTop: "4px" }}>{nextMatchLabel}</div>
+                        {match ? (
+                            <div style={{ color: "#64748b", fontSize: "12px", marginTop: "4px" }}>
+                                {formatMatchDate(match.matchDate)} | {match.location} | {match.competition.name}
+                            </div>
+                        ) : null}
+                    </div>
+                    <div>
+                        <div className="sd-metric-title">Team Formation:</div>
+                        <div style={{ fontWeight: 700, marginTop: "4px" }}>{analysis?.teamFormation ?? "Nespecificata"}</div>
+                    </div>
+                    <div>
+                        <div className="sd-metric-title">Difficulty:</div>
+                        <div style={{ fontWeight: 700, marginTop: "4px" }}>{difficulty}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
 
 
 export default async function AtletFotbalPage() {
@@ -89,6 +161,7 @@ export default async function AtletFotbalPage() {
     let latestLoad: SportScienceLoad | null = null;
     let trainingLoads: SportScienceLoad[] = [];
     let recentActivities: RecentActivity[] = [];
+    let nextMatchAnalysisValues: NextMatchAnalysisValues | null = null
 
     if (profile) {
         const loadFromDate = new Date();
@@ -253,11 +326,31 @@ export default async function AtletFotbalPage() {
         ...event,
         date: event.date.toISOString(),
     }))
+    const nextMatch = upcomingMatches[0] ?? null
+    if (nextMatch) {
+        try {
+            const analysisRows = await prisma.$queryRaw<{ match_difficulty: string | null; team_formation: string | null }[]>`
+                SELECT match_difficulty, team_formation
+                FROM football_matches
+                WHERE id = ${nextMatch.id}
+                LIMIT 1
+            `
+            const analysis = analysisRows[0]
+
+            nextMatchAnalysisValues = {
+                matchDifficulty: analysis?.match_difficulty ?? null,
+                teamFormation: analysis?.team_formation ?? null,
+            }
+        } catch (error) {
+            if (!hasPostgresCode(error, "42703")) throw error
+        }
+    }
 
 
     return (
         <main className="sd-athlete-dashboard-layout">
             <aside className="sd-athlete-left-sidebar sd-sticky-sidebar">
+                <NextMatchAnalysis match={nextMatch} analysis={nextMatchAnalysisValues} />
                 <div className="sd-box">
                     <div className="sd-box-header">
                         <h2>Sport Science</h2>
