@@ -6,6 +6,8 @@ import { createTeam, updateTeam, deleteTeam } from "./actions"
 type Team = {
     id: number
     name: string
+    stadium: string | null
+    county: string | null
     country: string
     continent: string
 }
@@ -15,12 +17,12 @@ type League = {
     name: string
 }
 
-export default function TeamManager({ 
+export default function TeamManager({
     initialTeams,
     leagues,
     assignedCountry,
     assignedContinent,
-}: { 
+}: {
     initialTeams: Team[]
     leagues: League[]
     assignedCountry: string | null
@@ -32,15 +34,19 @@ export default function TeamManager({
 
     const [formData, setFormData] = useState({
         name: "",
+        stadium: "",
+        county: "",
         country: assignedCountry ?? "",
-        continent: assignedContinent ?? ""
+        continent: assignedContinent ?? "",
     })
 
     const resetForm = () => {
         setFormData({
             name: "",
+            stadium: "",
+            county: "",
             country: assignedCountry ?? "",
-            continent: assignedContinent ?? ""
+            continent: assignedContinent ?? "",
         })
         setIsEditing(null)
         setError("")
@@ -50,8 +56,10 @@ export default function TeamManager({
         setIsEditing(team.id)
         setFormData({
             name: team.name,
+            stadium: team.stadium ?? "",
+            county: team.county ?? "",
             country: assignedCountry ?? team.country,
-            continent: assignedContinent ?? team.continent
+            continent: assignedContinent ?? team.continent,
         })
         setError("")
     }
@@ -69,19 +77,19 @@ export default function TeamManager({
             }
             resetForm()
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : "A apărut o eroare.")
+            setError(err instanceof Error ? err.message : "A aparut o eroare.")
         } finally {
             setLoading(false)
         }
     }
 
     const handleDelete = async (id: number) => {
-        if (!confirm("Sigur doriți să ștergeți această echipă? (Dacă are meciuri asociate, ștergerea poate eșua.)")) return
+        if (!confirm("Sigur doriti sa stergeti aceasta echipa? (Daca are meciuri asociate, stergerea poate esua.)")) return
         setLoading(true)
         try {
             await deleteTeam(id)
         } catch (err: unknown) {
-            alert(err instanceof Error ? err.message : "A apărut o eroare la ștergere. Posibil ca echipa să fie asociată cu alte înregistrări (meciuri, etc).")
+            alert(err instanceof Error ? err.message : "A aparut o eroare la stergere. Posibil ca echipa sa fie asociata cu alte inregistrari (meciuri, etc).")
         } finally {
             setLoading(false)
         }
@@ -93,27 +101,34 @@ export default function TeamManager({
                 <h2>Gestionare Echipe Fotbal</h2>
             </div>
             <div className="sd-box-content">
-                
                 {error && <div style={{ color: "red", marginBottom: "10px" }}>{error}</div>}
-                
-                <form onSubmit={handleSubmit} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px", marginBottom: "20px", padding: "15px", border: "1px solid #ddd", borderRadius: "5px", background: "#f9f9f9" }}>
+
+                <form onSubmit={handleSubmit} style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: "10px", marginBottom: "20px", padding: "15px", border: "1px solid #ddd", borderRadius: "5px", background: "#f9f9f9" }}>
                     <div>
-                        <label style={{ display: "block", marginBottom: "5px" }}>Nume Echipă</label>
-                        <input 
-                            required 
-                            type="text" 
-                            value={formData.name} 
-                            onChange={e => setFormData({...formData, name: e.target.value})}
+                        <label style={{ display: "block", marginBottom: "5px" }}>Nume Echipa</label>
+                        <input
+                            required
+                            type="text"
+                            value={formData.name}
+                            onChange={e => setFormData({ ...formData, name: e.target.value })}
                             style={{ width: "100%", padding: "5px", borderRadius: "3px", border: "1px solid #ccc" }}
                         />
                     </div>
                     <div>
-                        <label style={{ display: "block", marginBottom: "5px" }}>Tara</label>
-                        <input 
-                            required 
-                            type="text" 
-                            value={formData.country} 
-                            readOnly
+                        <label style={{ display: "block", marginBottom: "5px" }}>Stadion</label>
+                        <input
+                            type="text"
+                            value={formData.stadium}
+                            onChange={e => setFormData({ ...formData, stadium: e.target.value })}
+                            style={{ width: "100%", padding: "5px", borderRadius: "3px", border: "1px solid #ccc" }}
+                        />
+                    </div>
+                    <div>
+                        <label style={{ display: "block", marginBottom: "5px" }}>Judet</label>
+                        <input
+                            type="text"
+                            value={formData.county}
+                            onChange={e => setFormData({ ...formData, county: e.target.value })}
                             style={{ width: "100%", padding: "5px", borderRadius: "3px", border: "1px solid #ccc" }}
                         />
                     </div>
@@ -122,8 +137,7 @@ export default function TeamManager({
                         <select
                             required
                             value={formData.continent}
-                            onChange={e => setFormData({...formData, continent: e.target.value})}
-                            disabled={false}
+                            onChange={e => setFormData({ ...formData, continent: e.target.value })}
                             style={{ width: "100%", padding: "5px", borderRadius: "3px", border: "1px solid #ccc" }}
                         >
                             <option value="">Selecteaza liga</option>
@@ -135,14 +149,14 @@ export default function TeamManager({
                             ))}
                         </select>
                     </div>
-                    
+
                     <div style={{ gridColumn: "1 / -1", display: "flex", gap: "10px", marginTop: "10px" }}>
                         <button disabled={loading} type="submit" style={{ padding: "8px 15px", background: "#0070f3", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }}>
-                            {isEditing ? "Salvează Modificările" : "Adaugă Echipă"}
+                            {isEditing ? "Salveaza Modificarile" : "Adauga Echipa"}
                         </button>
                         {isEditing && (
                             <button disabled={loading} type="button" onClick={resetForm} style={{ padding: "8px 15px", background: "#ccc", color: "#333", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }}>
-                                Anulează
+                                Anuleaza
                             </button>
                         )}
                     </div>
@@ -154,9 +168,10 @@ export default function TeamManager({
                             <tr>
                                 <th>ID</th>
                                 <th>Nume</th>
-                                <th>Tara</th>
+                                <th>Stadion</th>
+                                <th>Judet</th>
                                 <th>Liga</th>
-                                <th>Acțiuni</th>
+                                <th>Actiuni</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -164,17 +179,18 @@ export default function TeamManager({
                                 <tr key={team.id}>
                                     <td>{team.id}</td>
                                     <td>{team.name}</td>
-                                    <td>{team.country}</td>
+                                    <td>{team.stadium || "-"}</td>
+                                    <td>{team.county || "-"}</td>
                                     <td>{team.continent}</td>
                                     <td>
-                                        <button disabled={loading} onClick={() => handleEdit(team)} style={{ marginRight: "10px", padding: "4px 10px", cursor: "pointer", background: "#f0f0f0", border: "1px solid #ccc", borderRadius: "3px" }}>Editează</button>
-                                        <button disabled={loading} onClick={() => handleDelete(team.id)} style={{ padding: "4px 10px", cursor: "pointer", background: "#fff0f0", color: "red", border: "1px solid #ffcccc", borderRadius: "3px" }}>Șterge</button>
+                                        <button disabled={loading} onClick={() => handleEdit(team)} style={{ marginRight: "10px", padding: "4px 10px", cursor: "pointer", background: "#f0f0f0", border: "1px solid #ccc", borderRadius: "3px" }}>Editeaza</button>
+                                        <button disabled={loading} onClick={() => handleDelete(team.id)} style={{ padding: "4px 10px", cursor: "pointer", background: "#fff0f0", color: "red", border: "1px solid #ffcccc", borderRadius: "3px" }}>Sterge</button>
                                     </td>
                                 </tr>
                             ))}
                             {initialTeams.length === 0 && (
                                 <tr>
-                                    <td colSpan={5} style={{ textAlign: "center", padding: "15px", color: "#666" }}>Nu există echipe adăugate.</td>
+                                    <td colSpan={6} style={{ textAlign: "center", padding: "15px", color: "#666" }}>Nu exista echipe adaugate.</td>
                                 </tr>
                             )}
                         </tbody>

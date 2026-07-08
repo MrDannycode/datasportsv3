@@ -4,7 +4,7 @@ import { useState } from "react"
 import MatchCreateModal from "@/app/(dashboard)/manager-fotbal/MatchCreateModal"
 import { createMatch } from "@/app/(dashboard)/manager-fotbal/actions"
 
-type Team = { id: number; name: string; country: string; continent: string }
+type Team = { id: number; name: string; stadium: string | null; country: string; continent: string }
 type MatchFormData = {
     teamHomeId: string
     teamAwayId: string
@@ -12,8 +12,6 @@ type MatchFormData = {
     location: string
     competitionId: string
     stage: string
-    scoreHome: string
-    scoreAway: string
 }
 
 const emptyForm: MatchFormData = {
@@ -23,8 +21,6 @@ const emptyForm: MatchFormData = {
     location: "",
     competitionId: "",
     stage: "",
-    scoreHome: "",
-    scoreAway: "",
 }
 
 interface Props {
@@ -51,7 +47,7 @@ export default function AddMatchNavButton({ label, teams, competitions, isActive
             }
 
             const homeTeam = teams.find(team => team.id === Number(value))
-            return { ...current, teamHomeId: value, location: homeTeam?.country ?? "" }
+            return { ...current, teamHomeId: value, location: homeTeam?.stadium ?? "" }
         })
     }
 

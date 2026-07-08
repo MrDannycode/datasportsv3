@@ -3,6 +3,7 @@
 type Team = {
     id: number
     name: string
+    stadium: string | null
     country: string
     continent: string
 }
@@ -14,8 +15,6 @@ type MatchFormData = {
     location: string
     competitionId: string
     stage: string
-    scoreHome: string
-    scoreAway: string
 }
 
 const fieldStyle = {
@@ -172,26 +171,6 @@ export default function MatchCreateModal({ formData, teams, competitions, loadin
                             />
                         </div>
 
-                        <div style={{ display: "flex", gap: "10px" }}>
-                            <div style={{ flex: 1 }}>
-                                <label style={{ display: "block", marginBottom: "5px" }}>Scor Gazda</label>
-                                <input
-                                    type="number"
-                                    value={formData.scoreHome}
-                                    onChange={e => onChange("scoreHome", e.target.value)}
-                                    style={fieldStyle}
-                                />
-                            </div>
-                            <div style={{ flex: 1 }}>
-                                <label style={{ display: "block", marginBottom: "5px" }}>Scor Oaspete</label>
-                                <input
-                                    type="number"
-                                    value={formData.scoreAway}
-                                    onChange={e => onChange("scoreAway", e.target.value)}
-                                    style={fieldStyle}
-                                />
-                            </div>
-                        </div>
 
                         <div style={{ gridColumn: "1 / -1", display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "10px" }}>
                             <button type="button" onClick={onClose} style={{ padding: "8px 15px", background: "var(--sd-box-bg)", color: "var(--sd-text)", border: "1px solid var(--sd-border)", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }}>

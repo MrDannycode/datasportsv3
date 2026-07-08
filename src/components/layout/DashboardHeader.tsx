@@ -10,6 +10,7 @@ import AddCompetitionNavButton from "@/components/layout/AddCompetitionNavButton
 import AddAthleteNavButton from "@/components/layout/AddAthleteNavButton"
 import CoachManagementNavButton from "@/components/layout/CoachManagementNavButton"
 import AddMatchNavButton from "@/components/layout/AddMatchNavButton"
+import AddMatchResultNavButton from "@/components/layout/AddMatchResultNavButton"
 import AddTrainingNavButton from "@/components/layout/AddTrainingNavButton"
 import AddFitnessSessionNavButton from "@/components/layout/AddFitnessSessionNavButton"
 import AddActivityNavButton from "@/components/layout/AddActivityNavButton"
@@ -32,9 +33,19 @@ interface NavItem {
     href: string
 }
 
-type BasicTeam = { id: number; name: string; country: string; continent: string }
+type BasicTeam = { id: number; name: string; stadium: string | null; country: string; continent: string }
 type BasicCoach = { id: number; firstName: string; lastName: string; role: string; teamId: number | null; team: BasicTeam | null }
 type BasicCompetition = { id: number; name: string }
+type BasicFootballMatch = {
+    id: number
+    competitionId: number
+    competition: { name: string }
+    stage: string | null
+    scoreHome: number | null
+    scoreAway: number | null
+    teamHome: { name: string }
+    teamAway: { name: string }
+}
 type TrainingResultTrainingType = "fitness" | "fotbal"
 type MatchDifficultyValue = "usor" | "mediu" | "greu"
 type TeamFormationValue = "4-3-3" | "4-4-2" | "4-2-3-1" | "3-5-2" | "3-4-3" | "5-3-2"
@@ -100,6 +111,7 @@ const defaultNavItems: NavItem[] = [
     { label: "Adauga Atleti", href: "#" },
     { label: "Gestiune Antrenori", href: "#" },
     { label: "Adauga Meci", href: "#" },
+    { label: "Adauga rezultat Meci", href: "#" },
     { label: "Next Match Analysis", href: "/antrenor-fotbal" },
     { label: "Adauga antrenament", href: "/antrenor-fotbal/antrenamente" },
     { label: "Gestioneaza Antrenamente", href: "/antrenor-fotbal/antrenamente" },
@@ -137,6 +149,7 @@ export default async function DashboardHeader({
     let footballTeams: BasicTeam[] = []
     let footballCoaches: BasicCoach[] = []
     let footballCompetitions: BasicCompetition[] = []
+    let footballMatches: BasicFootballMatch[] = []
     let athleteMedicalRecords: AthleteMedicalRecord[] = []
     let medicInjuryHistory: MedicInjuryHistoryItem[] = []
     let athleteHasCardiacData = false
@@ -178,7 +191,7 @@ export default async function DashboardHeader({
             where: managerAssignment
                 ? { sport: "fotbal", country: managerAssignment.country }
                 : { sport: "fotbal", id: -1 },
-            select: { id: true, name: true, country: true, continent: true },
+            select: { id: true, name: true, stadium: true, country: true, continent: true },
             orderBy: { name: "asc" },
         })
 
@@ -190,11 +203,34 @@ export default async function DashboardHeader({
             orderBy: { name: "asc" },
         })
 
+        footballMatches = await prisma.footballMatch.findMany({
+            where: managerAssignment
+                ? {
+                    OR: [
+                        { teamHome: { country: managerAssignment.country } },
+                        { teamAway: { country: managerAssignment.country } },
+                        { competition: { country: managerAssignment.country } },
+                    ],
+                }
+                : { id: -1 },
+            select: {
+                id: true,
+                competitionId: true,
+                competition: { select: { name: true } },
+                stage: true,
+                scoreHome: true,
+                scoreAway: true,
+                teamHome: { select: { name: true } },
+                teamAway: { select: { name: true } },
+            },
+            orderBy: { matchDate: "desc" },
+        })
+
         const coachUsers = await prisma.user.findMany({
             where: { role: "antrenor_fotbal" },
             include: {
                 profile: {
-                    include: { team: { select: { id: true, name: true, country: true, continent: true } } },
+                    include: { team: { select: { id: true, name: true, stadium: true, country: true, continent: true } } },
                 },
             },
             orderBy: { email: "asc" },
@@ -521,7 +557,7 @@ export default async function DashboardHeader({
             ? canViewTeamAthletes
             : ["Adauga Utilizator", "Gestiune Manageri", "Adauga Competitie", "Export Audit Curent"].includes(item.label)
                 ? session?.user?.role === "admin_global"
-                : ["Adauga Atleti", "Gestiune Antrenori", "Adauga Meci"].includes(item.label)
+                : ["Adauga Atleti", "Gestiune Antrenori", "Adauga Meci", "Adauga rezultat Meci"].includes(item.label)
                     ? session?.user?.role === "manager_fotbal"
                     : ["Next Match Analysis", "Adauga antrenament", "Gestioneaza Antrenamente", "Gestioneaza Atletii", "Fotbal Training Weekly Goal"].includes(item.label)
                         ? session?.user?.role === "antrenor_fotbal"
@@ -598,6 +634,10 @@ export default async function DashboardHeader({
                             return <AddMatchNavButton key={item.href + item.label} label={item.label} teams={footballTeams} competitions={footballCompetitions} isActive={isItemActive(item.href)} />
                         }
 
+
+                        if (item.label === "Adauga rezultat Meci") {
+                            return <AddMatchResultNavButton key={item.href + item.label} label={item.label} matches={footballMatches} isActive={isItemActive(item.href)} />
+                        }
                         if (item.label === "Next Match Analysis") {
                             return <NextMatchAnalysisNavButton key={item.href + item.label} label={item.label} isActive={isItemActive(item.href)} nextMatch={nextMatchAnalysisMatch} nextMatchId={nextMatchAnalysisMatchId} initialMatchDifficulty={nextMatchAnalysisDifficulty} initialTeamFormation={nextMatchAnalysisFormation} />
                         }
@@ -665,3 +705,6 @@ export default async function DashboardHeader({
         </header>
     )
 }
+
+
+

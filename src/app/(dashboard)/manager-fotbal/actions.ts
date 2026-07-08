@@ -87,8 +87,6 @@ export async function createMatch(data: {
     location: string
     competitionId: string
     stage?: string
-    scoreHome?: string
-    scoreAway?: string
 }) {
     const { session, assignedCountry } = await requireFootballManagerAssignment()
     const { teamHomeId, teamAwayId, competitionId } = await validateMatchSelection(data, assignedCountry)
@@ -101,8 +99,6 @@ export async function createMatch(data: {
             location: data.location,
             stage: data.stage?.trim() || null,
             competitionId,
-            scoreHome: data.scoreHome ? parseInt(data.scoreHome) : null,
-            scoreAway: data.scoreAway ? parseInt(data.scoreAway) : null,
         }
     })
     
@@ -117,8 +113,6 @@ export async function updateMatch(id: number, data: {
     location: string
     competitionId: string
     stage?: string
-    scoreHome?: string
-    scoreAway?: string
 }) {
     const { session, assignedCountry } = await requireFootballManagerAssignment()
     const { teamHomeId, teamAwayId, competitionId } = await validateMatchSelection(data, assignedCountry)
@@ -141,13 +135,47 @@ export async function updateMatch(id: number, data: {
             location: data.location,
             stage: data.stage?.trim() || null,
             competitionId,
-            scoreHome: data.scoreHome !== undefined && data.scoreHome !== "" ? parseInt(data.scoreHome) : null,
-            scoreAway: data.scoreAway !== undefined && data.scoreAway !== "" ? parseInt(data.scoreAway) : null,
         }
     })
     
     await logAudit({ userId: session.user.id, action: "update", tableAffected: "football_matches", recordId: match.id, details: { location: match.location, matchDate: match.matchDate.toISOString() } })
     revalidatePath("/manager-fotbal")
+}
+
+export async function updateMatchResult(id: number, data: {
+    stage?: string
+    scoreHome: string
+    scoreAway: string
+}) {
+    const { session, assignedCountry } = await requireFootballManagerAssignment()
+    const scoreHome = Number(data.scoreHome)
+    const scoreAway = Number(data.scoreAway)
+
+    if (!Number.isInteger(scoreHome) || !Number.isInteger(scoreAway) || scoreHome < 0 || scoreAway < 0) {
+        throw new Error('Introdu scoruri valide pentru ambele echipe.')
+    }
+
+    const existingMatch = await prisma.footballMatch.findFirst({
+        where: { id, competition: { country: assignedCountry } },
+        select: { id: true },
+    })
+
+    if (!existingMatch) {
+        throw new Error('Poti adauga rezultat doar pentru meciuri din tara ta.')
+    }
+
+    const match = await prisma.footballMatch.update({
+        where: { id },
+        data: {
+            stage: data.stage?.trim() || null,
+            scoreHome,
+            scoreAway,
+        },
+    })
+
+    await logAudit({ userId: session.user.id, action: "update", tableAffected: "football_matches", recordId: match.id, details: { stage: match.stage, scoreHome: match.scoreHome, scoreAway: match.scoreAway } })
+    revalidatePath("/manager-fotbal")
+    revalidatePath("/manager-fotbal/meciuri")
 }
 
 export async function deleteMatch(id: number) {
@@ -166,6 +194,8 @@ export async function deleteMatch(id: number) {
 
 export async function createTeam(data: {
     name: string
+    stadium?: string
+    county?: string
     country: string
     continent: string
 }) {
@@ -175,6 +205,8 @@ export async function createTeam(data: {
     const team = await prisma.team.create({
         data: {
             name: data.name.trim(),
+            stadium: data.stadium?.trim() || null,
+            county: data.county?.trim() || null,
             sport: "fotbal",
             country: assignedCountry,
             continent: data.continent.trim()
@@ -188,6 +220,8 @@ export async function createTeam(data: {
 
 export async function updateTeam(id: number, data: {
     name: string
+    stadium?: string
+    county?: string
     country: string
     continent: string
 }) {
@@ -207,6 +241,8 @@ export async function updateTeam(id: number, data: {
         where: { id },
         data: {
             name: data.name.trim(),
+            stadium: data.stadium?.trim() || null,
+            county: data.county?.trim() || null,
             country: assignedCountry,
             continent: data.continent.trim()
         }
@@ -238,50 +274,59 @@ export async function deleteTeam(id: number) {
     revalidatePath("/manager-fotbal/echipe")
 }
 
-async function assignUserProfileToTeam(userId: number, teamId: string | null) {
+export async function assignAntrenorToTeam(userId: number, teamId: string | null) {
     const { session, assignedCountry } = await requireFootballManagerAssignment()
 
-    const tId = teamId ? parseInt(teamId) : null;
+    const staffUser = await prisma.user.findFirst({
+        where: {
+            id: userId,
+            role: { in: ["antrenor_fotbal", "antrenor_fitness", "medic"] },
+        },
+        select: {
+            id: true,
+            role: true,
+            profile: { select: { id: true, teamId: true } },
+        },
+    })
 
-    if (tId !== null) {
+    if (!staffUser?.profile) {
+        throw new Error("Contul selectat nu are profil de staff.")
+    }
+
+    const resolvedTeamId = teamId ? Number(teamId) : null
+    if (resolvedTeamId !== null && (!Number.isInteger(resolvedTeamId) || resolvedTeamId <= 0)) {
+        throw new Error("Echipa selectata nu este valida.")
+    }
+
+    if (resolvedTeamId !== null) {
         const team = await prisma.team.findFirst({
-            where: { id: tId, sport: 'fotbal', country: assignedCountry },
+            where: { id: resolvedTeamId, sport: "fotbal", country: assignedCountry },
             select: { id: true },
         })
 
         if (!team) {
-            throw new Error('Poti aloca utilizatori doar la echipe din tara ta.')
+            throw new Error("Poti aloca staff doar la echipe din tara ta.")
         }
     }
 
-    const profile = await prisma.profile.findUnique({ where: { userId } })
+    const profile = await prisma.profile.update({
+        where: { id: staffUser.profile.id },
+        data: { teamId: resolvedTeamId },
+        select: { id: true, teamId: true },
+    })
 
-    if (profile) {
-        await prisma.profile.update({
-            where: { id: profile.id },
-            data: { teamId: tId }
-        })
-    } else {
-        const user = await prisma.user.findUnique({ where: { id: userId } })
-        await prisma.profile.create({
-            data: {
-                userId,
-                firstName: user?.email.split('@')[0] || "Anonim",
-                lastName: "",
-                teamId: tId
-            }
-        })
-    }
-    
-    await logAudit({ userId: session.user.id, action: "update", tableAffected: "profiles", recordId: profile?.id ?? userId, details: { targetUserId: userId, teamId: tId } })
+    await logAudit({
+        userId: session.user.id,
+        action: "update",
+        tableAffected: "profiles",
+        recordId: profile.id,
+        details: {
+            assignedUserId: userId,
+            assignedRole: staffUser.role,
+            teamId: profile.teamId,
+        },
+    })
+
     revalidatePath("/manager-fotbal")
     revalidatePath("/manager-fotbal/antrenori")
-}
-
-export async function assignPlayerToTeam(userId: number, teamId: string | null) {
-    await assignUserProfileToTeam(userId, teamId)
-}
-
-export async function assignAntrenorToTeam(userId: number, teamId: string | null) {
-    await assignUserProfileToTeam(userId, teamId)
 }

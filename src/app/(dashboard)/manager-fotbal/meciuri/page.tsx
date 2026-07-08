@@ -27,7 +27,7 @@ export default async function MeciuriPage({ searchParams }: MeciuriPageProps) {
             where: managerAssignment
                 ? { sport: "fotbal", country: managerAssignment.country }
                 : { sport: "fotbal", id: -1 },
-            select: { id: true, name: true, country: true, continent: true },
+            select: { id: true, name: true, stadium: true, country: true, continent: true },
             orderBy: { name: "asc" },
         }),
         prisma.competition.findMany({
@@ -48,8 +48,8 @@ export default async function MeciuriPage({ searchParams }: MeciuriPageProps) {
                 }
                 : { id: -1 },
             include: {
-                teamHome: { select: { id: true, name: true, country: true, continent: true } },
-                teamAway: { select: { id: true, name: true, country: true, continent: true } },
+                teamHome: { select: { id: true, name: true, stadium: true, country: true, continent: true } },
+                teamAway: { select: { id: true, name: true, stadium: true, country: true, continent: true } },
                 competition: { select: { id: true, name: true } },
             },
             orderBy: { matchDate: "desc" },

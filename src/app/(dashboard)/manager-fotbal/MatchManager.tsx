@@ -1,12 +1,14 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import MatchCreateModal from "./MatchCreateModal"
-import { createMatch, updateMatch, deleteMatch } from "./actions"
+import MatchResultModal from "./MatchResultModal"
+import { createMatch, updateMatch, deleteMatch, updateMatchResult } from "./actions"
 
 type Team = {
     id: number
     name: string
+    stadium: string | null
     country: string
     continent: string
 }
@@ -33,6 +35,10 @@ type MatchFormData = {
     location: string
     competitionId: string
     stage: string
+}
+
+type MatchResultFormData = {
+    stage: string
     scoreHome: string
     scoreAway: string
 }
@@ -55,6 +61,8 @@ export default function MatchManager({
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
     const [isMatchModalOpen, setIsMatchModalOpen] = useState(false)
+    const [resultMatch, setResultMatch] = useState<Match | null>(null)
+    const [resultFormData, setResultFormData] = useState<MatchResultFormData>({ stage: "", scoreHome: "", scoreAway: "" })
     const hasOpenedFromQueryRef = useRef(false)
     const [formData, setFormData] = useState<MatchFormData>({
         teamHomeId: "",
@@ -62,15 +70,26 @@ export default function MatchManager({
         matchDate: "",
         location: "",
         competitionId: "",
-        stage: "",
-        scoreHome: "",
-        scoreAway: ""
+        stage: ""
     })
 
     const selectedCompetition = competitions.find(competition => competition.id === Number(formData.competitionId))
     const filteredTeams = selectedCompetition
         ? teams.filter(team => team.continent === selectedCompetition.name)
         : []
+
+    const resultStageOptions = useMemo(() => {
+        if (!resultMatch) return []
+
+        const values = new Set<string>()
+        for (const match of matches) {
+            if (match.competitionId !== resultMatch.competitionId) continue
+            const stage = match.stage?.trim()
+            if (stage) values.add(stage)
+        }
+
+        return Array.from(values).sort((a, b) => a.localeCompare(b, "ro"))
+    }, [matches, resultMatch])
 
     useEffect(() => {
         if (!shouldOpenMatchModal || hasOpenedFromQueryRef.current) {
@@ -88,9 +107,7 @@ export default function MatchManager({
             matchDate: "",
             location: "",
             competitionId: "",
-            stage: "",
-            scoreHome: "",
-            scoreAway: ""
+            stage: ""
         })
         setIsEditing(null)
         setError("")
@@ -111,9 +128,7 @@ export default function MatchManager({
             matchDate: `${year}-${month}-${day}T${hours}:${minutes}`,
             location: match.location,
             competitionId: match.competitionId.toString(),
-            stage: match.stage ?? "",
-            scoreHome: match.scoreHome?.toString() || "",
-            scoreAway: match.scoreAway?.toString() || ""
+            stage: match.stage ?? ""
         })
         setError("")
         setIsMatchModalOpen(true)
@@ -130,7 +145,7 @@ export default function MatchManager({
             }
 
             const homeTeam = teams.find(team => team.id === Number(value))
-            return { ...current, teamHomeId: value, location: homeTeam?.country ?? "" }
+            return { ...current, teamHomeId: value, location: homeTeam?.stadium ?? "" }
         })
     }
 
@@ -159,8 +174,6 @@ export default function MatchManager({
                     competitionId: Number(formData.competitionId),
                     competition: competitions.find(competition => competition.id === Number(formData.competitionId)) ?? match.competition,
                     stage: formData.stage.trim() || null,
-                    scoreHome: formData.scoreHome === "" ? null : Number(formData.scoreHome),
-                    scoreAway: formData.scoreAway === "" ? null : Number(formData.scoreAway),
                 } : match))
             } else {
                 await createMatch(formData)
@@ -169,6 +182,49 @@ export default function MatchManager({
             }
             resetForm()
             setIsMatchModalOpen(false)
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "A aparut o eroare.")
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const openResultModal = (match: Match) => {
+        setResultMatch(match)
+        setResultFormData({
+            stage: match.stage ?? "",
+            scoreHome: match.scoreHome?.toString() ?? "",
+            scoreAway: match.scoreAway?.toString() ?? "",
+        })
+        setError("")
+    }
+
+    const closeResultModal = () => {
+        setResultMatch(null)
+        setResultFormData({ stage: "", scoreHome: "", scoreAway: "" })
+        setError("")
+    }
+
+    const updateResultField = (field: keyof MatchResultFormData, value: string) => {
+        setResultFormData(current => ({ ...current, [field]: value }))
+    }
+
+    const handleResultSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!resultMatch) return
+
+        setLoading(true)
+        setError("")
+
+        try {
+            await updateMatchResult(resultMatch.id, resultFormData)
+            setMatches(currentMatches => currentMatches.map(match => match.id === resultMatch.id ? {
+                ...match,
+                stage: resultFormData.stage.trim() || null,
+                scoreHome: Number(resultFormData.scoreHome),
+                scoreAway: Number(resultFormData.scoreAway),
+            } : match))
+            closeResultModal()
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : "A aparut o eroare.")
         } finally {
@@ -232,65 +288,55 @@ export default function MatchManager({
                         <input required type="text" value={formData.location} onChange={e => updateField("location", e.target.value)} style={{ width: "100%", padding: "5px", borderRadius: "3px", border: "1px solid #ccc" }} />
                     </div>
 
-                    <div style={{ display: "flex", gap: "10px" }}>
-                        <div style={{ flex: 1 }}>
-                            <label style={{ display: "block", marginBottom: "5px" }}>Scor Gazda</label>
-                            <input type="number" value={formData.scoreHome} onChange={e => updateField("scoreHome", e.target.value)} style={{ width: "100%", padding: "5px", borderRadius: "3px", border: "1px solid #ccc" }} />
-                        </div>
-                        <div style={{ flex: 1 }}>
-                            <label style={{ display: "block", marginBottom: "5px" }}>Scor Oaspete</label>
-                            <input type="number" value={formData.scoreAway} onChange={e => updateField("scoreAway", e.target.value)} style={{ width: "100%", padding: "5px", borderRadius: "3px", border: "1px solid #ccc" }} />
-                        </div>
-                    </div>
 
                     <div style={{ gridColumn: "1 / -1", display: "flex", gap: "10px", marginTop: "10px" }}>
                         <button disabled={loading} type="submit" style={{ padding: "8px 15px", background: "#0070f3", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }}>
-                            {isEditing ? "Salveaza modificarile" : "Adauga meci"}
+                            {loading ? "Se salveaza..." : isEditing ? "Actualizeaza Meci" : "Adauga Meci"}
                         </button>
                         {isEditing && (
-                            <button disabled={loading} type="button" onClick={resetForm} style={{ padding: "8px 15px", background: "#ccc", color: "#333", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }}>
-                                Anuleaza
+                            <button type="button" onClick={resetForm} style={{ padding: "8px 15px", background: "#666", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }}>
+                                Anuleaza Editarea
                             </button>
                         )}
                     </div>
                 </form>
 
-                <div style={{ overflowX: "auto" }}>
-                    <table className="sd-table">
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Meci</th>
-                                <th>Scor</th>
-                                <th>Competitie</th>
-                                <th>Etapa</th>
-                                <th>Stadion</th>
-                                <th>Actiuni</th>
+                <table className="sd-table">
+                    <thead>
+                        <tr>
+                            <th>Echipa Gazda</th>
+                            <th>Echipa Oaspete</th>
+                            <th>Data si Ora</th>
+                            <th>Stadion</th>
+                            <th>Competitie</th>
+                            <th>Etapa</th>
+                            <th>Scor</th>
+                            <th>Actiuni</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {matches.length > 0 ? matches.map((match) => (
+                            <tr key={match.id}>
+                                <td>{match.teamHome.name}</td>
+                                <td>{match.teamAway.name}</td>
+                                <td>{new Date(match.matchDate).toLocaleString()}</td>
+                                <td>{match.location}</td>
+                                <td>{match.competition.name}</td>
+                                <td>{match.stage || '-'}</td>
+                                <td>{match.scoreHome !== null && match.scoreAway !== null ? `${match.scoreHome} - ${match.scoreAway}` : '-'}</td>
+                                <td style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                                    <button style={{ padding: "4px 8px" }} type="button" onClick={() => handleEdit(match)} disabled={loading}>Editeaza</button>
+                                    <button style={{ padding: "4px 8px" }} type="button" onClick={() => openResultModal(match)} disabled={loading}>Adauga rezultat</button>
+                                    <button style={{ padding: "4px 8px", backgroundColor: "red", color: "white" }} type="button" onClick={() => handleDelete(match.id)} disabled={loading}>Sterge</button>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            {matches.map(match => (
-                                <tr key={match.id}>
-                                    <td>{new Date(match.matchDate).toLocaleDateString("ro-RO", { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
-                                    <td>{match.teamHome.name} vs {match.teamAway.name}</td>
-                                    <td>{match.scoreHome !== null && match.scoreAway !== null ? `${match.scoreHome} - ${match.scoreAway}` : "-"}</td>
-                                    <td>{match.competition?.name}</td>
-                                    <td>{match.stage || "-"}</td>
-                                    <td>{match.location}</td>
-                                    <td>
-                                        <button disabled={loading} onClick={() => handleEdit(match)} style={{ marginRight: "10px", padding: "4px 10px", cursor: "pointer", background: "#f0f0f0", border: "1px solid #ccc", borderRadius: "3px" }}>Editeaza</button>
-                                        <button disabled={loading} onClick={() => handleDelete(match.id)} style={{ padding: "4px 10px", cursor: "pointer", background: "#fff0f0", color: "red", border: "1px solid #ffcccc", borderRadius: "3px" }}>Sterge</button>
-                                    </td>
-                                </tr>
-                            ))}
-                            {matches.length === 0 && (
-                                <tr>
-                                    <td colSpan={7} style={{ textAlign: "center", padding: "15px", color: "#666" }}>Nu exista meciuri programate.</td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                        )) : (
+                            <tr>
+                                <td colSpan={8}>Nu exista meciuri adaugate.</td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
             </div>
 
             {isMatchModalOpen && (
@@ -302,8 +348,24 @@ export default function MatchManager({
                     error={error}
                     isEditing={isEditing !== null}
                     onChange={updateField}
-                    onClose={() => { setIsMatchModalOpen(false); resetForm() }}
+                    onClose={() => {
+                        setIsMatchModalOpen(false)
+                        resetForm()
+                    }}
                     onSubmit={handleSubmit}
+                />
+            )}
+
+            {resultMatch && (
+                <MatchResultModal
+                    matchLabel={`${resultMatch.teamHome.name} vs ${resultMatch.teamAway.name}`}
+                    stageOptions={resultStageOptions}
+                    formData={resultFormData}
+                    loading={loading}
+                    error={error}
+                    onChange={updateResultField}
+                    onClose={closeResultModal}
+                    onSubmit={handleResultSubmit}
                 />
             )}
         </div>

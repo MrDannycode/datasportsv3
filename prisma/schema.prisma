@@ -29,6 +29,8 @@ model User {
 model Team {
   id          Int                 @id @default(autoincrement())
   name        String
+  stadium     String?
+  county      String?
   sport       Sport
   country     String
   continent   String
@@ -495,3 +497,4 @@ enum Gender {
   MALE
   FEMALE
 }
+

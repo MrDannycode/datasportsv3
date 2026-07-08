@@ -24,7 +24,7 @@ export default async function EchipePage() {
         ? await Promise.all([
             prisma.team.findMany({
                 where: { sport: 'fotbal', country: assignedCountry },
-                select: { id: true, name: true, country: true, continent: true },
+                select: { id: true, name: true, stadium: true, county: true, country: true, continent: true },
                 orderBy: { name: 'asc' },
             }),
             prisma.competition.findMany({
@@ -51,3 +51,4 @@ export default async function EchipePage() {
         </main>
     )
 }
+
