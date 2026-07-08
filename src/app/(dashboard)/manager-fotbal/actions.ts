@@ -274,13 +274,100 @@ export async function deleteTeam(id: number) {
     revalidatePath("/manager-fotbal/echipe")
 }
 
+export type TeamImportInput = {
+    name: string
+    stadium?: string | null
+    county?: string | null
+    continent: string
+}
+
+export type TeamImportResult = {
+    row: number
+    name: string
+    success: boolean
+    id?: number
+    error?: string
+}
+
+function normalizeTeamImport(row: TeamImportInput) {
+    const name = row.name.trim()
+    const stadium = row.stadium?.trim() || null
+    const county = row.county?.trim() || null
+    const continent = row.continent.trim()
+
+    if (!name) throw new Error("Numele echipei este obligatoriu.")
+    if (!continent) throw new Error("Liga este obligatorie.")
+
+    return { name, stadium, county, continent }
+}
+
+function normalizeLeagueName(value: string) {
+    return value
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/\s+/g, " ")
+        .trim()
+}
+
+export async function importTeams(rows: TeamImportInput[]) {
+    const { session, assignedCountry } = await requireFootballManagerAssignment()
+    if (!Array.isArray(rows) || rows.length === 0) return { results: [] as TeamImportResult[] }
+    if (rows.length > 250) throw new Error("Un import poate contine maximum 250 de echipe.")
+
+    const leagues = await prisma.competition.findMany({
+        where: { sport: "fotbal", country: assignedCountry },
+        select: { name: true },
+    })
+    const leagueByKey = new Map(leagues.map(league => [normalizeLeagueName(league.name), league.name.trim()]))
+
+    const results: TeamImportResult[] = []
+    for (const [index, row] of rows.entries()) {
+        const line = index + 2
+        try {
+            const teamData = normalizeTeamImport(row)
+            const matchedLeague = leagueByKey.get(normalizeLeagueName(teamData.continent)) ?? teamData.continent
+
+            const team = await prisma.team.create({
+                data: {
+                    name: teamData.name,
+                    stadium: teamData.stadium,
+                    county: teamData.county,
+                    sport: "fotbal",
+                    country: assignedCountry,
+                    continent: matchedLeague,
+                },
+                select: { id: true, name: true, sport: true },
+            })
+
+            await logAudit({
+                userId: session.user.id,
+                action: "create",
+                tableAffected: "teams",
+                recordId: team.id,
+                details: { name: team.name, sport: team.sport, source: "team_csv_import" },
+            })
+
+            results.push({ row: line, name: team.name, success: true, id: team.id })
+        } catch (error) {
+            results.push({ row: line, name: row.name?.trim() || "", success: false, error: error instanceof Error ? error.message : "Randul nu a putut fi importat." })
+        }
+    }
+
+    if (results.some(result => result.success)) {
+        revalidatePath("/manager-fotbal")
+        revalidatePath("/manager-fotbal/echipe")
+    }
+
+    return { results }
+}
 export async function assignAntrenorToTeam(userId: number, teamId: string | null) {
     const { session, assignedCountry } = await requireFootballManagerAssignment()
 
     const staffUser = await prisma.user.findFirst({
         where: {
             id: userId,
-            role: { in: ["antrenor_fotbal", "antrenor_fitness", "medic"] },
+            role: { in: ["antrenor_fotbal", "antrenor_fitness", "medic", "atlet_fotbal"] },
         },
         select: {
             id: true,
@@ -330,3 +417,14 @@ export async function assignAntrenorToTeam(userId: number, teamId: string | null
     revalidatePath("/manager-fotbal")
     revalidatePath("/manager-fotbal/antrenori")
 }
+
+export async function assignPlayerToTeam(userId: number, teamId: string | null) {
+    await assignAntrenorToTeam(userId, teamId)
+    revalidatePath("/manager-fotbal/invitatii")
+}
+
+
+
+
+
+

@@ -3,30 +3,11 @@
 import { useEffect, useRef, useState } from "react"
 import AthleteInviteModal from "./AthleteInviteModal"
 import { importAthletes, inviteAthlete, type AthleteInviteInput, type AthleteInviteResult } from "./athlete-actions"
+import { parseCsv } from "@/lib/csv"
 
 const emptyInvite: AthleteInviteInput = { email: "", firstName: "", lastName: "", position: "mijlocas", preferredFoot: "dreapta", teamId: "", jerseyNumber: "" }
 const fieldStyle = { border: "1px solid #cbd5e1", borderRadius: "4px", padding: "8px 10px", fontSize: "13px", background: "#fff", minWidth: 0 }
 const labelStyle = { display: "grid", gap: "5px", fontSize: "12px", fontWeight: 700 }
-
-function parseCsv(text: string) {
-    const records: string[][] = []
-    let record: string[] = [], field = "", quoted = false
-    for (let i = 0; i < text.length; i++) {
-        const char = text[i]
-        if (char === '"') {
-            if (quoted && text[i + 1] === '"') { field += '"'; i++ } else quoted = !quoted
-        } else if (char === "," && !quoted) { record.push(field.trim()); field = "" }
-        else if ((char === "\n" || char === "\r") && !quoted) {
-            if (char === "\r" && text[i + 1] === "\n") i++
-            record.push(field.trim())
-            if (record.some(Boolean)) records.push(record)
-            record = []; field = ""
-        } else field += char
-    }
-    record.push(field.trim())
-    if (record.some(Boolean)) records.push(record)
-    return records
-}
 
 interface Props {
     shouldOpenInviteModal?: boolean
