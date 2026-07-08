@@ -86,6 +86,7 @@ export async function createMatch(data: {
     matchDate: string
     location: string
     competitionId: string
+    stage?: string
     scoreHome?: string
     scoreAway?: string
 }) {
@@ -98,6 +99,7 @@ export async function createMatch(data: {
             teamAwayId,
             matchDate: new Date(data.matchDate),
             location: data.location,
+            stage: data.stage?.trim() || null,
             competitionId,
             scoreHome: data.scoreHome ? parseInt(data.scoreHome) : null,
             scoreAway: data.scoreAway ? parseInt(data.scoreAway) : null,
@@ -114,6 +116,7 @@ export async function updateMatch(id: number, data: {
     matchDate: string
     location: string
     competitionId: string
+    stage?: string
     scoreHome?: string
     scoreAway?: string
 }) {
@@ -136,6 +139,7 @@ export async function updateMatch(id: number, data: {
             teamAwayId,
             matchDate: new Date(data.matchDate),
             location: data.location,
+            stage: data.stage?.trim() || null,
             competitionId,
             scoreHome: data.scoreHome !== undefined && data.scoreHome !== "" ? parseInt(data.scoreHome) : null,
             scoreAway: data.scoreAway !== undefined && data.scoreAway !== "" ? parseInt(data.scoreAway) : null,

@@ -21,6 +21,7 @@ type Match = {
     location: string
     competitionId: number
     competition: { id: number, name: string }
+    stage: string | null
     scoreHome: number | null
     scoreAway: number | null
 }
@@ -31,6 +32,7 @@ type MatchFormData = {
     matchDate: string
     location: string
     competitionId: string
+    stage: string
     scoreHome: string
     scoreAway: string
 }
@@ -60,6 +62,7 @@ export default function MatchManager({
         matchDate: "",
         location: "",
         competitionId: "",
+        stage: "",
         scoreHome: "",
         scoreAway: ""
     })
@@ -85,6 +88,7 @@ export default function MatchManager({
             matchDate: "",
             location: "",
             competitionId: "",
+            stage: "",
             scoreHome: "",
             scoreAway: ""
         })
@@ -107,6 +111,7 @@ export default function MatchManager({
             matchDate: `${year}-${month}-${day}T${hours}:${minutes}`,
             location: match.location,
             competitionId: match.competitionId.toString(),
+            stage: match.stage ?? "",
             scoreHome: match.scoreHome?.toString() || "",
             scoreAway: match.scoreAway?.toString() || ""
         })
@@ -153,6 +158,7 @@ export default function MatchManager({
                     location: formData.location,
                     competitionId: Number(formData.competitionId),
                     competition: competitions.find(competition => competition.id === Number(formData.competitionId)) ?? match.competition,
+                    stage: formData.stage.trim() || null,
                     scoreHome: formData.scoreHome === "" ? null : Number(formData.scoreHome),
                     scoreAway: formData.scoreAway === "" ? null : Number(formData.scoreAway),
                 } : match))
@@ -192,12 +198,16 @@ export default function MatchManager({
                 {error && <div style={{ color: "red", marginBottom: "10px" }}>{error}</div>}
 
                 <form onSubmit={handleSubmit} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "20px", padding: "15px", border: "1px solid #ddd", borderRadius: "5px", background: "#f9f9f9" }}>
-                    <div style={{ gridColumn: "1 / -1" }}>
+                    <div>
                         <label style={{ display: "block", marginBottom: "5px" }}>Competitie</label>
                         <select required value={formData.competitionId} onChange={e => updateField("competitionId", e.target.value)} style={{ width: "100%", padding: "5px", borderRadius: "3px", border: "1px solid #ccc" }}>
                             <option value="">-- Selecteaza --</option>
                             {competitions.map(competition => <option key={competition.id} value={competition.id}>{competition.name}</option>)}
                         </select>
+                    </div>
+                    <div>
+                        <label style={{ display: "block", marginBottom: "5px" }}>Etapa</label>
+                        <input type="text" value={formData.stage} onChange={e => updateField("stage", e.target.value)} style={{ width: "100%", padding: "5px", borderRadius: "3px", border: "1px solid #ccc" }} />
                     </div>
                     <div>
                         <label style={{ display: "block", marginBottom: "5px" }}>Echipa Gazda</label>
@@ -253,6 +263,7 @@ export default function MatchManager({
                                 <th>Meci</th>
                                 <th>Scor</th>
                                 <th>Competitie</th>
+                                <th>Etapa</th>
                                 <th>Stadion</th>
                                 <th>Actiuni</th>
                             </tr>
@@ -264,6 +275,7 @@ export default function MatchManager({
                                     <td>{match.teamHome.name} vs {match.teamAway.name}</td>
                                     <td>{match.scoreHome !== null && match.scoreAway !== null ? `${match.scoreHome} - ${match.scoreAway}` : "-"}</td>
                                     <td>{match.competition?.name}</td>
+                                    <td>{match.stage || "-"}</td>
                                     <td>{match.location}</td>
                                     <td>
                                         <button disabled={loading} onClick={() => handleEdit(match)} style={{ marginRight: "10px", padding: "4px 10px", cursor: "pointer", background: "#f0f0f0", border: "1px solid #ccc", borderRadius: "3px" }}>Editeaza</button>
@@ -273,7 +285,7 @@ export default function MatchManager({
                             ))}
                             {matches.length === 0 && (
                                 <tr>
-                                    <td colSpan={6} style={{ textAlign: "center", padding: "15px", color: "#666" }}>Nu exista meciuri programate.</td>
+                                    <td colSpan={7} style={{ textAlign: "center", padding: "15px", color: "#666" }}>Nu exista meciuri programate.</td>
                                 </tr>
                             )}
                         </tbody>

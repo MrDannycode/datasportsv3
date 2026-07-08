@@ -13,6 +13,7 @@ type MatchFormData = {
     matchDate: string
     location: string
     competitionId: string
+    stage: string
     scoreHome: string
     scoreAway: string
 }
@@ -103,7 +104,7 @@ export default function MatchCreateModal({ formData, teams, competitions, loadin
                     {error && <div style={{ color: "#f87171", marginBottom: "10px" }}>{error}</div>}
 
                     <form onSubmit={onSubmit} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-                        <div style={{ gridColumn: "1 / -1" }}>
+                        <div>
                             <label style={{ display: "block", marginBottom: "5px" }}>Competitie</label>
                             <select
                                 required
@@ -114,6 +115,15 @@ export default function MatchCreateModal({ formData, teams, competitions, loadin
                                 <option value="">-- Selecteaza --</option>
                                 {competitions.map(competition => <option key={competition.id} value={competition.id}>{competition.name}</option>)}
                             </select>
+                        </div>
+                        <div>
+                            <label style={{ display: "block", marginBottom: "5px" }}>Etapa</label>
+                            <input
+                                type="text"
+                                value={formData.stage}
+                                onChange={e => onChange("stage", e.target.value)}
+                                style={fieldStyle}
+                            />
                         </div>
                         <div>
                             <label style={{ display: "block", marginBottom: "5px" }}>Echipa Gazda</label>

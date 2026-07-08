@@ -11,6 +11,7 @@ type MatchFormData = {
     matchDate: string
     location: string
     competitionId: string
+    stage: string
     scoreHome: string
     scoreAway: string
 }
@@ -21,6 +22,7 @@ const emptyForm: MatchFormData = {
     matchDate: "",
     location: "",
     competitionId: "",
+    stage: "",
     scoreHome: "",
     scoreAway: "",
 }
