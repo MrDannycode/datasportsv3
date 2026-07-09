@@ -1,4 +1,4 @@
-﻿"use server"
+"use server"
 
 import { randomBytes } from "crypto"
 import bcrypt from "bcryptjs"
@@ -81,11 +81,10 @@ async function createAthlete(data: AthleteInviteInput, createdByUserId: string |
                 id: athlete.teamId,
                 sport: "fotbal",
                 country: assignment.country,
-                continent: assignment.continent,
             },
             select: { id: true },
         })
-        if (!team) return { email: athlete.email, success: false, error: "Echipa nu exista in tara si continent managerului." }
+        if (!team) return { email: athlete.email, success: false, error: "Echipa nu exista in tara managerului." }
     }
 
     const temporaryPassword = `Ds!${randomBytes(6).toString("base64url")}`
@@ -138,3 +137,4 @@ export async function importAthletes(rows: AthleteInviteInput[]) {
     if (results.some(result => result.success)) revalidatePath("/manager-fotbal")
     return { results }
 }
+

@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import { createTeam, updateTeam, deleteTeam, importTeams, type TeamImportResult } from "./actions"
 import { parseCsv } from "@/lib/csv"
 
@@ -18,7 +18,11 @@ type League = {
     name: string
 }
 
+type SortField = "id" | "name" | "stadium" | "county" | "league"
+type SortDirection = "asc" | "desc"
+
 const fieldStyle = { border: "1px solid #cbd5e1", borderRadius: "4px", padding: "8px 10px", fontSize: "13px", background: "#fff", minWidth: 0 }
+const sortButtonStyle = { background: "none", border: 0, padding: 0, color: "inherit", font: "inherit", fontWeight: 700, cursor: "pointer" } as const
 
 export default function TeamManager({
     initialTeams,
@@ -37,6 +41,10 @@ export default function TeamManager({
     const [error, setError] = useState("")
     const [importError, setImportError] = useState("")
     const [importResults, setImportResults] = useState<TeamImportResult[]>([])
+    const [sortConfig, setSortConfig] = useState<{ field: SortField, direction: SortDirection }>({
+        field: "name",
+        direction: "asc",
+    })
     const fileRef = useRef<HTMLInputElement>(null)
 
     const [formData, setFormData] = useState({
@@ -133,13 +141,64 @@ export default function TeamManager({
     }
 
     function downloadTemplate() {
-        const csv = `name,stadium,county,league`
+        const csv = `name,stadium,county,League`
         const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }))
         const link = document.createElement("a")
         link.href = url
         link.download = "model-import-echipe.csv"
         link.click()
         URL.revokeObjectURL(url)
+    }
+
+    const sortedTeams = useMemo(() => {
+        return [...initialTeams].sort((a, b) => {
+            if (sortConfig.field === "id") {
+                const result = a.id - b.id
+
+                if (result !== 0) {
+                    return sortConfig.direction === "asc" ? result : -result
+                }
+
+                return a.name.localeCompare(b.name, "ro", { sensitivity: "base" })
+            }
+
+            const getValue = (team: Team) => {
+                switch (sortConfig.field) {
+                    case "stadium":
+                        return team.stadium || "-"
+                    case "county":
+                        return team.county || "-"
+                    case "league":
+                        return team.continent
+                    case "name":
+                    default:
+                        return team.name
+                }
+            }
+
+            const result = getValue(a).localeCompare(getValue(b), "ro", { sensitivity: "base" })
+
+            if (result !== 0) {
+                return sortConfig.direction === "asc" ? result : -result
+            }
+
+            return a.name.localeCompare(b.name, "ro", { sensitivity: "base" })
+        })
+    }, [initialTeams, sortConfig])
+
+    const handleSort = (field: SortField) => {
+        setSortConfig(current => ({
+            field,
+            direction: current.field === field && current.direction === "asc" ? "desc" : "asc",
+        }))
+    }
+
+    const renderSortIndicator = (field: SortField) => {
+        if (sortConfig.field !== field) {
+            return "Sort"
+        }
+
+        return sortConfig.direction === "asc" ? "A-Z" : "Z-A"
     }
 
     return (
@@ -196,10 +255,37 @@ export default function TeamManager({
                 <div style={{ overflowX: "auto" }}>
                     <table className="sd-table">
                         <thead>
-                            <tr><th>ID</th><th>Nume</th><th>Stadion</th><th>Judet</th><th>Liga</th><th>Actiuni</th></tr>
+                            <tr>
+                                <th>
+                                    <button type="button" onClick={() => handleSort("id")} aria-label="Sorteaza dupa ID" style={sortButtonStyle}>
+                                        ID {sortConfig.field === "id" ? (sortConfig.direction === "asc" ? "1-9" : "9-1") : "Sort"}
+                                    </button>
+                                </th>
+                                <th>
+                                    <button type="button" onClick={() => handleSort("name")} aria-label="Sorteaza dupa numele echipei" style={sortButtonStyle}>
+                                        Nume {renderSortIndicator("name")}
+                                    </button>
+                                </th>
+                                <th>
+                                    <button type="button" onClick={() => handleSort("stadium")} aria-label="Sorteaza dupa stadion" style={sortButtonStyle}>
+                                        Stadion {renderSortIndicator("stadium")}
+                                    </button>
+                                </th>
+                                <th>
+                                    <button type="button" onClick={() => handleSort("county")} aria-label="Sorteaza dupa judet" style={sortButtonStyle}>
+                                        Judet {renderSortIndicator("county")}
+                                    </button>
+                                </th>
+                                <th>
+                                    <button type="button" onClick={() => handleSort("league")} aria-label="Sorteaza dupa liga" style={sortButtonStyle}>
+                                        Liga {renderSortIndicator("league")}
+                                    </button>
+                                </th>
+                                <th>Actiuni</th>
+                            </tr>
                         </thead>
                         <tbody>
-                            {initialTeams.map(team => (
+                            {sortedTeams.map(team => (
                                 <tr key={team.id}>
                                     <td>{team.id}</td>
                                     <td>{team.name}</td>
@@ -212,7 +298,7 @@ export default function TeamManager({
                                     </td>
                                 </tr>
                             ))}
-                            {initialTeams.length === 0 && <tr><td colSpan={6} style={{ textAlign: "center", padding: "15px", color: "#666" }}>Nu exista echipe adaugate.</td></tr>}
+                            {sortedTeams.length === 0 && <tr><td colSpan={6} style={{ textAlign: "center", padding: "15px", color: "#666" }}>Nu exista echipe adaugate.</td></tr>}
                         </tbody>
                     </table>
                 </div>
@@ -220,4 +306,3 @@ export default function TeamManager({
         </div>
     )
 }
-

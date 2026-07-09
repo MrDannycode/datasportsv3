@@ -1,12 +1,15 @@
-"use client"
+﻿"use client"
 
 import type { AthleteInviteInput, AthleteInviteResult } from "./athlete-actions"
 
 const fieldStyle = { border: "1px solid var(--sd-border)", borderRadius: "4px", padding: "8px 10px", fontSize: "13px", background: "var(--sd-box-bg)", color: "var(--sd-text)", minWidth: 0 }
 const labelStyle = { display: "grid", gap: "5px", fontSize: "12px", fontWeight: 700 }
 
+type TeamOption = { id: number; name: string }
+
 interface Props {
     invite: AthleteInviteInput
+    teams?: TeamOption[]
     busy: boolean
     inviteResult: AthleteInviteResult | null
     onUpdate: (name: keyof AthleteInviteInput, value: string) => void
@@ -86,3 +89,4 @@ export default function AthleteInviteModal({ invite, busy, inviteResult, onUpdat
         </div>
     )
 }
+

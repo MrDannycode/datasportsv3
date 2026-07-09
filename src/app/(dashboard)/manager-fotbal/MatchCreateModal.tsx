@@ -1,5 +1,7 @@
 "use client"
 
+import { normalizeFootballLeagueName } from "@/lib/football-league"
+
 type Team = {
     id: number
     name: string
@@ -40,8 +42,9 @@ interface Props {
 
 export default function MatchCreateModal({ formData, teams, competitions, loading, error, isEditing, onChange, onClose, onSubmit }: Props) {
     const selectedCompetition = competitions.find(competition => competition.id === Number(formData.competitionId))
+    const selectedLeague = selectedCompetition ? normalizeFootballLeagueName(selectedCompetition.name) : ""
     const filteredTeams = selectedCompetition
-        ? teams.filter(team => team.continent === selectedCompetition.name)
+        ? teams.filter(team => normalizeFootballLeagueName(team.continent) === selectedLeague)
         : []
 
     return (
@@ -186,3 +189,5 @@ export default function MatchCreateModal({ formData, teams, competitions, loadin
         </div>
     )
 }
+
+

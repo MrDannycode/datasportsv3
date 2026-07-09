@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { logAudit } from "@/lib/audit"
+import { normalizeFootballLeagueName } from "@/lib/football-league"
 
 async function requireFootballManagerAssignment() {
     const session = await getServerSession(authOptions)
@@ -73,7 +74,8 @@ async function validateMatchSelection(data: { teamHomeId: string; teamAwayId: st
         throw new Error('Selecteaza echipe valide pentru tara ta.')
     }
 
-    if (homeTeam.continent !== competition.name || awayTeam.continent !== competition.name) {
+    const competitionLeague = normalizeFootballLeagueName(competition.name)
+    if (normalizeFootballLeagueName(homeTeam.continent) !== competitionLeague || normalizeFootballLeagueName(awayTeam.continent) !== competitionLeague) {
         throw new Error('Echipele selectate trebuie sa apartina competitiei alese.')
     }
 
@@ -301,15 +303,6 @@ function normalizeTeamImport(row: TeamImportInput) {
     return { name, stadium, county, continent }
 }
 
-function normalizeLeagueName(value: string) {
-    return value
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase()
-        .replace(/\s+/g, " ")
-        .trim()
-}
-
 export async function importTeams(rows: TeamImportInput[]) {
     const { session, assignedCountry } = await requireFootballManagerAssignment()
     if (!Array.isArray(rows) || rows.length === 0) return { results: [] as TeamImportResult[] }
@@ -319,14 +312,14 @@ export async function importTeams(rows: TeamImportInput[]) {
         where: { sport: "fotbal", country: assignedCountry },
         select: { name: true },
     })
-    const leagueByKey = new Map(leagues.map(league => [normalizeLeagueName(league.name), league.name.trim()]))
+    const leagueByKey = new Map(leagues.map(league => [normalizeFootballLeagueName(league.name), league.name.trim()]))
 
     const results: TeamImportResult[] = []
     for (const [index, row] of rows.entries()) {
         const line = index + 2
         try {
             const teamData = normalizeTeamImport(row)
-            const matchedLeague = leagueByKey.get(normalizeLeagueName(teamData.continent)) ?? teamData.continent
+            const matchedLeague = leagueByKey.get(normalizeFootballLeagueName(teamData.continent)) ?? teamData.continent
 
             const team = await prisma.team.create({
                 data: {
@@ -422,6 +415,8 @@ export async function assignPlayerToTeam(userId: number, teamId: string | null) 
     await assignAntrenorToTeam(userId, teamId)
     revalidatePath("/manager-fotbal/invitatii")
 }
+
+
 
 
 

@@ -55,10 +55,11 @@ export default async function InvitatiiPage({ searchParams }: InvitatiiPageProps
                     <div className="sd-btn-secondary invisible">Inapoi</div>
                 </div>
                 <div className="sd-box-content">
-                    <AthleteInviteManager shouldOpenInviteModal={resolvedSearchParams?.open === "new"} />
+                    <AthleteInviteManager shouldOpenInviteModal={resolvedSearchParams?.open === "new"} teams={teams} />
                     <PlayerManager players={players} teams={teams} />
                 </div>
             </div>
         </main>
     )
 }
+

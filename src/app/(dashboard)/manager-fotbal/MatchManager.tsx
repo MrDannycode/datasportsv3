@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import MatchCreateModal from "./MatchCreateModal"
 import MatchResultModal from "./MatchResultModal"
 import { createMatch, updateMatch, deleteMatch, updateMatchResult } from "./actions"
+import { normalizeFootballLeagueName } from "@/lib/football-league"
 
 type Team = {
     id: number
@@ -43,12 +44,18 @@ type MatchResultFormData = {
     scoreAway: string
 }
 
+type SortField = "teamHome" | "teamAway" | "matchDate" | "location" | "competition" | "stage" | "score"
+type SortDirection = "asc" | "desc"
+type MatchScoreFilter = "all" | "played" | "unplayed"
+
 interface Props {
     initialMatches: Match[]
     teams: Team[]
     competitions: { id: number, name: string }[]
     shouldOpenMatchModal?: boolean
 }
+
+const sortButtonStyle = { background: "none", border: 0, padding: 0, color: "inherit", font: "inherit", fontWeight: 700, cursor: "pointer" } as const
 
 export default function MatchManager({
     initialMatches,
@@ -63,6 +70,13 @@ export default function MatchManager({
     const [isMatchModalOpen, setIsMatchModalOpen] = useState(false)
     const [resultMatch, setResultMatch] = useState<Match | null>(null)
     const [resultFormData, setResultFormData] = useState<MatchResultFormData>({ stage: "", scoreHome: "", scoreAway: "" })
+    const [competitionFilter, setCompetitionFilter] = useState("all")
+    const [stageFilter, setStageFilter] = useState("all")
+    const [scoreFilter, setScoreFilter] = useState<MatchScoreFilter>("all")
+    const [sortConfig, setSortConfig] = useState<{ field: SortField, direction: SortDirection }>({
+        field: "matchDate",
+        direction: "desc",
+    })
     const hasOpenedFromQueryRef = useRef(false)
     const [formData, setFormData] = useState<MatchFormData>({
         teamHomeId: "",
@@ -74,8 +88,9 @@ export default function MatchManager({
     })
 
     const selectedCompetition = competitions.find(competition => competition.id === Number(formData.competitionId))
+    const selectedLeague = selectedCompetition ? normalizeFootballLeagueName(selectedCompetition.name) : ""
     const filteredTeams = selectedCompetition
-        ? teams.filter(team => team.continent === selectedCompetition.name)
+        ? teams.filter(team => normalizeFootballLeagueName(team.continent) === selectedLeague)
         : []
 
     const resultStageOptions = useMemo(() => {
@@ -90,6 +105,94 @@ export default function MatchManager({
 
         return Array.from(values).sort((a, b) => a.localeCompare(b, "ro"))
     }, [matches, resultMatch])
+
+    const stageFilterOptions = useMemo(() => {
+        const values = new Set<string>()
+
+        for (const match of matches) {
+            if (competitionFilter !== "all" && match.competitionId !== Number(competitionFilter)) continue
+            const stage = match.stage?.trim()
+            if (stage) values.add(stage)
+        }
+
+        return Array.from(values).sort((a, b) => a.localeCompare(b, "ro"))
+    }, [competitionFilter, matches])
+
+    const filteredMatches = useMemo(() => {
+        return matches.filter(match => {
+            const matchesCompetition = competitionFilter === "all" || match.competitionId === Number(competitionFilter)
+            const normalizedStage = match.stage?.trim() || "-"
+            const matchesStage = stageFilter === "all" || normalizedStage === stageFilter
+            const isPlayed = match.scoreHome !== null && match.scoreAway !== null
+            const matchesScore = scoreFilter === "all" || (scoreFilter === "played" ? isPlayed : !isPlayed)
+
+            return matchesCompetition && matchesStage && matchesScore
+        })
+    }, [competitionFilter, matches, scoreFilter, stageFilter])
+
+    const sortedMatches = useMemo(() => {
+        const scoreValue = (match: Match) => {
+            if (match.scoreHome === null || match.scoreAway === null) return Number.NEGATIVE_INFINITY
+            return match.scoreHome * 1000 + match.scoreAway
+        }
+
+        return [...filteredMatches].sort((a, b) => {
+            let result = 0
+
+            switch (sortConfig.field) {
+                case "teamHome":
+                    result = a.teamHome.name.localeCompare(b.teamHome.name, "ro", { sensitivity: "base" })
+                    break
+                case "teamAway":
+                    result = a.teamAway.name.localeCompare(b.teamAway.name, "ro", { sensitivity: "base" })
+                    break
+                case "matchDate":
+                    result = new Date(a.matchDate).getTime() - new Date(b.matchDate).getTime()
+                    break
+                case "location":
+                    result = a.location.localeCompare(b.location, "ro", { sensitivity: "base" })
+                    break
+                case "competition":
+                    result = a.competition.name.localeCompare(b.competition.name, "ro", { sensitivity: "base" })
+                    break
+                case "stage":
+                    result = (a.stage || "-").localeCompare(b.stage || "-", "ro", { sensitivity: "base" })
+                    break
+                case "score":
+                    result = scoreValue(a) - scoreValue(b)
+                    break
+            }
+
+            if (result !== 0) {
+                return sortConfig.direction === "asc" ? result : -result
+            }
+
+            return new Date(b.matchDate).getTime() - new Date(a.matchDate).getTime()
+        })
+    }, [filteredMatches, sortConfig])
+
+    const handleSort = (field: SortField) => {
+        setSortConfig(current => ({
+            field,
+            direction: current.field === field && current.direction === "asc" ? "desc" : "asc",
+        }))
+    }
+
+    const renderSortIndicator = (field: SortField) => {
+        if (sortConfig.field !== field) {
+            return "Sort"
+        }
+
+        if (field === "matchDate") {
+            return sortConfig.direction === "asc" ? "Veche-Noua" : "Noua-Veche"
+        }
+
+        if (field === "score") {
+            return sortConfig.direction === "asc" ? "Mic-Mare" : "Mare-Mic"
+        }
+
+        return sortConfig.direction === "asc" ? "A-Z" : "Z-A"
+    }
 
     useEffect(() => {
         if (!shouldOpenMatchModal || hasOpenedFromQueryRef.current) {
@@ -117,10 +220,10 @@ export default function MatchManager({
         setIsEditing(match.id)
         const dateObj = new Date(match.matchDate)
         const year = dateObj.getFullYear()
-        const month = String(dateObj.getMonth() + 1).padStart(2, '0')
-        const day = String(dateObj.getDate()).padStart(2, '0')
-        const hours = String(dateObj.getHours()).padStart(2, '0')
-        const minutes = String(dateObj.getMinutes()).padStart(2, '0')
+        const month = String(dateObj.getMonth() + 1).padStart(2, "0")
+        const day = String(dateObj.getDate()).padStart(2, "0")
+        const hours = String(dateObj.getHours()).padStart(2, "0")
+        const minutes = String(dateObj.getMinutes()).padStart(2, "0")
 
         setFormData({
             teamHomeId: match.teamHomeId.toString(),
@@ -288,7 +391,6 @@ export default function MatchManager({
                         <input required type="text" value={formData.location} onChange={e => updateField("location", e.target.value)} style={{ width: "100%", padding: "5px", borderRadius: "3px", border: "1px solid #ccc" }} />
                     </div>
 
-
                     <div style={{ gridColumn: "1 / -1", display: "flex", gap: "10px", marginTop: "10px" }}>
                         <button disabled={loading} type="submit" style={{ padding: "8px 15px", background: "#0070f3", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }}>
                             {loading ? "Se salveaza..." : isEditing ? "Actualizeaza Meci" : "Adauga Meci"}
@@ -301,29 +403,104 @@ export default function MatchManager({
                     </div>
                 </form>
 
+                <div className="sd-table-toolbar">
+                    <label htmlFor="match-competition-filter" className="sd-table-toolbar-label">Competitie</label>
+                    <select
+                        id="match-competition-filter"
+                        value={competitionFilter}
+                        onChange={e => {
+                            setCompetitionFilter(e.target.value)
+                            setStageFilter("all")
+                        }}
+                        className="sd-input"
+                        style={{ minWidth: "180px" }}
+                    >
+                        <option value="all">Toate competitiile</option>
+                        {competitions.map(competition => (
+                            <option key={competition.id} value={competition.id.toString()}>{competition.name}</option>
+                        ))}
+                    </select>
+
+                    <label htmlFor="match-stage-filter" className="sd-table-toolbar-label">Etapa</label>
+                    <select
+                        id="match-stage-filter"
+                        value={stageFilter}
+                        onChange={e => setStageFilter(e.target.value)}
+                        className="sd-input"
+                        style={{ minWidth: "150px" }}
+                    >
+                        <option value="all">Toate etapele</option>
+                        <option value="-">Fara etapa</option>
+                        {stageFilterOptions.map(stage => (
+                            <option key={stage} value={stage}>{stage}</option>
+                        ))}
+                    </select>
+
+                    <label htmlFor="match-score-filter" className="sd-table-toolbar-label">Scor</label>
+                    <select
+                        id="match-score-filter"
+                        value={scoreFilter}
+                        onChange={e => setScoreFilter(e.target.value as MatchScoreFilter)}
+                        className="sd-input"
+                        style={{ minWidth: "150px" }}
+                    >
+                        <option value="all">Toate</option>
+                        <option value="played">Cu rezultat</option>
+                        <option value="unplayed">Fara rezultat</option>
+                    </select>
+                </div>
+
                 <table className="sd-table">
                     <thead>
                         <tr>
-                            <th>Echipa Gazda</th>
-                            <th>Echipa Oaspete</th>
-                            <th>Data si Ora</th>
-                            <th>Stadion</th>
-                            <th>Competitie</th>
-                            <th>Etapa</th>
-                            <th>Scor</th>
+                            <th>
+                                <button type="button" onClick={() => handleSort("teamHome")} aria-label="Sorteaza dupa echipa gazda" style={sortButtonStyle}>
+                                    Echipa Gazda {renderSortIndicator("teamHome")}
+                                </button>
+                            </th>
+                            <th>
+                                <button type="button" onClick={() => handleSort("teamAway")} aria-label="Sorteaza dupa echipa oaspete" style={sortButtonStyle}>
+                                    Echipa Oaspete {renderSortIndicator("teamAway")}
+                                </button>
+                            </th>
+                            <th>
+                                <button type="button" onClick={() => handleSort("matchDate")} aria-label="Sorteaza dupa data si ora" style={sortButtonStyle}>
+                                    Data si Ora {renderSortIndicator("matchDate")}
+                                </button>
+                            </th>
+                            <th>
+                                <button type="button" onClick={() => handleSort("location")} aria-label="Sorteaza dupa stadion" style={sortButtonStyle}>
+                                    Stadion {renderSortIndicator("location")}
+                                </button>
+                            </th>
+                            <th>
+                                <button type="button" onClick={() => handleSort("competition")} aria-label="Sorteaza dupa competitie" style={sortButtonStyle}>
+                                    Competitie {renderSortIndicator("competition")}
+                                </button>
+                            </th>
+                            <th>
+                                <button type="button" onClick={() => handleSort("stage")} aria-label="Sorteaza dupa etapa" style={sortButtonStyle}>
+                                    Etapa {renderSortIndicator("stage")}
+                                </button>
+                            </th>
+                            <th>
+                                <button type="button" onClick={() => handleSort("score")} aria-label="Sorteaza dupa scor" style={sortButtonStyle}>
+                                    Scor {renderSortIndicator("score")}
+                                </button>
+                            </th>
                             <th>Actiuni</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {matches.length > 0 ? matches.map((match) => (
+                        {sortedMatches.length > 0 ? sortedMatches.map((match) => (
                             <tr key={match.id}>
                                 <td>{match.teamHome.name}</td>
                                 <td>{match.teamAway.name}</td>
                                 <td>{new Date(match.matchDate).toLocaleString()}</td>
                                 <td>{match.location}</td>
                                 <td>{match.competition.name}</td>
-                                <td>{match.stage || '-'}</td>
-                                <td>{match.scoreHome !== null && match.scoreAway !== null ? `${match.scoreHome} - ${match.scoreAway}` : '-'}</td>
+                                <td>{match.stage || "-"}</td>
+                                <td>{match.scoreHome !== null && match.scoreAway !== null ? `${match.scoreHome} - ${match.scoreAway}` : "-"}</td>
                                 <td style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                                     <button style={{ padding: "4px 8px" }} type="button" onClick={() => handleEdit(match)} disabled={loading}>Editeaza</button>
                                     <button style={{ padding: "4px 8px" }} type="button" onClick={() => openResultModal(match)} disabled={loading}>Adauga rezultat</button>
@@ -332,7 +509,7 @@ export default function MatchManager({
                             </tr>
                         )) : (
                             <tr>
-                                <td colSpan={8}>Nu exista meciuri adaugate.</td>
+                                <td colSpan={8}>Nu exista meciuri pentru filtrele selectate.</td>
                             </tr>
                         )}
                     </tbody>
