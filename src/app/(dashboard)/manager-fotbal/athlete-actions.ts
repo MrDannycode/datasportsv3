@@ -109,6 +109,113 @@ async function createAthlete(data: AthleteInviteInput, createdByUserId: string |
     return { email: athlete.email, success: true, temporaryPassword }
 }
 
+export type FootballPlayerUpdateInput = {
+    firstName: string
+    lastName: string
+    position: string
+    teamId?: string | null
+}
+
+async function requireManagedFootballPlayer(userId: number, assignedCountry: string) {
+    const player = await prisma.user.findFirst({
+        where: { id: userId, role: "atlet_fotbal" },
+        select: {
+            id: true,
+            email: true,
+            profile: { select: { id: true, firstName: true, lastName: true, teamId: true, team: { select: { id: true, country: true, sport: true } } } },
+            footballAthlete: { select: { id: true, position: true } },
+        },
+    })
+
+    if (!player?.profile || !player.footballAthlete) {
+        throw new Error("Jucatorul selectat nu exista.")
+    }
+
+    const profile = player.profile
+    const footballAthlete = player.footballAthlete
+    const team = profile.team
+    if (!team || team.country !== assignedCountry || team.sport !== "fotbal") {
+        throw new Error("Poti administra doar jucatori din tara la care ai fost asignat.")
+    }
+
+    return { ...player, profile, footballAthlete }
+}
+
+function normalizePlayerUpdate(data: FootballPlayerUpdateInput) {
+    const firstName = data.firstName.trim()
+    const lastName = data.lastName.trim()
+    const position = data.position.trim().toLowerCase() as Position
+    const teamId = data.teamId ? Number(data.teamId) : null
+
+    if (!firstName || !lastName) throw new Error("Prenumele si numele sunt obligatorii.")
+    if (!POSITIONS.has(position)) throw new Error("Pozitia nu este valida.")
+    if (teamId !== null && (!Number.isInteger(teamId) || teamId <= 0)) throw new Error("Echipa nu este valida.")
+
+    return { firstName, lastName, position, teamId }
+}
+
+export async function updateFootballPlayer(userId: number, data: FootballPlayerUpdateInput) {
+    const { session, assignment } = await requireFootballManagerAssignment()
+    const player = await requireManagedFootballPlayer(userId, assignment.country)
+    const update = normalizePlayerUpdate(data)
+
+    if (update.teamId !== null) {
+        const team = await prisma.team.findFirst({
+            where: { id: update.teamId, sport: "fotbal", country: assignment.country },
+            select: { id: true },
+        })
+
+        if (!team) throw new Error("Echipa selectata nu exista in tara managerului.")
+    }
+
+    await prisma.$transaction([
+        prisma.profile.update({
+            where: { id: player.profile.id },
+            data: { firstName: update.firstName, lastName: update.lastName, teamId: update.teamId },
+        }),
+        prisma.footballAthlete.update({
+            where: { id: player.footballAthlete.id },
+            data: { position: update.position },
+        }),
+    ])
+
+    await logAudit({
+        userId: session.user.id,
+        action: "update",
+        tableAffected: "users",
+        recordId: player.id,
+        details: { email: player.email, role: "atlet_fotbal", source: "player_management", teamId: update.teamId, position: update.position },
+    })
+
+    revalidatePath("/manager-fotbal")
+    revalidatePath("/manager-fotbal/invitatii")
+}
+
+export async function deleteFootballPlayer(userId: number) {
+    const { session, assignment } = await requireFootballManagerAssignment()
+    const player = await requireManagedFootballPlayer(userId, assignment.country)
+
+    try {
+        await prisma.$transaction([
+            prisma.profile.delete({ where: { id: player.profile.id } }),
+            prisma.footballAthlete.delete({ where: { id: player.footballAthlete.id } }),
+            prisma.user.delete({ where: { id: player.id } }),
+        ])
+    } catch {
+        throw new Error("Jucatorul nu poate fi sters deoarece are date asociate in sistem.")
+    }
+
+    await logAudit({
+        userId: session.user.id,
+        action: "delete",
+        tableAffected: "users",
+        recordId: player.id,
+        details: { email: player.email, role: "atlet_fotbal", source: "player_management" },
+    })
+
+    revalidatePath("/manager-fotbal")
+    revalidatePath("/manager-fotbal/invitatii")
+}
 export async function inviteAthlete(data: AthleteInviteInput): Promise<AthleteInviteResult> {
     const { session, assignment } = await requireFootballManagerAssignment()
     try {

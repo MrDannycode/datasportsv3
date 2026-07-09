@@ -72,6 +72,12 @@ export default async function ManagerFotbalPage() {
                         </div>
                         <div className="sd-box-content">
                             <div className="sd-metrics">
+                                <Link href="/manager-fotbal/antrenori" style={{ flex: 1, textDecoration: "none" }}>
+                                    <div className="sd-box sd-metric-box" style={{ cursor: "pointer" }}>
+                                        <div className="sd-metric-title">Staff Fotbal</div>
+                                        <div className="sd-metric-value">{footballCoaches}</div>
+                                    </div>
+                                </Link>
                                 <Link href="/manager-fotbal/meciuri" style={{ flex: 1, textDecoration: "none" }}>
                                     <div className="sd-box sd-metric-box" style={{ cursor: "pointer" }}>
                                         <div className="sd-metric-title">Meciuri totale</div>
@@ -88,12 +94,6 @@ export default async function ManagerFotbalPage() {
                                     <div className="sd-box sd-metric-box" style={{ cursor: "pointer" }}>
                                         <div className="sd-metric-title">Atleti fotbal</div>
                                         <div className="sd-metric-value">{footballAthletes}</div>
-                                    </div>
-                                </Link>
-                                <Link href="/manager-fotbal/antrenori" style={{ flex: 1, textDecoration: "none" }}>
-                                    <div className="sd-box sd-metric-box" style={{ cursor: "pointer" }}>
-                                        <div className="sd-metric-title">Staff Fotbal</div>
-                                        <div className="sd-metric-value">{footballCoaches}</div>
                                     </div>
                                 </Link>
                             </div>
@@ -149,12 +149,24 @@ export default async function ManagerFotbalPage() {
                             <h2>Gestionare Avansata</h2>
                         </div>
                         <div className="sd-box-content">
-                            <ul className="sd-list">
-                                <li><Link href="/manager-fotbal/invitatii">Invita si importa atleti</Link></li>
-                                <li><Link href="/manager-fotbal/meciuri">Gestioneaza meciuri</Link></li>
-                                <li><Link href="/manager-fotbal/echipe">Gestioneaza echipe</Link></li>
-                                <li><Link href="/manager-fotbal/antrenori">Gestioneaza antrenori</Link></li>
-                            </ul>
+                            <div className="sd-sidebar-metric-grid">
+                                <Link href="/manager-fotbal/echipe" className="sd-sidebar-metric-card">
+                                    <span className="sd-metric-title">Echipe fotbal</span>
+                                    <strong className="sd-metric-value">{teams.length}</strong>
+                                </Link>
+                                <Link href="/manager-fotbal/antrenori" className="sd-sidebar-metric-card">
+                                    <span className="sd-metric-title">Staff Fotbal</span>
+                                    <strong className="sd-metric-value">{footballCoaches}</strong>
+                                </Link>
+                                <Link href="/manager-fotbal/invitatii" className="sd-sidebar-metric-card">
+                                    <span className="sd-metric-title">Atleti fotbal</span>
+                                    <strong className="sd-metric-value">{footballAthletes}</strong>
+                                </Link>
+                                <Link href="/manager-fotbal/meciuri" className="sd-sidebar-metric-card">
+                                    <span className="sd-metric-title">Meciuri totale</span>
+                                    <strong className="sd-metric-value">{totalMatches}</strong>
+                                </Link>
+                            </div>
                         </div>
                     </div>
 

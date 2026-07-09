@@ -108,8 +108,10 @@ const defaultNavItems: NavItem[] = [
     { label: "Gestiune Manageri", href: "/admin/manageri" },
     { label: "Adauga Competitie", href: "#" },
     { label: "Export Audit Curent", href: "#" },
-    { label: "Adauga Atleti", href: "#" },
-    { label: "Gestiune Antrenori", href: "#" },
+    { label: "Gestioneaza Echipe", href: "manager-fotbal/echipe" },
+    { label: "Gestioneaza Staff Echipe", href: "manager-fotbal/antrenori" },
+    { label: "Gestioneaza Atleti", href: "manager-fotbal/invitatii" },
+    { label: "Gestioneaza Meciuri", href: "manager-fotbal/meciuri" },
     { label: "Adauga Meci", href: "#" },
     { label: "Adauga rezultat Meci", href: "#" },
     { label: "Next Match Analysis", href: "/antrenor-fotbal" },
@@ -491,63 +493,63 @@ export default async function DashboardHeader({
                 sportType: session?.user?.role === "atlet_fotbal" ? "fotbal" : session?.user?.role === "atlet_tenis" ? "tenis" : athleteUser.footballAthlete ? "fotbal" : athleteUser.tennisAthlete ? "tenis" : null
             }
         }
-            if (session?.user?.role === "atlet_fotbal" && athleteProfile?.teamId) {
-                const [footballTrainingPlans, fitnessTrainingPlans] = await Promise.all([
-                    prisma.trainingPlan.findMany({
-                        where: {
-                            creator: {
-                                role: "antrenor_fotbal",
-                                profile: { is: { teamId: athleteProfile.teamId } },
-                            },
+        if (session?.user?.role === "atlet_fotbal" && athleteProfile?.teamId) {
+            const [footballTrainingPlans, fitnessTrainingPlans] = await Promise.all([
+                prisma.trainingPlan.findMany({
+                    where: {
+                        creator: {
+                            role: "antrenor_fotbal",
+                            profile: { is: { teamId: athleteProfile.teamId } },
                         },
-                        select: {
-                            id: true,
-                            title: true,
-                            type: true,
-                            date: true,
-                            creator: { select: { email: true, profile: { select: { firstName: true, lastName: true } } } },
+                    },
+                    select: {
+                        id: true,
+                        title: true,
+                        type: true,
+                        date: true,
+                        creator: { select: { email: true, profile: { select: { firstName: true, lastName: true } } } },
+                    },
+                    orderBy: { date: "desc" },
+                    take: 100,
+                }),
+                prisma.fitnessPlan.findMany({
+                    where: {
+                        creator: {
+                            role: "antrenor_fitness",
+                            profile: { is: { teamId: athleteProfile.teamId } },
                         },
-                        orderBy: { date: "desc" },
-                        take: 100,
-                    }),
-                    prisma.fitnessPlan.findMany({
-                        where: {
-                            creator: {
-                                role: "antrenor_fitness",
-                                profile: { is: { teamId: athleteProfile.teamId } },
-                            },
-                        },
-                        select: {
-                            id: true,
-                            title: true,
-                            type: true,
-                            date: true,
-                            creator: { select: { email: true, profile: { select: { firstName: true, lastName: true } } } },
-                        },
-                        orderBy: { date: "desc" },
-                        take: 100,
-                    }),
-                ])
+                    },
+                    select: {
+                        id: true,
+                        title: true,
+                        type: true,
+                        date: true,
+                        creator: { select: { email: true, profile: { select: { firstName: true, lastName: true } } } },
+                    },
+                    orderBy: { date: "desc" },
+                    take: 100,
+                }),
+            ])
 
-                const toCoachName = (creator: { email: string; profile: { firstName: string; lastName: string } | null }) => creator.profile
-                    ? `${creator.profile.firstName} ${creator.profile.lastName}`.trim()
-                    : creator.email
-                const toPlanOption = (trainingType: TrainingResultTrainingType, plan: { id: number; title: string; type: string; date: Date; creator: { email: string; profile: { firstName: string; lastName: string } | null } }): TrainingResultPlanOption => ({
-                    id: plan.id,
-                    trainingType,
-                    title: plan.title,
-                    typeLabel: trainingType === "fotbal"
-                        ? FOOTBALL_TRAINING_TYPE_LABELS[plan.type] ?? plan.type
-                        : FITNESS_TRAINING_TYPE_LABELS[plan.type] ?? plan.type,
-                    date: plan.date.toISOString(),
-                    coachName: toCoachName(plan.creator),
-                })
+            const toCoachName = (creator: { email: string; profile: { firstName: string; lastName: string } | null }) => creator.profile
+                ? `${creator.profile.firstName} ${creator.profile.lastName}`.trim()
+                : creator.email
+            const toPlanOption = (trainingType: TrainingResultTrainingType, plan: { id: number; title: string; type: string; date: Date; creator: { email: string; profile: { firstName: string; lastName: string } | null } }): TrainingResultPlanOption => ({
+                id: plan.id,
+                trainingType,
+                title: plan.title,
+                typeLabel: trainingType === "fotbal"
+                    ? FOOTBALL_TRAINING_TYPE_LABELS[plan.type] ?? plan.type
+                    : FITNESS_TRAINING_TYPE_LABELS[plan.type] ?? plan.type,
+                date: plan.date.toISOString(),
+                coachName: toCoachName(plan.creator),
+            })
 
-                trainingResultPlans = [
-                    ...fitnessTrainingPlans.map((plan) => toPlanOption("fitness", { ...plan, type: String(plan.type) })),
-                    ...footballTrainingPlans.map((plan) => toPlanOption("fotbal", { ...plan, type: String(plan.type) })),
-                ]
-            }
+            trainingResultPlans = [
+                ...fitnessTrainingPlans.map((plan) => toPlanOption("fitness", { ...plan, type: String(plan.type) })),
+                ...footballTrainingPlans.map((plan) => toPlanOption("fotbal", { ...plan, type: String(plan.type) })),
+            ]
+        }
     }
 
     const isItemActive = (href: string) => Boolean(activeHref) && href !== "#" && href === activeHref
@@ -557,7 +559,7 @@ export default async function DashboardHeader({
             ? canViewTeamAthletes
             : ["Adauga Utilizator", "Gestiune Manageri", "Adauga Competitie", "Export Audit Curent"].includes(item.label)
                 ? session?.user?.role === "admin_global"
-                : ["Adauga Atleti", "Gestiune Antrenori", "Adauga Meci", "Adauga rezultat Meci"].includes(item.label)
+                : ["Gestioneaza Echipe", "Gestioneaza Staff Echipe", "Gestioneaza Atleti", "Gestioneaza Meciuri", "Adauga Meci", "Adauga rezultat Meci"].includes(item.label)
                     ? session?.user?.role === "manager_fotbal"
                     : ["Next Match Analysis", "Adauga antrenament", "Gestioneaza Antrenamente", "Gestioneaza Atletii", "Fotbal Training Weekly Goal"].includes(item.label)
                         ? session?.user?.role === "antrenor_fotbal"
@@ -565,21 +567,21 @@ export default async function DashboardHeader({
                             ? session?.user?.role === "antrenor_fitness"
                             : ["Fitness Weekly Goal"].includes(item.label)
                                 ? session?.user?.role === "antrenor_fitness"
-                            : ["Adauga Dosar", "Adauga Accidentare", "Istoric Accidentari", "Gestioneaza Dosare Medicale"].includes(item.label)
-                                ? session?.user?.role === "medic"
-                                : item.label === "Dosar Medical"
-                                    ? session?.user?.role === "atlet_fotbal"
-                                    : item.label === "Adauga Activitate"
-                                        ? ["atlet_fotbal", "atlet_tenis"].includes(session?.user?.role ?? "")
-                                        : item.label === "Gestioneaza Activitati"
-                                            ? (session?.user?.role === "atlet_fotbal" && item.href.includes("atlet-fotbal")) || (session?.user?.role === "atlet_tenis" && item.href.includes("atlet-tenis"))
-                                            : item.label === "+ Rezultat Antrenament"
-                                                ? session?.user?.role === "atlet_fotbal"
-                                                : item.label === "Profil Sportiv"
-                                                    ? ["atlet_fotbal", "atlet_tenis"].includes(session?.user?.role ?? "")
-                                                    : ["Turnee Tenis", "Turneele mele"].includes(item.label)
-                                                        ? session?.user?.role === "atlet_tenis"
-                                                        : true
+                                : ["Adauga Dosar", "Adauga Accidentare", "Istoric Accidentari", "Gestioneaza Dosare Medicale"].includes(item.label)
+                                    ? session?.user?.role === "medic"
+                                    : item.label === "Dosar Medical"
+                                        ? session?.user?.role === "atlet_fotbal"
+                                        : item.label === "Adauga Activitate"
+                                            ? ["atlet_fotbal", "atlet_tenis"].includes(session?.user?.role ?? "")
+                                            : item.label === "Gestioneaza Activitati"
+                                                ? (session?.user?.role === "atlet_fotbal" && item.href.includes("atlet-fotbal")) || (session?.user?.role === "atlet_tenis" && item.href.includes("atlet-tenis"))
+                                                : item.label === "+ Rezultat Antrenament"
+                                                    ? session?.user?.role === "atlet_fotbal"
+                                                    : item.label === "Profil Sportiv"
+                                                        ? ["atlet_fotbal", "atlet_tenis"].includes(session?.user?.role ?? "")
+                                                        : ["Turnee Tenis", "Turneele mele"].includes(item.label)
+                                                            ? session?.user?.role === "atlet_tenis"
+                                                            : true
     )
 
     return (

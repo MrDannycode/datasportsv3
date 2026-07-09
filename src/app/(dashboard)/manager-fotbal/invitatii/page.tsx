@@ -31,17 +31,29 @@ export default async function InvitatiiPage({ searchParams }: InvitatiiPageProps
         orderBy: { name: "asc" },
     })
 
-    const users = await prisma.user.findMany({
-        where: { role: "atlet_fotbal" },
-        include: { profile: { include: { team: true } } },
-        orderBy: { email: "asc" },
-    })
+    const users = managerAssignment
+        ? await prisma.user.findMany({
+            where: {
+                role: "atlet_fotbal",
+                profile: {
+                    is: {
+                        team: {
+                            is: { sport: "fotbal", country: managerAssignment.country },
+                        },
+                    },
+                },
+            },
+            include: { profile: { include: { team: true } }, footballAthlete: true },
+            orderBy: { email: "asc" },
+        })
+        : []
 
     const players = users.map((user) => ({
         id: user.id,
         firstName: user.profile?.firstName || user.email.split("@")[0],
         lastName: user.profile?.lastName || "",
         teamId: user.profile?.teamId || null,
+        position: user.footballAthlete?.position || "mijlocas",
         team: user.profile?.team || null,
         hasProfile: !!user.profile,
     }))

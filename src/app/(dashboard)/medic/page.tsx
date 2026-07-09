@@ -283,7 +283,7 @@ export default async function MedicPage() {
                             </div>
                         </div>
 
-                
+
                     </div>
                 </div>
             </div>
