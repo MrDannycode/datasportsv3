@@ -229,6 +229,115 @@
     box-shadow: 0 8px 18px rgba(96, 165, 250, 0.16);
 }
 
+.sd-league-standings-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.sd-league-standings-card {
+    margin-bottom: 0;
+    min-width: 0;
+}
+
+.sd-league-standings-grid-single {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.sd-league-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px;
+    border: 1px solid var(--sd-border);
+    background: var(--sd-box-bg);
+}
+
+.sd-league-toggle a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 28px;
+    padding: 4px 10px;
+    color: #555;
+    font-size: 12px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.sd-league-toggle a:hover,
+.sd-league-toggle a.active {
+    background: #0056b3;
+    color: #fff;
+    text-decoration: none;
+}
+
+.dark .sd-league-toggle a {
+    color: #ddd;
+}
+
+.dark .sd-league-toggle a:hover,
+.dark .sd-league-toggle a.active {
+    background: #60a5fa;
+    color: #0a0a0a;
+}
+
+.sd-league-standings-table th,
+.sd-league-standings-table td {
+    text-align: center;
+    white-space: nowrap;
+}
+
+.sd-league-standings-table th:nth-child(2),
+.sd-league-standings-table td:nth-child(2) {
+    text-align: left;
+}
+
+.sd-sidebar-metric-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+.sd-sidebar-metric-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px;
+    min-height: 74px;
+    background: var(--sd-box-bg);
+    border: 1px solid var(--sd-border);
+    color: var(--sd-text);
+    text-decoration: none;
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.sd-sidebar-metric-card:hover,
+.sd-sidebar-metric-card:focus-visible {
+    border-color: #0056b3;
+    box-shadow: 0 8px 18px rgba(0, 86, 179, 0.12);
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+.sd-sidebar-metric-card .sd-metric-title {
+    margin-bottom: 0;
+    line-height: 1.25;
+}
+
+.sd-sidebar-metric-card .sd-metric-value {
+    flex: 0 0 auto;
+    line-height: 1;
+}
+
+.dark .sd-sidebar-metric-card:hover,
+.dark .sd-sidebar-metric-card:focus-visible {
+    border-color: #60a5fa;
+    box-shadow: 0 8px 18px rgba(96, 165, 250, 0.16);
+}
+
 /* ---- Main panels row ------------------------------------ */
 .sd-panels {
     display: flex;
@@ -363,6 +472,10 @@
 
     .sd-panels {
         flex-direction: column;
+    }
+
+    .sd-league-standings-grid {
+        grid-template-columns: 1fr;
     }
 
     .sd-manager-football-panels {

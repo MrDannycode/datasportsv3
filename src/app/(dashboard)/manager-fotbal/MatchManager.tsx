@@ -93,19 +93,6 @@ export default function MatchManager({
         ? teams.filter(team => normalizeFootballLeagueName(team.continent) === selectedLeague)
         : []
 
-    const resultStageOptions = useMemo(() => {
-        if (!resultMatch) return []
-
-        const values = new Set<string>()
-        for (const match of matches) {
-            if (match.competitionId !== resultMatch.competitionId) continue
-            const stage = match.stage?.trim()
-            if (stage) values.add(stage)
-        }
-
-        return Array.from(values).sort((a, b) => a.localeCompare(b, "ro"))
-    }, [matches, resultMatch])
-
     const stageFilterOptions = useMemo(() => {
         const values = new Set<string>()
 
@@ -536,7 +523,8 @@ export default function MatchManager({
             {resultMatch && (
                 <MatchResultModal
                     matchLabel={`${resultMatch.teamHome.name} vs ${resultMatch.teamAway.name}`}
-                    stageOptions={resultStageOptions}
+                    homeTeamName={resultMatch.teamHome.name}
+                    awayTeamName={resultMatch.teamAway.name}
                     formData={resultFormData}
                     loading={loading}
                     error={error}

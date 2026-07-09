@@ -3,8 +3,187 @@ import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
+import { normalizeFootballLeagueName } from "@/lib/football-league"
 
-export default async function ManagerFotbalPage() {
+type FootballTeamSummary = {
+    id: number
+    name: string
+    country: string
+    continent: string
+}
+
+type FootballMatchSummary = {
+    teamHomeId: number
+    teamAwayId: number
+    scoreHome: number | null
+    scoreAway: number | null
+    competition: { name: string } | null
+}
+
+type LeagueStanding = {
+    pos: number
+    team: string
+    played: number
+    won: number
+    drawn: number
+    lost: number
+    goalsFor: number
+    goalsAgainst: number
+    goalDifference: number
+    pts: number
+}
+
+type ManagerFotbalSearchParams = {
+    liga?: string | string[]
+}
+
+function resolveSelectedLeague(value: ManagerFotbalSearchParams["liga"]) {
+    const selectedValue = Array.isArray(value) ? value[0] : value
+
+    return selectedValue === "2" ? "Liga 2" : "Liga 1"
+}
+
+function buildLeagueStandings(teams: FootballTeamSummary[], matches: FootballMatchSummary[], leagueName: string): LeagueStanding[] {
+    const normalizedLeagueName = normalizeFootballLeagueName(leagueName)
+    const standings = new Map<number, Omit<LeagueStanding, "pos"> & { goalsFor: number }>()
+
+    for (const team of teams) {
+        if (normalizeFootballLeagueName(team.continent) !== normalizedLeagueName) continue
+
+        standings.set(team.id, {
+            team: team.name,
+            played: 0,
+            won: 0,
+            drawn: 0,
+            lost: 0,
+            goalsFor: 0,
+            goalsAgainst: 0,
+            goalDifference: 0,
+            pts: 0,
+        })
+    }
+
+    for (const match of matches) {
+        if (
+            match.scoreHome === null ||
+            match.scoreAway === null ||
+            !match.competition ||
+            normalizeFootballLeagueName(match.competition.name) !== normalizedLeagueName
+        ) {
+            continue
+        }
+
+        const home = standings.get(match.teamHomeId)
+        const away = standings.get(match.teamAwayId)
+        if (!home || !away) continue
+
+        home.played += 1
+        away.played += 1
+        home.goalsFor += match.scoreHome
+        away.goalsFor += match.scoreAway
+        home.goalsAgainst += match.scoreAway
+        away.goalsAgainst += match.scoreHome
+        home.goalDifference += match.scoreHome - match.scoreAway
+        away.goalDifference += match.scoreAway - match.scoreHome
+
+        if (match.scoreHome > match.scoreAway) {
+            home.won += 1
+            away.lost += 1
+            home.pts += 3
+        } else if (match.scoreHome < match.scoreAway) {
+            away.won += 1
+            home.lost += 1
+            away.pts += 3
+        } else {
+            home.drawn += 1
+            away.drawn += 1
+            home.pts += 1
+            away.pts += 1
+        }
+    }
+
+    return Array.from(standings.values())
+        .sort((a, b) =>
+            b.pts - a.pts ||
+            b.goalDifference - a.goalDifference ||
+            b.goalsFor - a.goalsFor ||
+            a.team.localeCompare(b.team)
+        )
+        .map((standing, index) => ({
+            pos: index + 1,
+            team: standing.team,
+            played: standing.played,
+            won: standing.won,
+            drawn: standing.drawn,
+            lost: standing.lost,
+            goalsFor: standing.goalsFor,
+            goalsAgainst: standing.goalsAgainst,
+            goalDifference: standing.goalDifference,
+            pts: standing.pts,
+        }))
+}
+
+function LeagueStandingsTable({ leagueName, standings }: { leagueName: string; standings: LeagueStanding[] }) {
+    return (
+        <div className="sd-box sd-league-standings-card">
+            <div className="sd-box-header">
+                <h2>Clasament {leagueName}</h2>
+                <div className="sd-league-toggle" aria-label="Schimba liga">
+                    <Link href="/manager-fotbal?liga=1" className={leagueName === "Liga 1" ? "active" : ""}>Liga 1</Link>
+                    <Link href="/manager-fotbal?liga=2" className={leagueName === "Liga 2" ? "active" : ""}>Liga 2</Link>
+                </div>
+            </div>
+            <div className="sd-box-content" style={{ padding: 0 }}>
+                <table className="sd-table sd-league-standings-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Echipa</th>
+                            <th>MJ</th>
+                            <th>V</th>
+                            <th>E</th>
+                            <th>I</th>
+                            <th>GM</th>
+                            <th>GP</th>
+                            <th>G</th>
+                            <th>Pct</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {standings.length === 0 ? (
+                            <tr>
+                                <td colSpan={10}>Nu exista date pentru {leagueName}.</td>
+                            </tr>
+                        ) : (
+                            standings.map((row) => (
+                                <tr key={row.team}>
+                                    <td className="dsb-pos">{row.pos}</td>
+                                    <td className="dsb-team-name">{row.team}</td>
+                                    <td>{row.played}</td>
+                                    <td>{row.won}</td>
+                                    <td>{row.drawn}</td>
+                                    <td>{row.lost}</td>
+                                    <td>{row.goalsFor}</td>
+                                    <td>{row.goalsAgainst}</td>
+                                    <td>{row.goalDifference > 0 ? "+" : ""}{row.goalDifference}</td>
+                                    <td className="dsb-pts">{row.pts}</td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    )
+}
+
+export default async function ManagerFotbalPage({
+    searchParams,
+}: {
+    searchParams?: Promise<ManagerFotbalSearchParams>
+}) {
+    const resolvedSearchParams = searchParams ? await searchParams : {}
+    const selectedLeague = resolveSelectedLeague(resolvedSearchParams.liga)
     const session = await getServerSession(authOptions)
 
     if (!session || session.user.role !== "manager_fotbal") {
@@ -36,31 +215,60 @@ export default async function ManagerFotbalPage() {
         ? { role: "antrenor_fotbal" as const, profile: { team: { country: assignedCountry } } }
         : { role: "antrenor_fotbal" as const, id: -1 }
 
-    const [teams, recentMatches, totalMatches, footballAthletes, footballCoaches] = await Promise.all([
+    const [teams, upcomingMatches, leagueMatches, totalMatches, footballAthletes, footballCoaches, playedMatches] = await Promise.all([
         prisma.team.findMany({
             where: footballTeamWhere,
             select: { id: true, name: true, country: true, continent: true },
             orderBy: { name: "asc" },
         }),
         prisma.footballMatch.findMany({
-            where: footballMatchWhere,
+            where: {
+                ...footballMatchWhere,
+                matchDate: { gte: new Date() },
+            },
             include: {
                 teamHome: { select: { id: true, name: true } },
                 teamAway: { select: { id: true, name: true } },
                 competition: { select: { id: true, name: true } },
             },
-            orderBy: { matchDate: "desc" },
+            orderBy: { matchDate: "asc" },
             take: 6,
+        }),
+        prisma.footballMatch.findMany({
+            where: {
+                ...footballMatchWhere,
+                scoreHome: { not: null },
+                scoreAway: { not: null },
+            },
+            select: {
+                teamHomeId: true,
+                teamAwayId: true,
+                scoreHome: true,
+                scoreAway: true,
+                competition: { select: { name: true } },
+            },
         }),
         prisma.footballMatch.count({ where: footballMatchWhere }),
         prisma.user.count({ where: footballAthleteWhere }),
         prisma.user.count({ where: footballStaffWhere }),
+        prisma.footballMatch.findMany({
+            where: {
+                ...footballMatchWhere,
+                matchDate: { lt: new Date() },
+                scoreHome: { not: null },
+                scoreAway: { not: null },
+            },
+            include: {
+                teamHome: { select: { id: true, name: true } },
+                teamAway: { select: { id: true, name: true } },
+            },
+            orderBy: { matchDate: "desc" },
+            take: 3,
+        }),
     ])
 
-    const nextMatches = recentMatches
-        .filter((match) => new Date(match.matchDate) >= new Date())
-        .sort((a, b) => new Date(a.matchDate).getTime() - new Date(b.matchDate).getTime())
-        .slice(0, 3)
+
+    const selectedLeagueStandings = buildLeagueStandings(teams, leagueMatches, selectedLeague)
 
     return (
         <main>
@@ -71,41 +279,18 @@ export default async function ManagerFotbalPage() {
                             <h2>Dashboard overview</h2>
                         </div>
                         <div className="sd-box-content">
-                            <div className="sd-metrics">
-                                <Link href="/manager-fotbal/antrenori" style={{ flex: 1, textDecoration: "none" }}>
-                                    <div className="sd-box sd-metric-box" style={{ cursor: "pointer" }}>
-                                        <div className="sd-metric-title">Staff Fotbal</div>
-                                        <div className="sd-metric-value">{footballCoaches}</div>
-                                    </div>
-                                </Link>
-                                <Link href="/manager-fotbal/meciuri" style={{ flex: 1, textDecoration: "none" }}>
-                                    <div className="sd-box sd-metric-box" style={{ cursor: "pointer" }}>
-                                        <div className="sd-metric-title">Meciuri totale</div>
-                                        <div className="sd-metric-value">{totalMatches}</div>
-                                    </div>
-                                </Link>
-                                <Link href="/manager-fotbal/echipe" style={{ flex: 1, textDecoration: "none" }}>
-                                    <div className="sd-box sd-metric-box" style={{ cursor: "pointer" }}>
-                                        <div className="sd-metric-title">Echipe fotbal</div>
-                                        <div className="sd-metric-value">{teams.length}</div>
-                                    </div>
-                                </Link>
-                                <Link href="/manager-fotbal/invitatii" style={{ flex: 1, textDecoration: "none" }}>
-                                    <div className="sd-box sd-metric-box" style={{ cursor: "pointer" }}>
-                                        <div className="sd-metric-title">Atleti fotbal</div>
-                                        <div className="sd-metric-value">{footballAthletes}</div>
-                                    </div>
-                                </Link>
+                            <div className="sd-league-standings-grid sd-league-standings-grid-single">
+                                <LeagueStandingsTable leagueName={selectedLeague} standings={selectedLeagueStandings} />
                             </div>
 
                             <div className="sd-panels">
                                 <div className="sd-box sd-activities">
                                     <div className="sd-box-header">
-                                        <h2>Meciuri recente</h2>
+                                        <h2>Urmatoarele Meciuri</h2>
                                         <Link href="/manager-fotbal/meciuri">Vezi toate</Link>
                                     </div>
                                     <div className="sd-box-content" style={{ padding: 0 }}>
-                                        {recentMatches.length === 0 ? (
+                                        {upcomingMatches.length === 0 ? (
                                             <div className="sd-empty-state">
                                                 <p>Nu exista meciuri programate.</p>
                                                 <Link href="/manager-fotbal/meciuri?open=match" className="sd-btn-primary">
@@ -118,17 +303,15 @@ export default async function ManagerFotbalPage() {
                                                     <tr>
                                                         <th>Data</th>
                                                         <th>Meci</th>
-                                                        <th>Scor</th>
                                                         <th>Competitie</th>
                                                         <th>Locatie</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {recentMatches.map((match) => (
+                                                    {upcomingMatches.map((match) => (
                                                         <tr key={match.id}>
                                                             <td>{new Date(match.matchDate).toLocaleDateString("ro-RO", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}</td>
                                                             <td>{match.teamHome.name} vs {match.teamAway.name}</td>
-                                                            <td>{match.scoreHome !== null && match.scoreAway !== null ? match.scoreHome + " - " + match.scoreAway : "-"}</td>
                                                             <td>{match.competition?.name ?? "-"}</td>
                                                             <td>{match.location}</td>
                                                         </tr>
@@ -172,14 +355,16 @@ export default async function ManagerFotbalPage() {
 
                     <div className="sd-box">
                         <div className="sd-box-header">
-                            <h2>Urmatoarele Meciuri</h2>
+                            <h2>Meciuri Recente</h2>
                         </div>
                         <div className="sd-box-content">
-                            {nextMatches.length > 0 ? (
+                            {playedMatches.length > 0 ? (
                                 <ul className="sd-list">
-                                    {nextMatches.map((match) => (
+                                    {playedMatches.map((match) => (
                                         <li key={match.id}>
-                                            <strong>{match.teamHome.name} vs {match.teamAway.name}</strong>
+                                            <strong>
+                                                {match.teamHome.name} {match.scoreHome ?? "-"} - {match.scoreAway ?? "-"} {match.teamAway.name}
+                                            </strong>
                                             <br />
                                             Data: {new Date(match.matchDate).toLocaleDateString("ro-RO", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                                             <br />
@@ -188,7 +373,7 @@ export default async function ManagerFotbalPage() {
                                     ))}
                                 </ul>
                             ) : (
-                                <p>Nu exista meciuri viitoare.</p>
+                                <p>Nu exista meciuri jucate recent.</p>
                             )}
                         </div>
                     </div>

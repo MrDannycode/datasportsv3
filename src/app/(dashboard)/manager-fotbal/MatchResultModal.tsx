@@ -17,7 +17,8 @@ const fieldStyle = {
 
 interface Props {
     matchLabel: string
-    stageOptions: string[]
+    homeTeamName: string
+    awayTeamName: string
     formData: MatchResultFormData
     loading: boolean
     error: string
@@ -26,7 +27,7 @@ interface Props {
     onSubmit: (e: React.FormEvent) => Promise<void>
 }
 
-export default function MatchResultModal({ matchLabel, stageOptions, formData, loading, error, onChange, onClose, onSubmit }: Props) {
+export default function MatchResultModal({ matchLabel, homeTeamName, awayTeamName, formData, loading, error, onChange, onClose, onSubmit }: Props) {
     return (
         <div
             role="dialog"
@@ -86,22 +87,8 @@ export default function MatchResultModal({ matchLabel, stageOptions, formData, l
                     {error && <div style={{ color: "#f87171", marginBottom: "10px" }}>{error}</div>}
 
                     <form onSubmit={onSubmit} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-                        <div style={{ gridColumn: "1 / -1" }}>
-                            <label style={{ display: "block", marginBottom: "5px" }}>Etapa</label>
-                            <select
-                                required
-                                value={formData.stage}
-                                onChange={e => onChange("stage", e.target.value)}
-                                style={fieldStyle}
-                            >
-                                <option value="">-- Selecteaza --</option>
-                                {stageOptions.map(stage => (
-                                    <option key={stage} value={stage}>{stage}</option>
-                                ))}
-                            </select>
-                        </div>
                         <div>
-                            <label style={{ display: "block", marginBottom: "5px" }}>Scor Gazda</label>
+                            <label style={{ display: "block", marginBottom: "5px" }}>{homeTeamName}</label>
                             <input
                                 required
                                 min="0"
@@ -112,7 +99,7 @@ export default function MatchResultModal({ matchLabel, stageOptions, formData, l
                             />
                         </div>
                         <div>
-                            <label style={{ display: "block", marginBottom: "5px" }}>Scor Oaspete</label>
+                            <label style={{ display: "block", marginBottom: "5px" }}>{awayTeamName}</label>
                             <input
                                 required
                                 min="0"
