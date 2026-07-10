@@ -1,3 +1,6 @@
+"use client"
+
+import { useState } from "react"
 import type { SportScienceLoad } from "./SportScienceMetrics"
 
 type Props = {
@@ -83,7 +86,11 @@ function getStatus(loads: ChartPoint[]) {
   }
 }
 
-export default function TrainingLoadChart({ loads }: Props) {
+export default function TrainingLoadChart({ loads: allLoads }: Props) {
+  const [days, setDays] = useState(42)
+
+  const loads = allLoads.slice(Math.max(0, allLoads.length - days))
+
   const points: ChartPoint[] = loads.map((load) => ({
     ...load,
     label: formatDate(load.date),
@@ -93,7 +100,7 @@ export default function TrainingLoadChart({ loads }: Props) {
   if (points.length === 0) {
     return (
       <div className="sd-empty-state">
-        <p>Nu exista date de incarcare pentru ultimele 90 de zile.</p>
+        <p>Nu exista date de incarcare pentru ultimele {days} de zile.</p>
       </div>
     )
   }
@@ -130,8 +137,28 @@ export default function TrainingLoadChart({ loads }: Props) {
     <div style={{ display: "grid", gap: "14px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "flex-start", flexWrap: "wrap" }}>
         <div>
-          <div style={{ fontSize: "13px", color: "#666", textTransform: "uppercase", fontWeight: "bold" }}>
+          <div style={{ fontSize: "13px", color: "#666", textTransform: "uppercase", fontWeight: "bold", display: "flex", alignItems: "center", gap: "8px" }}>
             Performance Management Chart
+            <select
+              value={days}
+              onChange={(e) => setDays(Number(e.target.value))}
+              style={{
+                padding: "2px 6px",
+                fontSize: "12px",
+                borderRadius: "4px",
+                border: "1px solid #ccc",
+                backgroundColor: "#fff",
+                color: "#333",
+                cursor: "pointer",
+                fontWeight: "normal",
+                textTransform: "none"
+              }}
+            >
+              <option value={7}>Ultimele 7 zile</option>
+              <option value={14}>Ultimele 14 zile</option>
+              <option value={42}>Ultimele 42 zile</option>
+              <option value={90}>Ultimele 90 zile</option>
+            </select>
           </div>
           <div style={{ fontSize: "12px", color: "#666", marginTop: "3px" }}>
             CTL fitness, ATL fatigue si TSB form pe ultimele {points.length} zile.

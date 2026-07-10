@@ -11,7 +11,7 @@ export function TableModeToggle() {
         <button
             onClick={toggleTableMode}
             aria-label={isNormal ? "Comuta la modul focus pentru tabele" : "Comuta la modul normal pentru tabele"}
-            title={isNormal ? "Tabele: Normal" : "Tabele: Focus"}
+            title={isNormal ? "Normal" : "Focus"}
             style={{
                 display: "flex",
                 alignItems: "center",

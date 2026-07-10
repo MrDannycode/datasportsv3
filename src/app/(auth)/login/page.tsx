@@ -2,7 +2,7 @@
 
 import { useState, useSyncExternalStore } from "react"
 import { signIn } from "next-auth/react"
-import { useTheme } from "next-themes"
+import { useTheme } from "@/components/theme-provider"
 import { useRouter } from "next/navigation"
 import { useTableMode } from "@/components/table-mode-provider"
 
@@ -29,28 +29,28 @@ export default function LoginPage() {
     const isNormal = tableMode === "normal"
     const colors = isDark
         ? {
-            pageBg: isNormal ? "#0f1722" : "#000000",
-            cardBg: isNormal ? "linear-gradient(180deg, #202a3a 0%, #182232 100%)" : "#171717",
-            fieldBg: isNormal ? "#101826" : "#0f0f0f",
-            border: isNormal ? "#2f3a4a" : "#333",
-            text: "#e5edf7",
-            muted: "#aebdd0",
-            button: "#2563eb",
-            buttonHover: "#1d4ed8",
-            demoBg: isNormal ? "rgba(96, 165, 250, 0.11)" : "#1f1f1f",
+            pageBg: isNormal ? "#071a12" : "#000000",
+            cardBg: isNormal ? "linear-gradient(135deg, #052e16 0%, #064e3b 100%)" : "#171717",
+            fieldBg: isNormal ? "#0d2118" : "#0f0f0f",
+            border: isNormal ? "rgba(16, 185, 129, 0.25)" : "#333",
+            text: isNormal ? "#d1fae5" : "#e5edf7",
+            muted: isNormal ? "#6ee7b7" : "#aebdd0",
+            button: isNormal ? "#059669" : "#2563eb",
+            buttonHover: isNormal ? "#047857" : "#1d4ed8",
+            demoBg: isNormal ? "rgba(52, 211, 153, 0.12)" : "#1f1f1f",
             errorBg: "rgba(248, 113, 113, 0.14)",
             errorText: "#fca5a5",
         }
         : {
-            pageBg: isNormal ? "#eef4fb" : "#f4f4f4",
-            cardBg: isNormal ? "linear-gradient(180deg, #ffffff 0%, #f4f7fb 100%)" : "#ffffff",
+            pageBg: isNormal ? "#ecfdf5" : "#f4f4f4",
+            cardBg: isNormal ? "linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)" : "#ffffff",
             fieldBg: "#ffffff",
-            border: isNormal ? "#d7e0eb" : "#ccc",
-            text: "#243447",
-            muted: "#536273",
-            button: "#0056b3",
-            buttonHover: "#004494",
-            demoBg: isNormal ? "rgba(0, 86, 179, 0.075)" : "#f5f5f5",
+            border: isNormal ? "rgba(16, 185, 129, 0.3)" : "#ccc",
+            text: isNormal ? "#064e3b" : "#333",
+            muted: isNormal ? "#065f46" : "#536273",
+            button: isNormal ? "#059669" : "#0056b3",
+            buttonHover: isNormal ? "#047857" : "#004494",
+            demoBg: isNormal ? "rgba(5, 150, 105, 0.1)" : "#f5f5f5",
             errorBg: "#fff0f0",
             errorText: "#c00",
         }

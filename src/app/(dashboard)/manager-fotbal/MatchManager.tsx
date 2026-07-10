@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import MatchCreateModal from "./MatchCreateModal"
 import MatchResultModal from "./MatchResultModal"
-import { createMatch, updateMatch, deleteMatch, updateMatchResult } from "./actions"
+import { createMatch, updateMatch, deleteMatch, importMatches, updateMatchResult, type MatchImportResult } from "./actions"
 import { normalizeFootballLeagueName } from "@/lib/football-league"
+import { parseCsv } from "@/lib/csv"
 
 type Team = {
     id: number
@@ -56,6 +57,7 @@ interface Props {
 }
 
 const sortButtonStyle = { background: "none", border: 0, padding: 0, color: "inherit", font: "inherit", fontWeight: 700, cursor: "pointer" } as const
+const fieldStyle = { border: "1px solid #cbd5e1", borderRadius: "4px", padding: "8px 10px", fontSize: "13px", background: "#fff", minWidth: 0 }
 
 export default function MatchManager({
     initialMatches,
@@ -66,7 +68,10 @@ export default function MatchManager({
     const [matches, setMatches] = useState<Match[]>(initialMatches)
     const [isEditing, setIsEditing] = useState<number | null>(null)
     const [loading, setLoading] = useState(false)
+    const [importLoading, setImportLoading] = useState(false)
     const [error, setError] = useState("")
+    const [importError, setImportError] = useState("")
+    const [importResults, setImportResults] = useState<MatchImportResult[]>([])
     const [isMatchModalOpen, setIsMatchModalOpen] = useState(false)
     const [resultMatch, setResultMatch] = useState<Match | null>(null)
     const [resultFormData, setResultFormData] = useState<MatchResultFormData>({ stage: "", scoreHome: "", scoreAway: "" })
@@ -78,6 +83,7 @@ export default function MatchManager({
         direction: "desc",
     })
     const hasOpenedFromQueryRef = useRef(false)
+    const fileRef = useRef<HTMLInputElement>(null)
     const [formData, setFormData] = useState<MatchFormData>({
         teamHomeId: "",
         teamAwayId: "",
@@ -335,6 +341,49 @@ export default function MatchManager({
         }
     }
 
+    async function submitCsv(file: File) {
+        setImportLoading(true)
+        setImportError("")
+        setImportResults([])
+
+        try {
+            const records = parseCsv((await file.text()).replace(/^\uFEFF/, ""))
+            const headers = records.shift()?.map(value => value.toLowerCase().trim()) ?? []
+            const required = ["league", "teamhome", "teamaway", "matchdate", "location"]
+            const missing = required.filter(name => !headers.includes(name))
+            if (missing.length) throw new Error(`Lipsesc coloanele obligatorii: ${missing.join(", ")}.`)
+
+            const value = (row: string[], name: string) => row[headers.indexOf(name)] ?? ""
+            const rows = records.map(row => ({
+                league: value(row, "league"),
+                teamHome: value(row, "teamhome"),
+                teamAway: value(row, "teamaway"),
+                matchDate: value(row, "matchdate"),
+                location: value(row, "location"),
+                stage: value(row, "stage"),
+                score: value(row, "scor"),
+            }))
+            if (!rows.length) throw new Error("Fisierul CSV nu contine meciuri.")
+
+            setImportResults((await importMatches(rows)).results)
+        } catch (reason) {
+            setImportError(reason instanceof Error ? reason.message : "Importul a esuat.")
+        } finally {
+            setImportLoading(false)
+            if (fileRef.current) fileRef.current.value = ""
+        }
+    }
+
+    function downloadTemplate() {
+        const csv = "League,teamHome,teamAway,matchDate,location,stage,Scor\nLiga 1,Echipa Gazda,Echipa Oaspete,2026-08-15T20:30,Stadion,Etapa 1,2-1"
+        const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }))
+        const link = document.createElement("a")
+        link.href = url
+        link.download = "model-import-meciuri.csv"
+        link.click()
+        URL.revokeObjectURL(url)
+    }
+
     return (
         <div className="sd-box">
             <div className="sd-box-header">
@@ -389,6 +438,19 @@ export default function MatchManager({
                         )}
                     </div>
                 </form>
+                <div style={{ marginBottom: "20px", padding: "15px", border: "1px solid #ddd", borderRadius: "5px", background: "#f9f9f9" }}>
+                    <h3 style={{ marginTop: 0, marginBottom: "8px" }}>Importa meciuri din CSV</h3>
+                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                        <button type="button" onClick={downloadTemplate} style={{ ...fieldStyle, cursor: "pointer" }}>Descarca model CSV</button>
+                        <label style={{ ...fieldStyle, background: "#0056b3", color: "#fff", cursor: "pointer", fontWeight: 700 }}>
+                            {importLoading ? "Se importa..." : "Alege fisier CSV"}
+                            <input ref={fileRef} type="file" accept=".csv,text/csv" disabled={importLoading || loading} onChange={e => { const file = e.target.files?.[0]; if (file) void submitCsv(file) }} style={{ display: "none" }} />
+                        </label>
+                    </div>
+                    {importError && <p style={{ color: "#b91c1c", fontSize: 13 }}>{importError}</p>}
+                    {importResults.length > 0 && <div style={{ marginTop: 14, overflowX: "auto" }}><p style={{ fontSize: 13, fontWeight: 700 }}>Import finalizat: {importResults.filter(result => result.success).length} create, {importResults.filter(result => !result.success).length} respinse.</p><table className="sd-table"><thead><tr><th>Rand</th><th>Meci</th><th>Rezultat</th><th>ID / eroare</th></tr></thead><tbody>{importResults.map(result => <tr key={`${result.row}-${result.match}`}><td>{result.row}</td><td>{result.match}</td><td style={{ color: result.success ? "#166534" : "#b91c1c", fontWeight: 700 }}>{result.success ? "Creat" : "Respins"}</td><td>{result.id ?? result.error}</td></tr>)}</tbody></table></div>}
+                </div>
+
 
                 <div className="sd-table-toolbar">
                     <label htmlFor="match-competition-filter" className="sd-table-toolbar-label">Competitie</label>

@@ -364,13 +364,14 @@ export async function assignAntrenorToTeam(userId: number, teamId: string | null
         },
         select: {
             id: true,
+            email: true,
             role: true,
             profile: { select: { id: true, teamId: true } },
         },
     })
 
-    if (!staffUser?.profile) {
-        throw new Error("Contul selectat nu are profil de staff.")
+    if (!staffUser) {
+        throw new Error("Contul de staff nu a fost gasit.")
     }
 
     const resolvedTeamId = teamId ? Number(teamId) : null
@@ -389,23 +390,51 @@ export async function assignAntrenorToTeam(userId: number, teamId: string | null
         }
     }
 
-    const profile = await prisma.profile.update({
-        where: { id: staffUser.profile.id },
-        data: { teamId: resolvedTeamId },
-        select: { id: true, teamId: true },
-    })
+    let profileId = staffUser.profile?.id
 
-    await logAudit({
-        userId: session.user.id,
-        action: "update",
-        tableAffected: "profiles",
-        recordId: profile.id,
-        details: {
-            assignedUserId: userId,
-            assignedRole: staffUser.role,
-            teamId: profile.teamId,
-        },
-    })
+    if (!profileId) {
+        const newProfile = await prisma.profile.create({
+            data: {
+                userId: staffUser.id,
+                firstName: staffUser.email.split("@")[0],
+                lastName: "",
+                teamId: resolvedTeamId,
+            },
+            select: { id: true, teamId: true },
+        })
+        profileId = newProfile.id
+        
+        await logAudit({
+            userId: session.user.id,
+            action: "create",
+            tableAffected: "profiles",
+            recordId: profileId,
+            details: {
+                assignedUserId: userId,
+                assignedRole: staffUser.role,
+                teamId: newProfile.teamId,
+                note: "Profile created automatically during team assignment"
+            },
+        })
+    } else {
+        const profile = await prisma.profile.update({
+            where: { id: profileId },
+            data: { teamId: resolvedTeamId },
+            select: { id: true, teamId: true },
+        })
+
+        await logAudit({
+            userId: session.user.id,
+            action: "update",
+            tableAffected: "profiles",
+            recordId: profile.id,
+            details: {
+                assignedUserId: userId,
+                assignedRole: staffUser.role,
+                teamId: profile.teamId,
+            },
+        })
+    }
 
     revalidatePath("/manager-fotbal")
     revalidatePath("/manager-fotbal/antrenori")
@@ -423,3 +452,114 @@ export async function assignPlayerToTeam(userId: number, teamId: string | null) 
 
 
 
+export type MatchImportInput = {
+    league: string
+    teamHome: string
+    teamAway: string
+    matchDate: string
+    location: string
+    stage?: string | null
+    score?: string | null
+}
+
+export type MatchImportResult = {
+    row: number
+    match: string
+    success: boolean
+    id?: number
+    error?: string
+}
+
+function normalizeMatchImportName(value: string) {
+    return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().replace(/\s+/g, " ").toLowerCase()
+}
+
+export async function importMatches(rows: MatchImportInput[]) {
+    const { session, assignedCountry } = await requireFootballManagerAssignment()
+    if (!Array.isArray(rows) || rows.length === 0) return { results: [] as MatchImportResult[] }
+    if (rows.length > 310) throw new Error("Un import poate contine maximum 310 meciuri.")
+
+    const [competitions, teams] = await Promise.all([
+        prisma.competition.findMany({
+            where: { sport: "fotbal", country: assignedCountry },
+            select: { id: true, name: true },
+        }),
+        prisma.team.findMany({
+            where: { sport: "fotbal", country: assignedCountry },
+            select: { id: true, name: true, continent: true },
+        }),
+    ])
+    const competitionByLeague = new Map(competitions.map(competition => [normalizeFootballLeagueName(competition.name), competition]))
+    const results: MatchImportResult[] = []
+
+    for (const [index, row] of rows.entries()) {
+        const line = index + 2
+        const matchLabel = `${row.teamHome?.trim() || "-"} - ${row.teamAway?.trim() || "-"}`
+
+        try {
+            const league = row.league?.trim()
+            const teamHomeName = row.teamHome?.trim()
+            const teamAwayName = row.teamAway?.trim()
+            const location = row.location?.trim()
+            const matchDate = new Date(row.matchDate)
+            const score = row.score?.trim()
+            let scoreHome: number | null = null
+            let scoreAway: number | null = null
+
+            if (!league) throw new Error("Liga este obligatorie.")
+            if (!teamHomeName || !teamAwayName) throw new Error("Ambele echipe sunt obligatorii.")
+            if (!row.matchDate?.trim() || Number.isNaN(matchDate.getTime())) throw new Error("Data si ora meciului nu sunt valide.")
+            if (!location) throw new Error("Stadionul este obligatoriu.")
+
+            if (score) {
+                const scoreMatch = score.match(/^(\d+)\s*[-:]\s*(\d+)$/)
+                if (!scoreMatch) throw new Error("Scorul trebuie sa aiba formatul 2-1 sau 2:1.")
+                scoreHome = Number(scoreMatch[1])
+                scoreAway = Number(scoreMatch[2])
+            }
+            const competition = competitionByLeague.get(normalizeFootballLeagueName(league))
+            if (!competition) throw new Error("Liga nu exista pentru tara managerului.")
+
+            const leagueKey = normalizeFootballLeagueName(competition.name)
+            const leagueTeams = teams.filter(team => normalizeFootballLeagueName(team.continent) === leagueKey)
+            const homeTeam = leagueTeams.find(team => normalizeMatchImportName(team.name) === normalizeMatchImportName(teamHomeName))
+            const awayTeam = leagueTeams.find(team => normalizeMatchImportName(team.name) === normalizeMatchImportName(teamAwayName))
+
+            if (!homeTeam) throw new Error("Echipa gazda nu exista in liga selectata.")
+            if (!awayTeam) throw new Error("Echipa oaspete nu exista in liga selectata.")
+            if (homeTeam.id === awayTeam.id) throw new Error("Echipa gazda si echipa oaspete trebuie sa fie diferite.")
+
+            const match = await prisma.footballMatch.create({
+                data: {
+                    teamHomeId: homeTeam.id,
+                    teamAwayId: awayTeam.id,
+                    matchDate,
+                    location,
+                    stage: row.stage?.trim() || null,
+                    competitionId: competition.id,
+                    scoreHome,
+                    scoreAway,
+                },
+                select: { id: true, location: true, matchDate: true },
+            })
+
+            await logAudit({
+                userId: session.user.id,
+                action: "create",
+                tableAffected: "football_matches",
+                recordId: match.id,
+                details: { location: match.location, matchDate: match.matchDate.toISOString(), source: "match_csv_import" },
+            })
+            results.push({ row: line, match: matchLabel, success: true, id: match.id })
+        } catch (error) {
+            results.push({ row: line, match: matchLabel, success: false, error: error instanceof Error ? error.message : "Randul nu a putut fi importat." })
+        }
+    }
+
+    if (results.some(result => result.success)) {
+        revalidatePath("/manager-fotbal")
+        revalidatePath("/manager-fotbal/meciuri")
+    }
+
+    return { results }
+}

@@ -69,7 +69,7 @@ export default async function AntrenorFitnessPage() {
 
     const today = new Date()
     const loadsFromDate = new Date()
-    loadsFromDate.setUTCDate(loadsFromDate.getUTCDate() - 42)
+    loadsFromDate.setUTCDate(loadsFromDate.getUTCDate() - 90)
     loadsFromDate.setUTCHours(0, 0, 0, 0)
 
     const [fitnessPlans, teamProfiles] = await Promise.all([

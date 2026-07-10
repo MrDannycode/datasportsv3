@@ -1,7 +1,7 @@
 "use client"
 
 import { signOut } from "next-auth/react"
-import { useTheme } from "next-themes"
+import { useTheme } from "@/components/theme-provider"
 import { useRouter } from "next/navigation"
 import { LogOut } from "lucide-react"
 import { useTableMode } from "@/components/table-mode-provider"
