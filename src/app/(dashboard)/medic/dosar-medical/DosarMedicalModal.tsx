@@ -160,17 +160,20 @@ export default function DosarMedicalModal({ editingRecord, athletes, onClose, on
                         </div>
                     </div>
 
-                    <div style={{ marginBottom: "16px" }}>
-                        <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                            <input
-                                type="checkbox"
-                                checked={isAvailable}
-                                onChange={e => setIsAvailable(e.target.checked)}
-                            />
-                            Atletul este apt pentru joc/antrenament
-                        </label>
-                    </div>
 
+                    {editingRecord && editingRecord.injuries.length > 0 && (
+                        <div style={{ marginBottom: "16px" }}>
+                            <label style={{ display: "block", marginBottom: "8px" }}>Disponibilitate</label>
+                            <select
+                                value={isAvailable ? "disponibil" : "indisponibil"}
+                                onChange={e => setIsAvailable(e.target.value === "disponibil")}
+                                style={{ width: "100%", padding: "8px", border: "1px solid var(--sd-border)", background: "var(--sd-box-bg)", color: "var(--sd-text)", borderRadius: "4px" }}
+                            >
+                                <option value="disponibil">Disponibil</option>
+                                <option value="indisponibil">Indisponibil</option>
+                            </select>
+                        </div>
+                    )}
                     <div style={{ marginBottom: "16px", borderTop: "1px solid var(--sd-border)", paddingTop: "16px" }}>
 
 

@@ -21,6 +21,9 @@ const createEmptyInjury = (): Omit<Injury, "id" | "medicalRecordId"> => ({
 
 export default function InjuryModal({ athletes, onClose, onSuccess }: Props) {
     const [athleteId, setAthleteId] = useState<number | "">("")
+    const [startDate, setStartDate] = useState(new Date().toISOString().split("T")[0])
+    const [endDate, setEndDate] = useState("")
+    const [isAvailable, setIsAvailable] = useState(false)
     const [injuries, setInjuries] = useState<Omit<Injury, "id" | "medicalRecordId">[]>([createEmptyInjury()])
     const [loading, setLoading] = useState(false)
 
@@ -48,9 +51,9 @@ export default function InjuryModal({ athletes, onClose, onSuccess }: Props) {
                 athleteId: Number(athleteId),
                 diagnosis: "Accidentare",
                 treatment: "De stabilit",
-                startDate: new Date(),
-                endDate: null,
-                isAvailable: false,
+                startDate: new Date(startDate),
+                endDate: endDate ? new Date(endDate) : null,
+                isAvailable,
                 injuries: injuries.map((injury) => ({
                     injuryType: injury.injuryType,
                     bodyPart: injury.bodyPart,
@@ -125,6 +128,28 @@ export default function InjuryModal({ athletes, onClose, onSuccess }: Props) {
                                     </option>
                                 ))}
                             </select>
+                        </div>
+
+                        <div style={{ display: "flex", gap: "16px", marginBottom: "16px" }}>
+                            <div style={{ flex: 1 }}>
+                                <label style={{ display: "block", marginBottom: "8px" }}>Data Inceput</label>
+                                <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} required style={{ width: "100%", padding: "8px", border: "1px solid var(--sd-border)", background: "var(--sd-box-bg)", color: "var(--sd-text)", borderRadius: "4px" }} />
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <label style={{ display: "block", marginBottom: "8px" }}>Data Sfarsit (Optional)</label>
+                                <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} min={startDate} style={{ width: "100%", padding: "8px", border: "1px solid var(--sd-border)", background: "var(--sd-box-bg)", color: "var(--sd-text)", borderRadius: "4px" }} />
+                            </div>
+                        </div>
+
+                        <div style={{ marginBottom: "16px" }}>
+                            <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                <input
+                                    type="checkbox"
+                                    checked={isAvailable}
+                                    onChange={e => setIsAvailable(e.target.checked)}
+                                />
+                                Atletul este apt pentru joc/antrenament
+                            </label>
                         </div>
 
                         {injuries.map((injury, index) => (

@@ -72,6 +72,8 @@ export default function DosarManager({ initialRecords, athletes, shouldOpenNewRe
     const [searchQuery, setSearchQuery] = useState("")
     const [athleteFilter, setAthleteFilter] = useState<number | "">("")
     const [availabilityFilter, setAvailabilityFilter] = useState<AvailabilityFilter>("toate")
+    const [injurySearchQuery, setInjurySearchQuery] = useState("")
+    const [injuryAthleteFilter, setInjuryAthleteFilter] = useState<number | "">("")
     const [severityFilter, setSeverityFilter] = useState<SeverityFilter>("toate")
     const [athleteId, setAthleteId] = useState<number | "">("")
     const [diagnosis, setDiagnosis] = useState("")
@@ -94,42 +96,37 @@ export default function DosarManager({ initialRecords, athletes, shouldOpenNewRe
     }, [shouldOpenNewRecordModal])
 
     const normalizedSearchQuery = searchQuery.trim().toLowerCase()
-    const hasActiveFilters = normalizedSearchQuery !== "" || athleteFilter !== "" || availabilityFilter !== "toate" || severityFilter !== "toate"
-    const filteredRecords = records.filter((record) => {
-        if (athleteFilter !== "" && record.athleteId !== athleteFilter) {
-            return false
-        }
+    const hasActiveMedicalFilters = normalizedSearchQuery !== "" || athleteFilter !== ""
+    const medicalRecords = records.filter((record) => {
+        if (record.injuries.length > 0) return false
+        if (athleteFilter !== "" && record.athleteId !== athleteFilter) return false
+        if (normalizedSearchQuery === "") return true
 
-        if (availabilityFilter === "disponibil" && !record.isAvailable) {
-            return false
-        }
-
-        if (availabilityFilter === "indisponibil" && record.isAvailable) {
-            return false
-        }
-
-        if (severityFilter !== "toate" && !record.injuries.some((injury) => injury.severity === severityFilter)) {
-            return false
-        }
-
-        if (normalizedSearchQuery === "") {
-            return true
-        }
-
-        const searchableText = [
-            getAthleteName(record.athlete),
-            record.diagnosis,
-            record.treatment,
-            ...record.injuries.flatMap((injury) => [
-                injury.injuryType,
-                injury.bodyPart,
-                injury.notes ?? "",
-            ]),
-        ].join(" ").toLowerCase()
-
-        return searchableText.includes(normalizedSearchQuery)
+        return [getAthleteName(record.athlete), record.diagnosis, record.treatment]
+            .join(" ")
+            .toLowerCase()
+            .includes(normalizedSearchQuery)
     })
 
+    const allInjuryRecords = records.flatMap((record) =>
+        record.injuries.map((injury) => ({ record, injury }))
+    )
+    const normalizedInjurySearchQuery = injurySearchQuery.trim().toLowerCase()
+    const hasActiveInjuryFilters = normalizedInjurySearchQuery !== "" || injuryAthleteFilter !== "" || severityFilter !== "toate" || availabilityFilter !== "toate"
+    const injuryRecords = allInjuryRecords.filter(({ record, injury }) => {
+        if (injuryAthleteFilter !== "" && record.athleteId !== injuryAthleteFilter) return false
+        if (severityFilter !== "toate" && injury.severity !== severityFilter) return false
+        if (availabilityFilter === "disponibil" && !record.isAvailable) return false
+        if (availabilityFilter === "indisponibil" && record.isAvailable) return false
+        if (normalizedInjurySearchQuery === "") return true
+
+        return [getAthleteName(record.athlete), injury.injuryType, injury.bodyPart, injury.notes ?? ""]
+            .join(" ")
+            .toLowerCase()
+            .includes(normalizedInjurySearchQuery)
+    })
+    const totalMedicalRecords = records.filter((record) => record.injuries.length === 0).length
+    const totalInjuries = allInjuryRecords.length
     const openModal = (record?: MedicalRecord) => {
         setEditingRecord(record || null)
         setIsModalOpen(true)
@@ -150,11 +147,16 @@ export default function DosarManager({ initialRecords, athletes, shouldOpenNewRe
         setInjuries([])
     }
 
-    const resetFilters = () => {
+    const resetMedicalFilters = () => {
         setSearchQuery("")
         setAthleteFilter("")
-        setAvailabilityFilter("toate")
+    }
+
+    const resetInjuryFilters = () => {
+        setInjurySearchQuery("")
+        setInjuryAthleteFilter("")
         setSeverityFilter("toate")
+        setAvailabilityFilter("toate")
     }
 
     const handleRemoveInjury = (index: number) => {
@@ -279,17 +281,7 @@ export default function DosarManager({ initialRecords, athletes, shouldOpenNewRe
                             </div>
                         </div>
 
-                        <div style={{ marginBottom: "16px" }}>
-                            <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                                <input
-                                    type="checkbox"
-                                    checked={isAvailable}
-                                    onChange={(e) => setIsAvailable(e.target.checked)}
-                                />
-                                Atletul este apt pentru joc/antrenament
-                            </label>
-                        </div>
-
+    
                         <div style={{ marginBottom: "16px", borderTop: "1px solid #eee", paddingTop: "16px" }}>
                             {injuries.map((injury, index) => (
                                 <div key={index} style={{ background: "#f9f9f9", padding: "12px", borderRadius: "4px", marginBottom: "8px", border: "1px solid #e0e0e0" }}>
@@ -360,9 +352,9 @@ export default function DosarManager({ initialRecords, athletes, shouldOpenNewRe
                 </div>
             </div>
 
-            <div className="sd-box">
+            <div className="sd-box" style={{ marginBottom: "24px" }}>
                 <div className="sd-box-header">
-                    <h2>Dosare medicale ({filteredRecords.length}{hasActiveFilters ? ` din ${records.length}` : ""})</h2>
+                    <h2>Dosare medicale ({medicalRecords.length}{hasActiveMedicalFilters ? ` din ${totalMedicalRecords}` : ""})</h2>
                 </div>
                 <div className="sd-box-content" style={{ padding: 0, overflowX: "auto" }}>
                     <div className="sd-table-toolbar">
@@ -393,46 +385,21 @@ export default function DosarManager({ initialRecords, athletes, shouldOpenNewRe
                                 ))}
                             </select>
                         </div>
-                        <div style={{ ...FILTER_FIELD_STYLE, flex: "1 1 150px" }}>
-                            <label htmlFor="medical-record-availability-filter" className="sd-table-toolbar-label" style={FILTER_LABEL_STYLE}>Disponibilitate</label>
-                            <select
-                                id="medical-record-availability-filter"
-                                className="sd-input"
-                                value={availabilityFilter}
-                                onChange={(e) => setAvailabilityFilter(e.target.value as AvailabilityFilter)}
-                            >
-                                <option value="toate">Toate</option>
-                                <option value="disponibil">Disponibil</option>
-                                <option value="indisponibil">Indisponibil</option>
-                            </select>
-                        </div>
-                        <div style={{ ...FILTER_FIELD_STYLE, flex: "1 1 150px" }}>
-                            <label htmlFor="medical-record-severity-filter" className="sd-table-toolbar-label" style={FILTER_LABEL_STYLE}>Severitate</label>
-                            <select
-                                id="medical-record-severity-filter"
-                                className="sd-input"
-                                value={severityFilter}
-                                onChange={(e) => setSeverityFilter(e.target.value as SeverityFilter)}
-                            >
-                                <option value="toate">Toate</option>
-                                {Object.values(Severity).map((severity) => (
-                                    <option key={severity} value={severity}>{SEVERITY_LABELS[severity]}</option>
-                                ))}
-                            </select>
-                        </div>
+
+
                         <div className="sd-table-toolbar-actions">
                             <button
                                 type="button"
                                 className="sd-btn-secondary"
-                                onClick={resetFilters}
-                                disabled={!hasActiveFilters}
-                                style={{ cursor: hasActiveFilters ? "pointer" : "not-allowed", opacity: hasActiveFilters ? 1 : 0.55 }}
+                                onClick={resetMedicalFilters}
+                                disabled={!hasActiveMedicalFilters}
+                                style={{ cursor: hasActiveMedicalFilters ? "pointer" : "not-allowed", opacity: hasActiveMedicalFilters ? 1 : 0.55 }}
                             >
                                 Reseteaza
                             </button>
                         </div>
                     </div>
-                    {records.length === 0 ? (
+                    {totalMedicalRecords === 0 ? (
                         <p style={{ padding: "16px" }}>Nu exista dosare medicale inregistrate.</p>
                     ) : (
                         <table className="sd-table" style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -443,12 +410,11 @@ export default function DosarManager({ initialRecords, athletes, shouldOpenNewRe
                                     <th style={{ padding: "12px" }}>Tratament</th>
                                     <th style={{ padding: "12px" }}>Data inceput</th>
                                     <th style={{ padding: "12px" }}>Data sfarsit</th>
-                                    <th style={{ padding: "12px" }}>Disponibilitate</th>
                                     <th style={{ padding: "12px" }}>Actiuni</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredRecords.map((record) => (
+                                {medicalRecords.map((record) => (
                                     <tr key={record.id} style={{ borderBottom: "1px solid #eee" }}>
                                         <td style={{ padding: "12px" }}>
                                             {record.athlete.user.profile?.firstName} {record.athlete.user.profile?.lastName}
@@ -459,16 +425,103 @@ export default function DosarManager({ initialRecords, athletes, shouldOpenNewRe
                                         <td style={{ padding: "12px" }}>
                                             {record.endDate ? new Date(record.endDate).toLocaleDateString() : "-"}
                                         </td>
+
                                         <td style={{ padding: "12px" }}>
-                                            <span
-                                                style={{
-                                                    padding: "4px 8px",
-                                                    borderRadius: "12px",
-                                                    fontSize: "12px",
-                                                    background: record.isAvailable ? "#e6f4ea" : "#fce8e6",
-                                                    color: record.isAvailable ? "#1e8e3e" : "#d93025",
-                                                }}
+                                            <button
+                                                onClick={() => openModal(record)}
+                                                style={{ cursor: "pointer", background: "none", border: "none", color: "#0056b3", textDecoration: "underline" }}
                                             >
+                                                Editeaza
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                                {medicalRecords.length === 0 && (
+                                    <tr>
+                                        <td colSpan={6} style={{ textAlign: "center", color: "#999", padding: "20px" }}>
+                                            Nu exista dosare medicale pentru filtrele selectate.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
+            </div>
+
+            <div className="sd-box">
+                <div className="sd-box-header">
+                    <h2>Accidentari ({injuryRecords.length}{hasActiveInjuryFilters ? ` din ${totalInjuries}` : ""})</h2>
+                </div>
+                <div className="sd-box-content" style={{ padding: 0, overflowX: "auto" }}>
+                    <div className="sd-table-toolbar">
+                        <div style={{ ...FILTER_FIELD_STYLE, flex: "1 1 220px" }}>
+                            <label htmlFor="injury-search" className="sd-table-toolbar-label" style={FILTER_LABEL_STYLE}>Cauta</label>
+                            <input id="injury-search" type="search" className="sd-input" value={injurySearchQuery} onChange={(e) => setInjurySearchQuery(e.target.value)} placeholder="Atlet, tip, parte corp, note..." />
+                        </div>
+                        <div style={{ ...FILTER_FIELD_STYLE, flex: "1 1 180px" }}>
+                            <label htmlFor="injury-athlete-filter" className="sd-table-toolbar-label" style={FILTER_LABEL_STYLE}>Atlet</label>
+                            <select id="injury-athlete-filter" className="sd-input" value={injuryAthleteFilter} onChange={(e) => setInjuryAthleteFilter(e.target.value ? Number(e.target.value) : "")}>
+                                <option value="">Toti atletii</option>
+                                {athletes.map((athlete) => <option key={athlete.id} value={athlete.id}>{getAthleteName(athlete) || `Atlet #${athlete.id}`}</option>)}
+                            </select>
+                        </div>
+                        <div style={{ ...FILTER_FIELD_STYLE, flex: "1 1 150px" }}>
+                            <label htmlFor="injury-severity-filter" className="sd-table-toolbar-label" style={FILTER_LABEL_STYLE}>Severitate</label>
+                            <select id="injury-severity-filter" className="sd-input" value={severityFilter} onChange={(e) => setSeverityFilter(e.target.value as SeverityFilter)}>
+                                <option value="toate">Toate</option>
+                                {Object.values(Severity).map((severity) => <option key={severity} value={severity}>{SEVERITY_LABELS[severity]}</option>)}
+                            </select>
+                        </div>
+
+                        <div style={{ ...FILTER_FIELD_STYLE, flex: "1 1 150px" }}>
+                            <label htmlFor="injury-availability-filter" className="sd-table-toolbar-label" style={FILTER_LABEL_STYLE}>Disponibilitate</label>
+                            <select
+                                id="injury-availability-filter"
+                                className="sd-input"
+                                value={availabilityFilter}
+                                onChange={(e) => setAvailabilityFilter(e.target.value as AvailabilityFilter)}
+                            >
+                                <option value="toate">Toate</option>
+                                <option value="disponibil">Disponibil</option>
+                                <option value="indisponibil">Indisponibil</option>
+                            </select>
+                        </div>
+                        <div className="sd-table-toolbar-actions">
+                            <button type="button" className="sd-btn-secondary" onClick={resetInjuryFilters} disabled={!hasActiveInjuryFilters} style={{ cursor: hasActiveInjuryFilters ? "pointer" : "not-allowed", opacity: hasActiveInjuryFilters ? 1 : 0.55 }}>
+                                Reseteaza
+                            </button>
+                        </div>
+                    </div>
+                    {totalInjuries === 0 ? (
+                        <p style={{ padding: "16px" }}>Nu exista accidentari inregistrate.</p>
+                    ) : (
+                        <table className="sd-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+                            <thead>
+                                <tr style={{ borderBottom: "1px solid #eee", textAlign: "left" }}>
+                                    <th style={{ padding: "12px" }}>Atlet</th>
+                                    <th style={{ padding: "12px" }}>Tip accidentare</th>
+                                    <th style={{ padding: "12px" }}>Parte corp</th>
+                                    <th style={{ padding: "12px" }}>Severitate</th>
+                                    <th style={{ padding: "12px" }}>Zile recuperare</th>
+                                    <th style={{ padding: "12px" }}>Data inceput</th>
+                                    <th style={{ padding: "12px" }}>Data sfarsit</th>
+                                    <th style={{ padding: "12px" }}>Disponibilitate</th>
+                                    <th style={{ padding: "12px" }}>Actiuni</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {injuryRecords.map(({ record, injury }) => (
+                                    <tr key={injury.id} style={{ borderBottom: "1px solid #eee" }}>
+                                        <td style={{ padding: "12px" }}>{getAthleteName(record.athlete)}</td>
+                                        <td style={{ padding: "12px" }}>{injury.injuryType}</td>
+                                        <td style={{ padding: "12px" }}>{injury.bodyPart}</td>
+                                        <td style={{ padding: "12px" }}>{SEVERITY_LABELS[injury.severity]}</td>
+                                        <td style={{ padding: "12px" }}>{injury.recoveryDays}</td>
+                                        <td style={{ padding: "12px" }}>{new Date(record.startDate).toLocaleDateString()}</td>
+                                        <td style={{ padding: "12px" }}>{record.endDate ? new Date(record.endDate).toLocaleDateString() : "-"}</td>
+                                        <td style={{ padding: "12px" }}>
+                                            <span style={{ padding: "4px 8px", borderRadius: "12px", fontSize: "12px", background: record.isAvailable ? "#e6f4ea" : "#fce8e6", color: record.isAvailable ? "#1e8e3e" : "#d93025" }}>
                                                 {record.isAvailable ? "Disponibil" : "Indisponibil"}
                                             </span>
                                         </td>
@@ -482,10 +535,10 @@ export default function DosarManager({ initialRecords, athletes, shouldOpenNewRe
                                         </td>
                                     </tr>
                                 ))}
-                                {filteredRecords.length === 0 && (
+                                {injuryRecords.length === 0 && (
                                     <tr>
-                                        <td colSpan={7} style={{ textAlign: "center", color: "#999", padding: "20px" }}>
-                                            Nu exista dosare medicale pentru filtrele selectate.
+                                        <td colSpan={9} style={{ textAlign: "center", color: "#999", padding: "20px" }}>
+                                            Nu exista accidentari pentru filtrele selectate.
                                         </td>
                                     </tr>
                                 )}
@@ -494,7 +547,6 @@ export default function DosarManager({ initialRecords, athletes, shouldOpenNewRe
                     )}
                 </div>
             </div>
-
             {isModalOpen && (
                 <DosarMedicalModal
                     editingRecord={editingRecord}

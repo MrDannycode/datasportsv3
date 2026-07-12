@@ -5,6 +5,8 @@ import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import ActivitiesCalendar from "../atlet-fotbal/ActivitiesCalendar"
 import type { Prisma } from "@prisma/client"
+import InjuryHistoryChart from "./InjuryHistoryChart"
+import RecentMedicalRecordsPanel from "./RecentMedicalRecordsPanel"
 
 type UpcomingMatch = Prisma.FootballMatchGetPayload<{ include: { teamHome: true; teamAway: true; competition: true } }>
 type AssignedTrainingPlan = Prisma.TrainingPlanGetPayload<{ include: { creator: { include: { profile: true } } } }>
@@ -22,6 +24,9 @@ type RecentMedicalRecord = Prisma.MedicalRecordGetPayload<{
         }
         injuries: true
     }
+}>
+type InjuryHistory = Prisma.InjuryGetPayload<{
+    include: { medicalRecord: { include: { athlete: { include: { user: { include: { profile: true } } } } } } }
 }>
 type ActivityCalendarEvent = {
     id: string
@@ -69,6 +74,7 @@ export default async function MedicPage() {
     let assignedTrainingPlans: AssignedTrainingPlan[] = []
     let assignedFitnessPlans: AssignedFitnessPlan[] = []
     let recentMedicalRecords: RecentMedicalRecord[] = []
+    let injuryHistory: InjuryHistory[] = []
 
     if (doctorProfile?.teamId) {
         upcomingMatches = await prisma.footballMatch.findMany({
@@ -167,7 +173,13 @@ export default async function MedicPage() {
             orderBy: {
                 createdAt: "desc",
             },
-            take: 5,
+            take: 20,
+        })
+
+        injuryHistory = await prisma.injury.findMany({
+            where: { medicalRecord: { athlete: { user: { profile: { is: { teamId: doctorProfile.teamId } } } } } },
+            include: { medicalRecord: { include: { athlete: { include: { user: { include: { profile: true } } } } } } },
+            orderBy: { medicalRecord: { startDate: "asc" } },
         })
     }
 
@@ -220,7 +232,23 @@ export default async function MedicPage() {
         ...event,
         date: event.date.toISOString(),
     }))
+    const serializedInjuryHistory = injuryHistory.map((injury) => ({
+        id: injury.id,
+        date: injury.medicalRecord.startDate.toISOString(),
+        athleteId: injury.medicalRecord.athlete.id,
+        athleteName: `${injury.medicalRecord.athlete.user.profile?.firstName ?? ""} ${injury.medicalRecord.athlete.user.profile?.lastName ?? ""}`.trim() || "Atlet necunoscut",
+        severity: injury.severity,
+    }))
 
+    const serializedRecentMedicalRecords = recentMedicalRecords.map(record => ({
+        id: record.id,
+        createdAt: record.createdAt.toISOString(),
+        athleteName: `${record.athlete.user.profile?.firstName ?? ""} ${record.athlete.user.profile?.lastName ?? ""}`.trim() || "Atlet necunoscut",
+        diagnosis: record.diagnosis,
+        treatment: record.treatment,
+        isAvailable: record.isAvailable,
+        injuries: record.injuries.map(injury => ({ id: injury.id, injuryType: injury.injuryType, bodyPart: injury.bodyPart, severity: injury.severity })),
+    }))
     return (
         <main>
             <div className="sd-box">
@@ -240,47 +268,18 @@ export default async function MedicPage() {
                         </div>
                     </div>
 
+                    <div className="sd-box sd-hover-box injury-history-panel">
+                        <div className="sd-box-header"><h2>Grafic Istoric Accidentari</h2></div>
+                        <div className="sd-box-content"><InjuryHistoryChart injuries={serializedInjuryHistory} /></div>
+                    </div>
+
                     <div className="sd-panels">
                         <div className="sd-box sd-activities sd-hover-box">
                             <div className="sd-box-header">
                                 <h2>Dosare recente</h2>
                                 <Link href="/medic/dosar-medical">Vezi toate</Link>
                             </div>
-                            <div className="sd-box-content">
-                                {recentMedicalRecords.length === 0 ? (
-                                    <p>Nu exista dosare medicale recente pentru echipa ta.</p>
-                                ) : (
-                                    <table className="sd-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Data</th>
-                                                <th>Atlet</th>
-                                                <th>Diagnostic</th>
-                                                <th>Accidentari</th>
-                                                <th>Severitate</th>
-                                                <th>Disponibilitate</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {recentMedicalRecords.map((record) => {
-                                                const athleteName = `${record.athlete.user.profile?.firstName ?? ""} ${record.athlete.user.profile?.lastName ?? ""}`.trim() || "Atlet necunoscut"
-                                                const latestInjury = record.injuries[0]
-
-                                                return (
-                                                    <tr key={record.id}>
-                                                        <td>{new Date(record.createdAt).toLocaleDateString()}</td>
-                                                        <td>{athleteName}</td>
-                                                        <td>{record.diagnosis}</td>
-                                                        <td>{record.injuries.length}</td>
-                                                        <td>{latestInjury ? SEVERITY_LABELS[latestInjury.severity] ?? latestInjury.severity : "-"}</td>
-                                                        <td>{record.isAvailable ? "Disponibil" : "Indisponibil"}</td>
-                                                    </tr>
-                                                )
-                                            })}
-                                        </tbody>
-                                    </table>
-                                )}
-                            </div>
+                            <RecentMedicalRecordsPanel records={serializedRecentMedicalRecords} />
                         </div>
 
 

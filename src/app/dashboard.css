@@ -399,6 +399,21 @@ html.dark.sd-table-mode-normal .sd-sidebar-metric-card:focus-visible {
     gap: 20px;
 }
 
+.injury-history-panel { width: 100%; min-width: 0; margin: 20px 0; }
+.injury-history-chart { display: grid; gap: 16px; }
+.injury-history-chart__toolbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.injury-history-chart__toolbar p { margin: 3px 0 0; color: #64748b; font-size: 12px; }
+.injury-history-chart__filters { display: flex; gap: 8px; flex-wrap: wrap; }
+.injury-history-chart__filters select { padding: 7px 9px; border: 1px solid #cbd5e1; border-radius: 4px; background: #fff; color: #171717; color-scheme: light; }
+.injury-history-chart__filters option { background: #fff; color: #171717; }
+.dark .injury-history-chart__filters select { background: #1f2937; border-color: #475569; color: #f8fafc; color-scheme: dark; }
+.dark .injury-history-chart__filters option { background: #1f2937; color: #f8fafc; }
+.injury-history-chart__canvas { overflow-x: auto; }
+.injury-history-chart__canvas svg { display: block; width: 100%; min-width: 720px; height: auto; }
+.injury-history-chart__legend { display: flex; justify-content: center; gap: 18px; flex-wrap: wrap; font-size: 12px; }
+.injury-history-chart__legend span { display: flex; align-items: center; gap: 6px; }
+.injury-history-chart__legend i { width: 10px; height: 10px; border-radius: 2px; }
+
 .sd-activities {
     flex: 2;
 }
