@@ -1050,6 +1050,20 @@ html.dark.sd-table-mode-normal .sd-sidebar-metric-card:focus-visible {
     border-left: 3px solid #f59e0b;
 }
 
+.dsb-row-promotion td:first-child {
+    border-left: 3px solid #16a34a;
+}
+
+.dsb-row-playoff td:first-child {
+    border-left: 3px solid #8b5cf6;
+}
+
+.dsb-row-relegation td:first-child {
+    border-left: 3px solid #dc2626;
+}
+
+
+
 /* ---- Legend ---- */
 .dsb-legend {
     display: flex;
@@ -1075,6 +1089,20 @@ html.dark.sd-table-mode-normal .sd-sidebar-metric-card:focus-visible {
 .dsb-legend-uel {
     background: #f59e0b;
 }
+
+.dsb-legend-promotion {
+    background: #16a34a;
+}
+
+.dsb-legend-playoff {
+    background: #8b5cf6;
+}
+
+.dsb-legend-relegation {
+    background: #dc2626;
+}
+
+
 
 /* ---- Responsive ---- */
 @media (max-width: 900px) {

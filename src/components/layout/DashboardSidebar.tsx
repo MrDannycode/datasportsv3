@@ -38,6 +38,8 @@ export default function DashboardSidebar({
     standingsLeagueName,
 }: DashboardSidebarProps) {
     const [activeTab, setActiveTab] = useState<SidebarTab>("clasament")
+    const relegationStartPosition = standings.length - 1
+    const playoffStartPosition = standings.length - 3
 
     return (
         <aside className="dsb-sidebar">
@@ -91,7 +93,11 @@ export default function DashboardSidebar({
                                                     ? "dsb-row-ucl"
                                                     : row.pos <= 6
                                                         ? "dsb-row-uel"
-                                                        : ""
+                                                        : row.pos >= relegationStartPosition
+                                                            ? "dsb-row-relegation"
+                                                            : row.pos >= playoffStartPosition
+                                                                ? "dsb-row-playoff"
+                                                                : ""
                                             }
                                         >
                                             <td className="dsb-pos">{row.pos}</td>
@@ -109,6 +115,8 @@ export default function DashboardSidebar({
                         <div className="dsb-legend">
                             <span className="dsb-legend-dot dsb-legend-ucl" /> UCL
                             <span className="dsb-legend-dot dsb-legend-uel" style={{ marginLeft: 12 }} /> UEL
+                            <span className="dsb-legend-dot dsb-legend-playoff" style={{ marginLeft: 12 }} /> Baraj
+                            <span className="dsb-legend-dot dsb-legend-relegation" style={{ marginLeft: 12 }} /> Retrogradare
                         </div>
                     </div>
                 )}

@@ -124,6 +124,24 @@ function buildLeagueStandings(teams: FootballTeamSummary[], matches: FootballMat
 }
 
 function LeagueStandingsTable({ leagueName, standings }: { leagueName: string; standings: LeagueStanding[] }) {
+    const relegationStartPosition = standings.length - 1
+    const playoffStartPosition = standings.length - 3
+
+    function getRowClassName(position: number) {
+        if (leagueName === "Liga 2") {
+            if (position <= 2) return "dsb-row-promotion"
+            if (position <= 4) return "dsb-row-playoff"
+        } else {
+            if (position <= 4) return "dsb-row-ucl"
+            if (position <= 6) return "dsb-row-uel"
+        }
+
+        if (position >= relegationStartPosition) return "dsb-row-relegation"
+        if (position >= playoffStartPosition) return "dsb-row-playoff"
+
+        return ""
+    }
+
     return (
         <div className="sd-box sd-league-standings-card">
             <div className="sd-box-header">
@@ -156,7 +174,10 @@ function LeagueStandingsTable({ leagueName, standings }: { leagueName: string; s
                             </tr>
                         ) : (
                             standings.map((row) => (
-                                <tr key={row.team}>
+                                <tr
+                                    key={row.team}
+                                    className={getRowClassName(row.pos)}
+                                >
                                     <td className="dsb-pos">{row.pos}</td>
                                     <td className="dsb-team-name">{row.team}</td>
                                     <td>{row.played}</td>
@@ -172,6 +193,21 @@ function LeagueStandingsTable({ leagueName, standings }: { leagueName: string; s
                         )}
                     </tbody>
                 </table>
+                <div className="dsb-legend">
+                    {leagueName === "Liga 2" ? (
+                        <>
+                            <span className="dsb-legend-dot dsb-legend-promotion" /> Promovare
+                            <span className="dsb-legend-dot dsb-legend-playoff" style={{ marginLeft: 12 }} /> Baraj
+                        </>
+                    ) : (
+                        <>
+                            <span className="dsb-legend-dot dsb-legend-ucl" /> UCL
+                            <span className="dsb-legend-dot dsb-legend-uel" style={{ marginLeft: 12 }} /> UEL
+                            <span className="dsb-legend-dot dsb-legend-playoff" style={{ marginLeft: 12 }} /> Baraj
+                        </>
+                    )}
+                    <span className="dsb-legend-dot dsb-legend-relegation" style={{ marginLeft: 12 }} /> Retrogradare
+                </div>
             </div>
         </div>
     )
