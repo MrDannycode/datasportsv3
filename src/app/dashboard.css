@@ -898,8 +898,8 @@ html.dark.sd-table-mode-normal .sd-sidebar-metric-card:focus-visible {
     background: linear-gradient(180deg, #ffffff 0%, #f4f7fb 100%);
     border-top: 1px solid color-mix(in srgb, var(--sd-border) 68%, transparent);
     border-bottom: 1px solid color-mix(in srgb, var(--sd-border) 68%, transparent);
-    border-top-left-radius: 14px;
-    border-top-right-radius: 14px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
     overflow: hidden;
 }
 
@@ -924,11 +924,11 @@ html.dark.sd-table-mode-normal .sd-sidebar-metric-card:focus-visible {
 }
 
 .dsb-tab-btn:first-child {
-    border-top-left-radius: 14px;
+    border-top-left-radius: 0;
 }
 
 .dsb-tab-btn:last-child {
-    border-top-right-radius: 14px;
+    border-top-right-radius: 0;
 }
 
 .dsb-tab-btn--active {
