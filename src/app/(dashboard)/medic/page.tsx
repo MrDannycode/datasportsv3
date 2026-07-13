@@ -28,6 +28,9 @@ type RecentMedicalRecord = Prisma.MedicalRecordGetPayload<{
 type InjuryHistory = Prisma.InjuryGetPayload<{
     include: { medicalRecord: { include: { athlete: { include: { user: { include: { profile: true } } } } } } }
 }>
+type WorkloadHistory = Prisma.DailyLoadGetPayload<{
+    include: { athlete: { include: { user: { include: { footballAthlete: true } } } } }
+}>
 type ActivityCalendarEvent = {
     id: string
     date: Date
@@ -75,6 +78,7 @@ export default async function MedicPage() {
     let assignedFitnessPlans: AssignedFitnessPlan[] = []
     let recentMedicalRecords: RecentMedicalRecord[] = []
     let injuryHistory: InjuryHistory[] = []
+    let workloadHistory: WorkloadHistory[] = []
 
     if (doctorProfile?.teamId) {
         upcomingMatches = await prisma.footballMatch.findMany({
@@ -181,6 +185,21 @@ export default async function MedicPage() {
             include: { medicalRecord: { include: { athlete: { include: { user: { include: { profile: true } } } } } } },
             orderBy: { medicalRecord: { startDate: "asc" } },
         })
+
+        const workloadFromDate = new Date()
+        workloadFromDate.setMonth(workloadFromDate.getMonth() - 12, 1)
+        workloadFromDate.setHours(0, 0, 0, 0)
+        workloadHistory = await prisma.dailyLoad.findMany({
+            where: {
+                date: { gte: workloadFromDate },
+                athlete: {
+                    teamId: doctorProfile.teamId,
+                    user: { footballAthlete: { isNot: null } },
+                },
+            },
+            include: { athlete: { include: { user: { include: { footballAthlete: true } } } } },
+            orderBy: { date: "asc" },
+        })
     }
 
     const today = new Date()
@@ -239,6 +258,14 @@ export default async function MedicPage() {
         athleteName: `${injury.medicalRecord.athlete.user.profile?.firstName ?? ""} ${injury.medicalRecord.athlete.user.profile?.lastName ?? ""}`.trim() || "Atlet necunoscut",
         severity: injury.severity,
     }))
+    const serializedWorkloadHistory = workloadHistory.flatMap((load) => {
+        const footballAthlete = load.athlete.user.footballAthlete
+        return footballAthlete ? [{
+            date: load.date.toISOString(),
+            athleteId: footballAthlete.id,
+            acRatio: load.acRatio,
+        }] : []
+    })
 
     const serializedRecentMedicalRecords = recentMedicalRecords.map(record => ({
         id: record.id,
@@ -270,7 +297,7 @@ export default async function MedicPage() {
 
                     <div className="sd-box sd-hover-box injury-history-panel">
                         <div className="sd-box-header"><h2>Grafic Istoric Accidentari</h2></div>
-                        <div className="sd-box-content"><InjuryHistoryChart injuries={serializedInjuryHistory} /></div>
+                        <div className="sd-box-content"><InjuryHistoryChart injuries={serializedInjuryHistory} workloads={serializedWorkloadHistory} /></div>
                     </div>
 
                     <div className="sd-panels">

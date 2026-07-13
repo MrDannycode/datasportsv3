@@ -1,8 +1,9 @@
 "use client"
 
 import { useEffect, useRef, useState, useTransition } from "react"
-import { addActivity, deleteActivity } from "./actions"
+import { addActivity, deleteActivity, importActivities, type ActivityImportResult } from "./actions"
 import ActivityModal from "./ActivityModal"
+import { parseCsv } from "@/lib/csv"
 
 type Activity = {
   id: number
@@ -37,6 +38,7 @@ type Props = {
   latestLoad: DailyLoad | null
   profile: Profile
   shouldOpenNewActivityModal?: boolean
+  defaultSport?: "fotbal" | "tenis"
 }
 
 const INPUT_STYLE: React.CSSProperties = {
@@ -116,20 +118,24 @@ function RiskBadge({ ratio }: { ratio: number }) {
   )
 }
 
-export default function ActivityManager({ initialActivities, latestLoad, profile, shouldOpenNewActivityModal = false }: Props) {
+export default function ActivityManager({ initialActivities, latestLoad, profile, shouldOpenNewActivityModal = false, defaultSport = "fotbal" }: Props) {
   const [activities, setActivities] = useState<Activity[]>(initialActivities)
   const [currentLoad] = useState<DailyLoad | null>(latestLoad)
   const [isPending, startTransition] = useTransition()
   const [date, setDate] = useState(today())
   const [durationMin, setDurationMin] = useState("")
   const [avgHeartRate, setAvgHeartRate] = useState("")
-  const [sport, setSport] = useState("fotbal")
+  const [sport, setSport] = useState(defaultSport)
   const [notes, setNotes] = useState("")
   const [formError, setFormError] = useState<string | null>(null)
   const [formSuccess, setFormSuccess] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [isActivityModalOpen, setIsActivityModalOpen] = useState(false)
   const hasOpenedFromQueryRef = useRef(false)
+  const csvFileRef = useRef<HTMLInputElement>(null)
+  const [importing, setImporting] = useState(false)
+  const [importError, setImportError] = useState("")
+  const [importResults, setImportResults] = useState<ActivityImportResult[]>([])
 
   const hasCardiacData = !!(profile.restingHeartRate && profile.maxHeartRate)
 
@@ -146,7 +152,7 @@ export default function ActivityManager({ initialActivities, latestLoad, profile
     setDate(today())
     setDurationMin("")
     setAvgHeartRate("")
-    setSport("fotbal")
+    setSport(defaultSport)
     setNotes("")
     setFormError(null)
     setFormSuccess(null)
@@ -211,6 +217,59 @@ export default function ActivityManager({ initialActivities, latestLoad, profile
       }
       setDeletingId(null)
     })
+  }
+
+  async function submitCsv(file: File) {
+    setImporting(true)
+    setImportError("")
+    setImportResults([])
+    try {
+      const records = parseCsv((await file.text()).replace(/^\uFEFF/, ""))
+      const headers = records.shift()?.map((value) => value.toLowerCase().trim()) ?? []
+      const required = ["date", "durationmin"]
+      const missing = required.filter((name) => !headers.includes(name))
+      if (missing.length) throw new Error(`Lipsesc coloanele obligatorii: ${missing.join(", ")}.`)
+      const value = (row: string[], name: string) => row[headers.indexOf(name)] ?? ""
+      const rows = records.map((row) => ({
+        date: value(row, "date"),
+        durationMin: value(row, "durationmin"),
+        sport: value(row, "sport"),
+        avgHeartRate: value(row, "avgheartrate"),
+        notes: value(row, "notes"),
+      }))
+      if (!rows.length) throw new Error("Fisierul CSV nu contine activitati.")
+
+      const results = (await importActivities(rows)).results
+      setImportResults(results)
+      const created = results.filter((result) => result.success && result.id)
+      setActivities((current) => [
+        ...created.map((result) => ({
+          id: result.id!,
+          date: result.activityDate!,
+          durationMin: result.durationMin!,
+          avgHeartRate: result.avgHeartRate,
+          sport: result.sport,
+          notes: result.notes,
+          trimp: result.trimp ?? null,
+        })),
+        ...current,
+      ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()))
+    } catch (error) {
+      setImportError(error instanceof Error ? error.message : "Importul a esuat.")
+    } finally {
+      setImporting(false)
+      if (csvFileRef.current) csvFileRef.current.value = ""
+    }
+  }
+
+  function downloadCsvTemplate() {
+    const csv = `date,durationMin,sport,avgHeartRate,notes\n2026-07-12,90,${defaultSport},155,Antrenament tactic`
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }))
+    const link = document.createElement("a")
+    link.href = url
+    link.download = "model-import-activitati.csv"
+    link.click()
+    URL.revokeObjectURL(url)
   }
 
   return (
@@ -297,6 +356,37 @@ export default function ActivityManager({ initialActivities, latestLoad, profile
           </form>
           {formError && <p style={{ color: "#c00", fontSize: "12px", marginTop: "10px" }}>Eroare: {formError}</p>}
           {formSuccess && <p style={{ color: "#2a7a2a", fontSize: "12px", marginTop: "10px" }}>{formSuccess}</p>}
+        </div>
+      </div>
+
+      <div className="sd-box" style={{ marginBottom: "24px" }}>
+        <div className="sd-box-header"><h2>Importa activitati din CSV</h2></div>
+        <div className="sd-box-content">
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+            <button type="button" onClick={downloadCsvTemplate} className="sd-btn-secondary">Descarca model CSV</button>
+            <label className="sd-btn-primary" style={{ cursor: importing ? "not-allowed" : "pointer" }}>
+              {importing ? "Se importa..." : "Alege fisier CSV"}
+              <input ref={csvFileRef} type="file" accept=".csv,text/csv" disabled={importing || isPending} onChange={(event) => { const file = event.target.files?.[0]; if (file) void submitCsv(file) }} style={{ display: "none" }} />
+            </label>
+          </div>
+          {importError && <p style={{ color: "#c00", fontSize: "12px" }}>{importError}</p>}
+          {importResults.length > 0 && (
+            <div style={{ marginTop: "14px", overflowX: "auto" }}>
+              <p style={{ fontSize: "13px", fontWeight: 700 }}>Import finalizat: {importResults.filter((result) => result.success).length} create, {importResults.filter((result) => !result.success).length} respinse.</p>
+              <table className="sd-table">
+                <thead><tr><th>Rand</th><th>Data</th><th>Sport</th><th>Rezultat</th><th>ID / eroare</th></tr></thead>
+                <tbody>
+                  {importResults.map((result) => (
+                    <tr key={`${result.row}-${result.date}`}>
+                      <td>{result.row}</td><td>{result.date || "-"}</td><td>{result.sport}</td>
+                      <td style={{ color: result.success ? "#2a7a2a" : "#c00", fontWeight: 700 }}>{result.success ? "Creata" : "Respinsa"}</td>
+                      <td>{result.id ?? result.error}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
 

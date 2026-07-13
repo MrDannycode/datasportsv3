@@ -408,6 +408,9 @@ html.dark.sd-table-mode-normal .sd-sidebar-metric-card:focus-visible {
 .injury-history-chart__filters option { background: #fff; color: #171717; }
 .dark .injury-history-chart__filters select { background: #1f2937; border-color: #475569; color: #f8fafc; color-scheme: dark; }
 .dark .injury-history-chart__filters option { background: #1f2937; color: #f8fafc; }
+.injury-history-chart__workload-toggle { display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 4px; background: #fff; color: #171717; cursor: pointer; font-size: 13px; }
+.injury-history-chart__workload-toggle input { accent-color: #7c3aed; }
+.dark .injury-history-chart__workload-toggle { background: #1f2937; border-color: #475569; color: #f8fafc; }
 .injury-history-chart__canvas { overflow-x: auto; }
 .injury-history-chart__canvas svg { display: block; width: 100%; min-width: 720px; height: auto; }
 .injury-history-chart__legend { display: flex; justify-content: center; gap: 18px; flex-wrap: wrap; font-size: 12px; }
@@ -417,6 +420,7 @@ html.dark.sd-table-mode-normal .sd-sidebar-metric-card:focus-visible {
 .sd-activities {
     flex: 2;
 }
+.injury-history-chart__legend .injury-history-chart__ratio-line { width: 18px; height: 3px; border-radius: 999px; background: #7c3aed; }
 
 .sd-sidebar {
     flex: 1;

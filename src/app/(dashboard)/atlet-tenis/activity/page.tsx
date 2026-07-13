@@ -94,6 +94,7 @@ export default async function ActivityPage({ searchParams }: ActivityPageProps) 
               gender: profile.gender ?? null,
             }}
             shouldOpenNewActivityModal={resolvedSearchParams?.open === "new"}
+            defaultSport="tenis"
           />
         </div>
       </div>
