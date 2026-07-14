@@ -67,7 +67,7 @@ export default function DashboardSidebar({
                             <span className="dsb-panel-title">{standingsLeagueName ?? "Clasament"}</span>
                             <span className="dsb-panel-season">2024/25</span>
                         </div>
-                        <table className="dsb-table">
+                        <table className="dsb-table dsb-standings-table">
                             <thead>
                                 <tr>
                                     <th>#</th>

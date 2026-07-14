@@ -310,22 +310,27 @@ export default async function AntrenorFotbalPage() {
                             </span>
                         </div>
                         <div className="sd-box-content">
-                            <div className="sd-metrics" style={{ marginBottom: "18px" }}>
-                                <div className="sd-box sd-metric-box">
-                                    <div className="sd-metric-title">Scor echipa</div>
-                                    <div className="sd-metric-value">{formatReadinessScore(teamReadiness)}</div>
-                                </div>
-                                <div className="sd-box sd-metric-box">
-                                    <div className="sd-metric-title">Jucatori inclusi</div>
-                                    <div className="sd-metric-value">{readinessPlayers.length}</div>
-                                </div>
-                                <div className="sd-box sd-metric-box">
-                                    <div className="sd-metric-title">Eligibilitate</div>
-                                    <div className="sd-metric-value" style={{ fontSize: "14px", marginTop: "8px" }}>
-                                        Disponibili cu aviz medical
+                            <dl style={{ margin: "0 0 18px" }}>
+                                {[
+                                    ["Scor echipa", formatReadinessScore(teamReadiness)],
+                                    ["Jucatori inclusi", readinessPlayers.length],
+                                ].map(([label, value], index) => (
+                                    <div
+                                        key={label}
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "space-between",
+                                            gap: "24px",
+                                            padding: "10px 0",
+                                            borderBottom: index < 1 ? "1px solid var(--sd-border)" : undefined,
+                                        }}
+                                    >
+                                        <dt style={{ color: "var(--sd-text)", fontSize: "14px", opacity: 0.7 }}>{label}</dt>
+                                        <dd style={{ margin: 0, fontWeight: 600, textAlign: "right" }}>{value}</dd>
                                     </div>
-                                </div>
-                            </div>
+                                ))}
+                            </dl>
 
                             <div style={{ marginBottom: "16px" }}>
                                 <div style={{ height: "12px", background: "#e5e7eb", borderRadius: "999px", overflow: "hidden" }}>
