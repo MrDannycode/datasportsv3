@@ -20,7 +20,7 @@ export default async function InvitatiiPage({ searchParams }: InvitatiiPageProps
     const resolvedSearchParams = searchParams ? await searchParams : undefined
     const managerAssignment = await prisma.managerAssignment.findUnique({
         where: { userId: Number(session.user.id) },
-        select: { country: true, continent: true },
+        select: { id: true, country: true, continent: true },
     })
 
     const teams = await prisma.team.findMany({
@@ -35,13 +35,18 @@ export default async function InvitatiiPage({ searchParams }: InvitatiiPageProps
         ? await prisma.user.findMany({
             where: {
                 role: "atlet_fotbal",
-                profile: {
-                    is: {
-                        team: {
-                            is: { sport: "fotbal", country: managerAssignment.country },
+                OR: [
+                    {
+                        profile: {
+                            is: {
+                                team: {
+                                    is: { sport: "fotbal", country: managerAssignment.country },
+                                },
+                            },
                         },
                     },
-                },
+                    { footballAthlete: { is: { managerAssignmentId: managerAssignment.id } } },
+                ],
             },
             include: { profile: { include: { team: true } }, footballAthlete: true },
             orderBy: { email: "asc" },
@@ -68,7 +73,7 @@ export default async function InvitatiiPage({ searchParams }: InvitatiiPageProps
                 </div>
                 <div className="sd-box-content">
                     <AthleteInviteManager shouldOpenInviteModal={resolvedSearchParams?.open === "new"} teams={teams} />
-                    <PlayerManager players={players} teams={teams} />
+                    <PlayerManager key={players.map(player => player.id).join(",")} players={players} teams={teams} />
                 </div>
             </div>
         </main>

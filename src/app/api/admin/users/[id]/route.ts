@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getToken } from "next-auth/jwt"
 import { prisma } from "@/lib/prisma"
+import { deleteUserAccount } from "@/lib/user-deletion"
 
 // DELETE /api/admin/users/[id]
 export async function DELETE(
@@ -25,9 +26,13 @@ export async function DELETE(
     }
 
     try {
-        await prisma.user.delete({ where: { id: userId } })
+        await prisma.$transaction(async (tx) => {
+            const user = await deleteUserAccount(tx, userId)
+            if (!user) throw new Error("Utilizatorul nu a fost gasit")
+            return user
+        })
         return NextResponse.json({ success: true })
     } catch {
-        return NextResponse.json({ error: "Utilizatorul nu a fost găsit" }, { status: 404 })
+        return NextResponse.json({ error: "Utilizatorul nu poate fi sters deoarece are date asociate in sistem" }, { status: 409 })
     }
 }

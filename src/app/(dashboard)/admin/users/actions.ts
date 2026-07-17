@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { Role } from "@prisma/client"
 import { revalidatePath } from "next/cache"
+import { deleteUserAccount } from "@/lib/user-deletion"
 import bcrypt from "bcryptjs"
 
 export async function createUser(data: { email: string; password: string; role: string }) {
@@ -124,25 +125,25 @@ export async function deleteUser(id: number) {
     }
 
     try {
-        const deletedUser = await prisma.user.delete({
-            where: { id },
-            select: { id: true, email: true, role: true },
-        })
+        await prisma.$transaction(async (tx) => {
+            const deletedUser = await deleteUserAccount(tx, id)
+            if (!deletedUser) throw new Error("Utilizatorul nu a fost gasit")
 
-        await prisma.auditLog.create({
-            data: {
-                userId: Number(session.user.id),
-                action: "delete",
-                tableAffected: "users",
-                recordId: deletedUser.id,
-                details: { email: deletedUser.email, role: deletedUser.role },
-            },
+            await tx.auditLog.create({
+                data: {
+                    userId: Number(session.user.id),
+                    action: "delete",
+                    tableAffected: "users",
+                    recordId: deletedUser.id,
+                    details: { email: deletedUser.email, role: deletedUser.role },
+                },
+            })
         })
 
         revalidatePath("/admin/users")
         revalidatePath("/admin/audituri")
         return { success: true }
     } catch {
-        return { error: "Utilizatorul nu a fost găsit sau a apărut o eroare" }
+        return { error: "Utilizatorul nu poate fi sters deoarece are date asociate in sistem" }
     }
 }

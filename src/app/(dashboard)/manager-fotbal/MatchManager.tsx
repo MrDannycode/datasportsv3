@@ -452,7 +452,7 @@ export default function MatchManager({
                 </div>
 
 
-                <div className="sd-table-toolbar">
+                <div className="sd-table-toolbar sd-match-table-toolbar">
                     <label htmlFor="match-competition-filter" className="sd-table-toolbar-label">Competitie</label>
                     <select
                         id="match-competition-filter"

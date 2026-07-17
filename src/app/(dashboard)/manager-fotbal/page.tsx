@@ -228,7 +228,7 @@ export default async function ManagerFotbalPage({
 
     const managerAssignment = await prisma.managerAssignment.findUnique({
         where: { userId: Number(session.user.id) },
-        select: { country: true, continent: true },
+        select: { id: true, country: true, continent: true },
     })
 
     const assignedCountry = managerAssignment?.country ?? null
@@ -244,8 +244,14 @@ export default async function ManagerFotbalPage({
             ],
         }
         : { id: -1 }
-    const footballAthleteWhere = assignedCountry
-        ? { role: "atlet_fotbal" as const, profile: { team: { country: assignedCountry } } }
+    const footballAthleteWhere = assignedCountry && managerAssignment
+        ? {
+            role: "atlet_fotbal" as const,
+            OR: [
+                { profile: { team: { country: assignedCountry } } },
+                { footballAthlete: { managerAssignmentId: managerAssignment.id } },
+            ],
+        }
         : { role: "atlet_fotbal" as const, id: -1 }
     const footballStaffWhere = assignedCountry
         ? { role: "antrenor_fotbal" as const, profile: { team: { country: assignedCountry } } }

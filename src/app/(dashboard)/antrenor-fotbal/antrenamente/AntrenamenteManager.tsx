@@ -195,23 +195,36 @@ export default function AntrenamenteManager({ initialPlans, shouldOpenNewPlanMod
                 </div>
             </div>
 
-            <div className="sd-toolbar">
-                <div className="sd-filter-group">
-                    {(["toate", "tehnic", "fizic", "tactic"] as const).map((currentFilter) => (
-                        <button key={currentFilter} className={`sd-filter-btn${filter === currentFilter ? " active" : ""}`} onClick={() => setFilter(currentFilter)}>
-                            {currentFilter.charAt(0).toUpperCase() + currentFilter.slice(1)}
-                        </button>
-                    ))}
-                </div>
-            </div>
-
-            <div className="sd-box">
+            <div className="sd-box sd-training-plans-box">
                 <div className="sd-box-header">
                     <h2>Planuri de antrenament ({filtered.length})</h2>
                 </div>
                 <div className="sd-box-content" style={{ padding: 0 }}>
                     <table className="sd-table">
                         <thead>
+                            <tr>
+                                <th colSpan={6} style={{ padding: "7px 10px", textAlign: "left" }}>
+                                    <div className="sd-toolbar" style={{ marginBottom: 0, flexWrap: "nowrap", gap: "8px" }}>
+                                        {/* <span style={{ fontSize: "11px", fontWeight: "bold", color: "#555", whiteSpace: "nowrap" }}>
+                                            Filtreaza dupa tip:
+                                        </span> */}
+                                        <div className="sd-filter-group" style={{ flexWrap: "nowrap", gap: "4px" }}>
+                                            {(["toate", "tehnic", "fizic", "tactic"] as const).map((currentFilter) => (
+                                                <button
+                                                    key={currentFilter}
+                                                    type="button"
+                                                    className={`sd-filter-btn${filter === currentFilter ? " active" : ""}`}
+                                                    style={{ padding: "3px 8px", fontSize: "11px", whiteSpace: "nowrap" }}
+                                                    aria-pressed={filter === currentFilter}
+                                                    onClick={() => setFilter(currentFilter)}
+                                                >
+                                                    {currentFilter.charAt(0).toUpperCase() + currentFilter.slice(1)}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </th>
+                            </tr>
                             <tr>
                                 <th>#</th>
                                 <th>Titlu</th>
