@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
+import { useTableMode } from "@/components/table-mode-provider"
 import UserCreateModal from "./UserCreateModal"
 import UserEditModal from "./UserEditModal"
 import { createUser, deleteUser, updateUser } from "./actions"
@@ -30,6 +31,24 @@ const NO_COUNTRY_LABEL = "Fara tara"
 const NO_CONTINENT_LABEL = "Fara continent"
 const locationContinentOptions = Array.from(new Set(MANAGER_LOCATION_OPTIONS.map(option => option.continent)))
 
+const createInputStyle = {
+    border: "1px solid var(--sd-border)",
+    backgroundColor: "var(--sd-box-bg)",
+    color: "var(--sd-text)",
+    padding: "10px 12px",
+    fontSize: "13px",
+}
+
+const normalCreateSubmitStyle = {
+    padding: "9px 20px",
+    background: "#0070f3",
+    color: "white",
+    border: "none",
+    borderRadius: "4px",
+    cursor: "pointer",
+    fontWeight: "bold",
+}
+
 const ALL_ROLES = [
     { value: "admin_global", label: "Admin Global" },
     { value: "manager_fotbal", label: "Manager Fotbal" },
@@ -42,6 +61,8 @@ const ALL_ROLES = [
 ]
 
 export default function UsersManager({ initialUsers, shouldOpenNewUserModal = false, initialRoleFilter }: Props) {
+    const { tableMode } = useTableMode()
+    const isNormalMode = tableMode === "normal"
     const defaultRoleFilter: RoleFilter = ALL_ROLES.some(currentRole => currentRole.value === initialRoleFilter) ? initialRoleFilter ?? "all" : "all"
     const [users, setUsers] = useState<User[]>(initialUsers)
     const [email, setEmail] = useState("")
@@ -221,7 +242,7 @@ export default function UsersManager({ initialUsers, shouldOpenNewUserModal = fa
                                 onChange={e => setEmail(e.target.value)}
                                 required
                                 placeholder="user@example.com"
-                                style={{ border: "1px solid #ccc", padding: "6px 10px", fontSize: "13px" }}
+                                style={{ ...createInputStyle, borderRadius: isNormalMode ? "4px" : "0" }}
                             />
                         </div>
 
@@ -234,7 +255,7 @@ export default function UsersManager({ initialUsers, shouldOpenNewUserModal = fa
                                 onChange={e => setPassword(e.target.value)}
                                 required
                                 placeholder="parola temporara"
-                                style={{ border: "1px solid #ccc", padding: "6px 10px", fontSize: "13px" }}
+                                style={{ ...createInputStyle, borderRadius: isNormalMode ? "4px" : "0" }}
                             />
                         </div>
 
@@ -244,7 +265,7 @@ export default function UsersManager({ initialUsers, shouldOpenNewUserModal = fa
                                 id="new-user-role"
                                 value={role}
                                 onChange={e => setRole(e.target.value)}
-                                style={{ border: "1px solid #ccc", padding: "6px 10px", fontSize: "13px", backgroundColor: "#fff" }}
+                                style={{ ...createInputStyle, borderRadius: isNormalMode ? "4px" : "0" }}
                             >
                                 {ALL_ROLES.map(currentRole => (
                                     <option key={currentRole.value} value={currentRole.value}>{currentRole.label}</option>
@@ -256,14 +277,9 @@ export default function UsersManager({ initialUsers, shouldOpenNewUserModal = fa
                             id="new-user-submit"
                             type="submit"
                             disabled={creating}
+                            className={isNormalMode ? undefined : "sd-btn-primary"}
                             style={{
-                                backgroundColor: creating ? "#aaa" : "#0056b3",
-                                color: "#fff",
-                                border: "none",
-                                padding: "7px 20px",
-                                fontSize: "13px",
-                                fontWeight: "bold",
-                                cursor: creating ? "not-allowed" : "pointer",
+                                ...(isNormalMode ? normalCreateSubmitStyle : { borderRadius: "0" }),
                                 alignSelf: "flex-end",
                             }}
                         >

@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
+import { useTableMode } from "@/components/table-mode-provider"
 import CompetitionCreateModal from "./CompetitionCreateModal"
 import CompetitionEditModal from "./CompetitionEditModal"
 import { createCompetition, deleteCompetition, updateCompetition } from "./actions"
@@ -39,6 +40,24 @@ interface Props {
 
 const locationContinentOptions = Array.from(new Set(MANAGER_LOCATION_OPTIONS.map(option => option.continent)))
 
+const createInputStyle = {
+    width: "100%",
+    padding: "10px 12px",
+    border: "1px solid var(--sd-border)",
+    backgroundColor: "var(--sd-box-bg)",
+    color: "var(--sd-text)",
+}
+
+const normalCreateSubmitStyle = {
+    padding: "9px 20px",
+    background: "#0070f3",
+    color: "white",
+    border: "none",
+    borderRadius: "4px",
+    cursor: "pointer",
+    fontWeight: "bold",
+}
+
 const emptyFormData: CompetitionFormData = {
     name: "",
     sport: "fotbal",
@@ -66,6 +85,8 @@ function formatCompetitionDuration(startDate: Date | string | null, endDate: Dat
 }
 
 export default function CompetitionsManager({ initialCompetitions, shouldOpenNewCompetitionModal = false, initialSportFilter, initialContinentFilter }: Props) {
+    const { tableMode } = useTableMode()
+    const isNormalMode = tableMode === "normal"
     const defaultSportFilter: CompetitionFilter = initialSportFilter === "fotbal" || initialSportFilter === "tenis" ? initialSportFilter : "all"
     const defaultContinentFilter: CompetitionFilter = initialCompetitions.some(competition => competition.continent === initialContinentFilter) ? initialContinentFilter ?? "all" : "all"
     const [competitions, setCompetitions] = useState<Competition[]>(initialCompetitions)
@@ -267,7 +288,7 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                                 placeholder="ex: Liga 1"
                                 value={formData.name}
                                 onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+                                style={{ ...createInputStyle, borderRadius: isNormalMode ? "4px" : "0" }}
                             />
                         </div>
                         <div style={{ flex: "1 1 150px" }}>
@@ -276,7 +297,7 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                                 required
                                 value={formData.sport}
                                 onChange={e => setFormData({ ...formData, sport: e.target.value as "fotbal" | "tenis" })}
-                                style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+                                style={{ ...createInputStyle, borderRadius: isNormalMode ? "4px" : "0" }}
                             >
                                 <option value="fotbal">Fotbal</option>
                                 <option value="tenis">Tenis</option>
@@ -288,7 +309,7 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                                 required
                                 value={formData.continent}
                                 onChange={e => handleCreateContinentChange(e.target.value)}
-                                style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+                                style={{ ...createInputStyle, borderRadius: isNormalMode ? "4px" : "0" }}
                             >
                                 <option value="">Selecteaza continent</option>
                                 {locationContinentOptions.map(option => (
@@ -303,7 +324,11 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                                 value={formData.country}
                                 onChange={e => setFormData({ ...formData, country: e.target.value })}
                                 disabled={!formData.continent}
-                                style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc", backgroundColor: !formData.continent ? "#f3f4f6" : "#fff" }}
+                                style={{
+                                    ...createInputStyle,
+                                    borderRadius: isNormalMode ? "4px" : "0",
+                                    backgroundColor: !formData.continent ? "color-mix(in srgb, var(--sd-box-bg) 82%, var(--sd-border))" : "var(--sd-box-bg)",
+                                }}
                             >
                                 <option value="">Selecteaza tara</option>
                                 {createCountryOptions.map(option => (
@@ -317,7 +342,7 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                                 type="date"
                                 value={formData.startDate}
                                 onChange={e => setFormData({ ...formData, startDate: e.target.value })}
-                                style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+                                style={{ ...createInputStyle, borderRadius: isNormalMode ? "4px" : "0" }}
                             />
                         </div>
                         <div style={{ flex: "1 1 150px" }}>
@@ -327,11 +352,16 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                                 value={formData.endDate}
                                 min={formData.startDate || undefined}
                                 onChange={e => setFormData({ ...formData, endDate: e.target.value })}
-                                style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+                                style={{ ...createInputStyle, borderRadius: isNormalMode ? "4px" : "0" }}
                             />
                         </div>
                         <div>
-                            <button disabled={loading} type="submit" style={{ padding: "9px 20px", background: "#0070f3", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }}>
+                            <button
+                                disabled={loading}
+                                type="submit"
+                                className={isNormalMode ? undefined : "sd-btn-primary"}
+                                style={isNormalMode ? normalCreateSubmitStyle : { borderRadius: "0" }}
+                            >
                                 {loading ? "Se salveaza..." : "Adauga"}
                             </button>
                         </div>

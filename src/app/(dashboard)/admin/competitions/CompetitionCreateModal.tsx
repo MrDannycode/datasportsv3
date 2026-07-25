@@ -1,5 +1,6 @@
 "use client"
 
+import { useTableMode } from "@/components/table-mode-provider"
 import { MANAGER_LOCATION_OPTIONS } from "@/lib/manager-locations"
 
 interface Props {
@@ -33,6 +34,16 @@ const inputStyle = {
     color: "var(--sd-text)",
 }
 
+const normalSubmitStyle = {
+    padding: "9px 20px",
+    background: "#0070f3",
+    color: "white",
+    border: "none",
+    borderRadius: "4px",
+    cursor: "pointer",
+    fontWeight: "bold",
+}
+
 export default function CompetitionCreateModal({
     name,
     sport,
@@ -52,6 +63,8 @@ export default function CompetitionCreateModal({
     onClose,
     onSubmit,
 }: Props) {
+    const { tableMode } = useTableMode()
+    const isNormalMode = tableMode === "normal"
     const countryOptions = MANAGER_LOCATION_OPTIONS.filter(option => option.continent === continent)
 
     const handleContinentChange = (value: string) => {
@@ -129,7 +142,7 @@ export default function CompetitionCreateModal({
                                 placeholder="ex: Liga 1"
                                 value={name}
                                 onChange={e => onNameChange(e.target.value)}
-                                style={inputStyle}
+                                style={{ ...inputStyle, borderRadius: isNormalMode ? "4px" : "0" }}
                             />
                         </div>
                         <div style={{ flex: "1 1 180px" }}>
@@ -138,7 +151,7 @@ export default function CompetitionCreateModal({
                                 required
                                 value={sport}
                                 onChange={e => onSportChange(e.target.value as "fotbal" | "tenis")}
-                                style={inputStyle}
+                                style={{ ...inputStyle, borderRadius: isNormalMode ? "4px" : "0" }}
                             >
                                 <option value="fotbal">Fotbal</option>
                                 <option value="tenis">Tenis</option>
@@ -150,7 +163,7 @@ export default function CompetitionCreateModal({
                                 required
                                 value={continent}
                                 onChange={e => handleContinentChange(e.target.value)}
-                                style={inputStyle}
+                                style={{ ...inputStyle, borderRadius: isNormalMode ? "4px" : "0" }}
                             >
                                 <option value="">Selecteaza continent</option>
                                 {continentOptions.map(option => (
@@ -165,7 +178,11 @@ export default function CompetitionCreateModal({
                                 value={country}
                                 onChange={e => onCountryChange(e.target.value)}
                                 disabled={!continent}
-                                style={{ ...inputStyle, backgroundColor: !continent ? "color-mix(in srgb, var(--sd-box-bg) 82%, var(--sd-border))" : "var(--sd-box-bg)" }}
+                                style={{
+                                    ...inputStyle,
+                                    borderRadius: isNormalMode ? "4px" : "0",
+                                    backgroundColor: !continent ? "color-mix(in srgb, var(--sd-box-bg) 82%, var(--sd-border))" : "var(--sd-box-bg)",
+                                }}
                             >
                                 <option value="">Selecteaza tara</option>
                                 {countryOptions.map(option => (
@@ -179,7 +196,7 @@ export default function CompetitionCreateModal({
                                 type="date"
                                 value={startDate}
                                 onChange={e => onStartDateChange(e.target.value)}
-                                style={inputStyle}
+                                style={{ ...inputStyle, borderRadius: isNormalMode ? "4px" : "0" }}
                             />
                         </div>
                         <div style={{ flex: "1 1 180px" }}>
@@ -189,21 +206,22 @@ export default function CompetitionCreateModal({
                                 value={endDate}
                                 min={startDate || undefined}
                                 onChange={e => onEndDateChange(e.target.value)}
-                                style={inputStyle}
+                                style={{ ...inputStyle, borderRadius: isNormalMode ? "4px" : "0" }}
                             />
                         </div>
                         <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", width: "100%", marginTop: "8px" }}>
                             <button
                                 type="button"
                                 onClick={onClose}
-                                style={{ border: "1px solid var(--sd-border)", background: "var(--sd-box-bg)", color: "var(--sd-text)", padding: "9px 18px", cursor: "pointer" }}
+                                style={{ border: "1px solid var(--sd-border)", background: "var(--sd-box-bg)", color: "var(--sd-text)", padding: "9px 18px", borderRadius: isNormalMode ? "4px" : "0", cursor: "pointer" }}
                             >
                                 Anuleaza
                             </button>
                             <button
                                 disabled={loading}
                                 type="submit"
-                                style={{ padding: "9px 20px", background: "#0070f3", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }}
+                                className={isNormalMode ? undefined : "sd-btn-primary"}
+                                style={isNormalMode ? normalSubmitStyle : { borderRadius: "0" }}
                             >
                                 {loading ? "Se salveaza..." : "Adauga"}
                             </button>

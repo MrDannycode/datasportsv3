@@ -1,5 +1,7 @@
 "use client"
 
+import { useTableMode } from "@/components/table-mode-provider"
+
 const ALL_ROLES = [
     { value: "admin_global", label: "Admin Global" },
     { value: "manager_fotbal", label: "Manager Fotbal" },
@@ -17,6 +19,16 @@ const inputStyle = {
     color: "var(--sd-text)",
     padding: "10px 12px",
     fontSize: "13px",
+}
+
+const normalSubmitStyle = {
+    padding: "9px 20px",
+    background: "#0070f3",
+    color: "white",
+    border: "none",
+    borderRadius: "4px",
+    cursor: "pointer",
+    fontWeight: "bold",
 }
 
 interface Props {
@@ -46,6 +58,9 @@ export default function UserCreateModal({
     onClose,
     onSubmit,
 }: Props) {
+    const { tableMode } = useTableMode()
+    const isNormalMode = tableMode === "normal"
+
     return (
         <div
             role="dialog"
@@ -112,7 +127,7 @@ export default function UserCreateModal({
                                 onChange={e => onEmailChange(e.target.value)}
                                 required
                                 placeholder="user@example.com"
-                                style={inputStyle}
+                                style={{ ...inputStyle, borderRadius: isNormalMode ? "4px" : "0" }}
                             />
                         </div>
 
@@ -125,7 +140,7 @@ export default function UserCreateModal({
                                 onChange={e => onPasswordChange(e.target.value)}
                                 required
                                 placeholder="parola temporara"
-                                style={inputStyle}
+                                style={{ ...inputStyle, borderRadius: isNormalMode ? "4px" : "0" }}
                             />
                         </div>
 
@@ -135,7 +150,7 @@ export default function UserCreateModal({
                                 id="new-user-role"
                                 value={role}
                                 onChange={e => onRoleChange(e.target.value)}
-                                style={inputStyle}
+                                style={{ ...inputStyle, borderRadius: isNormalMode ? "4px" : "0" }}
                             >
                                 {ALL_ROLES.map(currentRole => (
                                     <option key={currentRole.value} value={currentRole.value}>{currentRole.label}</option>
@@ -147,7 +162,7 @@ export default function UserCreateModal({
                             <button
                                 type="button"
                                 onClick={onClose}
-                                style={{ border: "1px solid var(--sd-border)", background: "var(--sd-box-bg)", color: "var(--sd-text)", padding: "9px 18px", cursor: "pointer" }}
+                                style={{ border: "1px solid var(--sd-border)", background: "var(--sd-box-bg)", color: "var(--sd-text)", padding: "9px 18px", borderRadius: isNormalMode ? "4px" : "0", cursor: "pointer" }}
                             >
                                 Anuleaza
                             </button>
@@ -155,7 +170,8 @@ export default function UserCreateModal({
                                 id="new-user-submit"
                                 type="submit"
                                 disabled={creating}
-className="sd-btn-primary"
+                                className={isNormalMode ? undefined : "sd-btn-primary"}
+                                style={isNormalMode ? normalSubmitStyle : { borderRadius: "0" }}
                             >
                                 {creating ? "Se creeaza..." : "Creeaza"}
                             </button>

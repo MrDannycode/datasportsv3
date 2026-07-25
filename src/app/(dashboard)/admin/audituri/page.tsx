@@ -147,7 +147,7 @@ export default async function AdminAuditPage({ searchParams }: AdminAuditPagePro
                         </a>
                     </div>
                     <div className="sd-box-content" style={{ padding: 0, overflowX: "auto" }}>
-                        <form action="/admin/audituri" method="get" className="sd-table-toolbar">
+                        <form action="/admin/audituri" method="get" className="sd-table-toolbar sd-audit-table-toolbar">
                             <label className="sd-table-toolbar-label" htmlFor="audit-action">Actiune</label>
                             <select id="audit-action" name="action" className="sd-input" defaultValue={validAction ?? ""}>
                                 <option value="">Toate</option>

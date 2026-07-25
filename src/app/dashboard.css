@@ -143,7 +143,7 @@
 
 .sd-box-header {
     background-color: #e9e9e9;
-    border-bottom: 1px solid #ccc;
+    border: 1px solid #ccc;
     padding: 10px 15px;
     display: flex;
     justify-content: space-between;
@@ -3265,5 +3265,29 @@ html.dark:not(.sd-table-mode-normal) table {
 
 .dark .sd-match-table-toolbar,
 .dark .sd-match-table-toolbar + .sd-table {
+    border-color: #475569;
+}
+
+/* Focus mode keeps every modal shell square, including inline-styled dialogs. */
+html:not(.sd-table-mode-normal) .sd-modal,
+html:not(.sd-table-mode-normal) [role="dialog"][aria-modal="true"],
+html:not(.sd-table-mode-normal) [role="dialog"][aria-modal="true"][style*="position:fixed"] > :first-child,
+html:not(.sd-table-mode-normal) [role="dialog"][aria-modal="true"][style*="position: fixed"] > :first-child {
+    border-radius: 0 !important;
+}
+
+/* Visually connect the audit filters with the audit records table. */
+.sd-audit-table-toolbar {
+    border: 1px solid #cbd5e1;
+    border-bottom: 0;
+}
+
+.sd-audit-table-toolbar + .sd-table {
+    border: 1px solid #cbd5e1;
+    outline: none;
+}
+
+.dark .sd-audit-table-toolbar,
+.dark .sd-audit-table-toolbar + .sd-table {
     border-color: #475569;
 }
