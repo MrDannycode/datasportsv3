@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useTableMode } from "@/components/table-mode-provider"
+import TableSortHeader, { sortAriaValue, type SortDirection } from "@/components/table-sort-header"
 import UserCreateModal from "./UserCreateModal"
 import UserEditModal from "./UserEditModal"
 import { createUser, deleteUser, updateUser } from "./actions"
@@ -23,7 +24,6 @@ interface Props {
 }
 
 type SortField = "email" | "role"
-type SortDirection = "asc" | "desc"
 type RoleFilter = "all" | string
 type LocationFilter = "all" | string
 
@@ -52,7 +52,7 @@ const normalCreateSubmitStyle = {
 const ALL_ROLES = [
     { value: "admin_global", label: "Admin Global" },
     { value: "manager_fotbal", label: "Manager Fotbal" },
-    { value: "manager_tenis", label: "Manager Tenis" },
+    // { value: "manager_tenis", label: "Manager Tenis" },
     { value: "antrenor_fotbal", label: "Antrenor Fotbal" },
     { value: "antrenor_fitness", label: "Antrenor Fitness" },
     { value: "medic", label: "Medic" },
@@ -217,13 +217,7 @@ export default function UsersManager({ initialUsers, shouldOpenNewUserModal = fa
         }))
     }
 
-    const renderSortIndicator = (field: SortField) => {
-        if (sortConfig.field !== field) {
-            return "Sort"
-        }
-
-        return sortConfig.direction === "asc" ? "A-Z" : "Z-A"
-    }
+    const sortState = (field: SortField) => sortAriaValue(sortConfig.field === field, sortConfig.direction)
 
     return (
         <>
@@ -358,25 +352,23 @@ export default function UsersManager({ initialUsers, shouldOpenNewUserModal = fa
                             <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleSort("email")}
-                                            aria-label="Sorteaza dupa email"
-                                            style={{ background: "none", border: 0, padding: 0, color: "inherit", font: "inherit", fontWeight: 700, cursor: "pointer" }}
-                                        >
-                                            Email {renderSortIndicator("email")}
-                                        </button>
+                                    <th aria-sort={sortState("email")}>
+                                        <TableSortHeader
+                                            label="Email"
+                                            ariaLabel="Sorteaza dupa email"
+                                            active={sortConfig.field === "email"}
+                                            direction={sortConfig.direction}
+                                            onSort={() => handleSort("email")}
+                                        />
                                     </th>
-                                    <th>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleSort("role")}
-                                            aria-label="Sorteaza dupa rol"
-                                            style={{ background: "none", border: 0, padding: 0, color: "inherit", font: "inherit", fontWeight: 700, cursor: "pointer" }}
-                                        >
-                                            Rol {renderSortIndicator("role")}
-                                        </button>
+                                    <th aria-sort={sortState("role")}>
+                                        <TableSortHeader
+                                            label="Rol"
+                                            ariaLabel="Sorteaza dupa rol"
+                                            active={sortConfig.field === "role"}
+                                            direction={sortConfig.direction}
+                                            onSort={() => handleSort("role")}
+                                        />
                                     </th>
                                     <th>Creat la</th>
                                     <th>Actiuni</th>
@@ -407,28 +399,14 @@ export default function UsersManager({ initialUsers, shouldOpenNewUserModal = fa
                                                 <button
                                                     type="button"
                                                     onClick={() => openEditModal(user)}
-                                                    style={{
-                                                        fontSize: "11px",
-                                                        border: "1px solid #0056b3",
-                                                        color: "#0056b3",
-                                                        backgroundColor: "transparent",
-                                                        padding: "2px 8px",
-                                                        cursor: "pointer",
-                                                    }}
+                                                    style={isNormalMode ? { padding: "4px 10px", cursor: "pointer", background: "#f0f7ff", color: "#0050b3", border: "1px solid #91d5ff", borderRadius: "3px" } : { fontSize: "11px", border: "1px solid #0056b3", color: "#0056b3", backgroundColor: "transparent", padding: "2px 8px", cursor: "pointer" }}
                                                 >
                                                     Edit
                                                 </button>
                                                 <button
                                                     type="button"
                                                     onClick={() => handleDelete(user.id, user.email)}
-                                                    style={{
-                                                        fontSize: "11px",
-                                                        border: "1px solid #c00",
-                                                        color: "#c00",
-                                                        backgroundColor: "transparent",
-                                                        padding: "2px 8px",
-                                                        cursor: "pointer",
-                                                    }}
+                                                    style={isNormalMode ? { padding: "4px 10px", cursor: "pointer", background: "#fff0f0", color: "red", border: "1px solid #ffcccc", borderRadius: "3px" } : { fontSize: "11px", border: "1px solid #c00", color: "#c00", backgroundColor: "transparent", padding: "2px 8px", cursor: "pointer" }}
                                                 >
                                                     Sterge
                                                 </button>

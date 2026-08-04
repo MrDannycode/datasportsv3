@@ -7,6 +7,7 @@ export const MANAGER_LOCATION_OPTIONS = [
     { continent: "Europa", country: "Germania" },
     { continent: "Europa", country: "Franta" },
     { continent: "America de Nord", country: "SUA" },
+    { continent: "America de Nord", country: "Canada" },
     { continent: "America de Sud", country: "Argentina" },
     { continent: "America de Sud", country: "Brazilia" },
     { continent: "Africa", country: "Maroc" },

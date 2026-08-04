@@ -25,3 +25,45 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+:root {
+  --form-control-bg: #ffffff;
+  --form-control-text: #171717;
+  --form-control-border: #cbd5e1;
+}
+
+.dark {
+  --form-control-bg: #1f2937;
+  --form-control-text: #f8fafc;
+  --form-control-border: #475569;
+}
+
+select {
+  background-color: var(--form-control-bg) !important;
+  color: var(--form-control-text) !important;
+  border: 1px solid var(--form-control-border) !important;
+  border-radius: 4px;
+  color-scheme: light;
+}
+
+.dark select,
+.dark select option {
+  color-scheme: dark;
+}
+
+select option {
+  background-color: var(--form-control-bg) !important;
+  color: var(--form-control-text) !important;
+}
+
+select:focus,
+select:focus-visible {
+  outline: none;
+  border-color: #60a5fa !important;
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.18);
+}
+
+html.dark select,
+html.dark select option {
+  color-scheme: dark;
+}

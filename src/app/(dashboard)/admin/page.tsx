@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma"
 const ROLE_LABELS = [
     { value: "admin_global", label: "Admin Global" },
     { value: "manager_fotbal", label: "Manager Fotbal" },
-    { value: "manager_tenis", label: "Manager Tenis" },
+    // { value: "manager_tenis", label: "Manager Tenis" },
     { value: "antrenor_fotbal", label: "Antrenor Fotbal" },
     { value: "antrenor_fitness", label: "Antrenor Fitness" },
     { value: "medic", label: "Medic" },

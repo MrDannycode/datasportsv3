@@ -14,6 +14,11 @@
     --sd-box-bg: #fff;
     --sd-text: #333;
     --sd-border: #ccc;
+    --sd-heading: #111827;
+    --sd-muted: #666;
+    --sd-input-bg: #fff;
+    --sd-danger: #c00;
+    --sd-success: #166534;
 }
 
 .dark {
@@ -21,6 +26,11 @@
     --sd-box-bg: #171717;
     --sd-text: #ededed;
     --sd-border: #333;
+    --sd-heading: #f4f4f5;
+    --sd-muted: #a1a1aa;
+    --sd-input-bg: #0f0f0f;
+    --sd-danger: #f87171;
+    --sd-success: #4ade80;
 }
 
 
@@ -34,6 +44,31 @@
     line-height: 1.5;
     min-height: 100vh;
     padding: 20px;
+}
+
+.sd-container select,
+.sd-container select option {
+    background-color: var(--sd-box-bg) !important;
+    color: var(--sd-text) !important;
+    border-color: var(--sd-border) !important;
+}
+
+.sd-container select {
+    border: 1px solid var(--sd-border) !important;
+    border-radius: 4px;
+    color-scheme: light;
+}
+
+.dark .sd-container select,
+.dark .sd-container select option {
+    color-scheme: dark;
+}
+
+.sd-container select:focus,
+.sd-container select:focus-visible {
+    outline: none;
+    border-color: #60a5fa !important;
+    box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.18);
 }
 
 .sd-container a {
@@ -2042,6 +2077,33 @@ html.dark.sd-table-mode-normal .sd-sidebar-metric-card:focus-visible {
     color: #dbe7f5;
 }
 
+/* Dark focus: increase header contrast and darken tones for admin and sidebar tables */
+.dark .sd-table thead tr {
+    background: #0b1220;
+}
+
+.dark .sd-table thead th {
+    color: #94a3b8;
+    border-bottom-color: rgba(96, 165, 250, 0.30);
+}
+
+.dark .sd-box-header {
+    background-color: #0f1418;
+    border-color: #222428;
+}
+
+.dark .dsb-table th {
+    background: #0d1116;
+    color: #9aa7b6;
+    border-bottom-color: #202226;
+}
+
+.dark .sd-table th {
+    background-color: #121417;
+    color: #c7d2df;
+    border-color: #222428;
+}
+
 .dark .sd-box-content,
 .dark .sd-tournament-card-body,
 .dark .sd-tournament-card-footer {
@@ -3290,4 +3352,29 @@ html:not(.sd-table-mode-normal) [role="dialog"][aria-modal="true"][style*="posit
 .dark .sd-audit-table-toolbar,
 .dark .sd-audit-table-toolbar + .sd-table {
     border-color: #475569;
+}
+
+/* Back button follows the mode: square corners in focus, rounded in normal. */
+html:not(.sd-table-mode-normal) .sd-btn-back {
+    border-radius: 0;
+}
+
+.sd-table-mode-normal .sd-btn-back {
+    border-radius: 4px;
+}
+
+/* Manager assignment table keeps its outer border in Normal mode, where the
+   generic ".sd-table { border: 0 }" rule above would otherwise remove it. */
+.sd-table-mode-normal .sd-table.sd-manager-assignment-table {
+    border: 1px solid #a5b4fc;
+}
+
+.dark.sd-table-mode-normal .sd-table.sd-manager-assignment-table {
+    border-color: #6366f1;
+}
+
+/* Buttons that must be square in Focus mode (server components cannot read the
+   table mode from React, so they opt in with this class instead). */
+html:not(.sd-table-mode-normal) .sd-btn-focus-square {
+    border-radius: 0;
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useTableMode } from "@/components/table-mode-provider"
+import TableSortHeader, { sortAriaValue, type SortDirection } from "@/components/table-sort-header"
 import CompetitionCreateModal from "./CompetitionCreateModal"
 import CompetitionEditModal from "./CompetitionEditModal"
 import { createCompetition, deleteCompetition, updateCompetition } from "./actions"
@@ -19,7 +20,6 @@ type Competition = {
 }
 
 type SortField = "name" | "sport" | "country" | "continent"
-type SortDirection = "asc" | "desc"
 type CompetitionFilter = "all" | string
 
 type CompetitionFormData = {
@@ -261,13 +261,7 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
         }))
     }
 
-    const renderSortIndicator = (field: SortField) => {
-        if (sortConfig.field !== field) {
-            return "Sort"
-        }
-
-        return sortConfig.direction === "asc" ? "A-Z" : "Z-A"
-    }
+    const sortState = (field: SortField) => sortAriaValue(sortConfig.field === field, sortConfig.direction)
 
     return (
         <>
@@ -429,25 +423,41 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                             <thead>
                                 <tr>
                                     <th>ID</th>
-                                    <th>
-                                        <button type="button" onClick={() => handleSort("name")} aria-label="Sorteaza dupa numele competitiei" style={{ background: "none", border: 0, padding: 0, color: "inherit", font: "inherit", fontWeight: 700, cursor: "pointer" }}>
-                                            Nume competitie {renderSortIndicator("name")}
-                                        </button>
+                                    <th aria-sort={sortState("name")}>
+                                        <TableSortHeader
+                                            label="Nume competitie"
+                                            ariaLabel="Sorteaza dupa numele competitiei"
+                                            active={sortConfig.field === "name"}
+                                            direction={sortConfig.direction}
+                                            onSort={() => handleSort("name")}
+                                        />
                                     </th>
-                                    <th>
-                                        <button type="button" onClick={() => handleSort("sport")} aria-label="Sorteaza dupa sport" style={{ background: "none", border: 0, padding: 0, color: "inherit", font: "inherit", fontWeight: 700, cursor: "pointer" }}>
-                                            Sport {renderSortIndicator("sport")}
-                                        </button>
+                                    <th aria-sort={sortState("sport")}>
+                                        <TableSortHeader
+                                            label="Sport"
+                                            ariaLabel="Sorteaza dupa sport"
+                                            active={sortConfig.field === "sport"}
+                                            direction={sortConfig.direction}
+                                            onSort={() => handleSort("sport")}
+                                        />
                                     </th>
-                                    <th>
-                                        <button type="button" onClick={() => handleSort("country")} aria-label="Sorteaza dupa tara" style={{ background: "none", border: 0, padding: 0, color: "inherit", font: "inherit", fontWeight: 700, cursor: "pointer" }}>
-                                            Tara {renderSortIndicator("country")}
-                                        </button>
+                                    <th aria-sort={sortState("country")}>
+                                        <TableSortHeader
+                                            label="Tara"
+                                            ariaLabel="Sorteaza dupa tara"
+                                            active={sortConfig.field === "country"}
+                                            direction={sortConfig.direction}
+                                            onSort={() => handleSort("country")}
+                                        />
                                     </th>
-                                    <th>
-                                        <button type="button" onClick={() => handleSort("continent")} aria-label="Sorteaza dupa continent" style={{ background: "none", border: 0, padding: 0, color: "inherit", font: "inherit", fontWeight: 700, cursor: "pointer" }}>
-                                            Continent {renderSortIndicator("continent")}
-                                        </button>
+                                    <th aria-sort={sortState("continent")}>
+                                        <TableSortHeader
+                                            label="Continent"
+                                            ariaLabel="Sorteaza dupa continent"
+                                            active={sortConfig.field === "continent"}
+                                            direction={sortConfig.direction}
+                                            onSort={() => handleSort("continent")}
+                                        />
                                     </th>
                                     <th>Durata</th>
                                     <th>Data crearii</th>
@@ -477,8 +487,8 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                                         <td>{new Date(comp.createdAt).toLocaleDateString("ro-RO")}</td>
                                         <td style={{ textAlign: "right" }}>
                                             <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", flexWrap: "wrap" }}>
-                                                <button disabled={loading} type="button" onClick={() => openEditModal(comp)} style={{ padding: "4px 10px", cursor: "pointer", background: "#f0f7ff", color: "#0050b3", border: "1px solid #91d5ff", borderRadius: "3px" }}>Edit</button>
-                                                <button disabled={loading} type="button" onClick={() => handleDelete(comp.id)} style={{ padding: "4px 10px", cursor: "pointer", background: "#fff0f0", color: "red", border: "1px solid #ffcccc", borderRadius: "3px" }}>Sterge</button>
+                                                <button disabled={loading} type="button" onClick={() => openEditModal(comp)} style={isNormalMode ? { padding: "4px 10px", cursor: "pointer", background: "#f0f7ff", color: "#0050b3", border: "1px solid #91d5ff", borderRadius: "3px" } : { fontSize: "11px", border: "1px solid #0056b3", color: "#0056b3", backgroundColor: "transparent", padding: "2px 8px", cursor: "pointer" }}>Edit</button>
+                                                <button disabled={loading} type="button" onClick={() => handleDelete(comp.id)} style={isNormalMode ? { padding: "4px 10px", cursor: "pointer", background: "#fff0f0", color: "red", border: "1px solid #ffcccc", borderRadius: "3px" } : { fontSize: "11px", border: "1px solid #c00", color: "#c00", backgroundColor: "transparent", padding: "2px 8px", cursor: "pointer" }}>Sterge</button>
                                             </div>
                                         </td>
                                     </tr>

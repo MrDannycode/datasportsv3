@@ -47,9 +47,9 @@ export default async function AdminManageriPage() {
         <main>
             <div className="sd-box">
                 <div className="sd-box-header">
-                    <Link href="/admin" className="sd-btn-secondary">Inapoi</Link>
+                    <Link href="/admin" className="sd-btn-secondary sd-btn-back">Inapoi</Link>
                     <h2 className="flex-1 text-center">Gestiune Manageri</h2>
-                    <div className="sd-btn-secondary invisible">Inapoi</div>
+                    <div className="sd-btn-secondary sd-btn-back invisible">Inapoi</div>
                 </div>
                 <div className="sd-box-content">
 

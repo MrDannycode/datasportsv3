@@ -7,13 +7,13 @@ import { useRouter } from "next/navigation"
 import { useTableMode } from "@/components/table-mode-provider"
 
 const demoAccounts = [
-    { label: "Admin", email: "admin@test.com", password: "parola123" },
-    { label: "Manager Fotbal", email: "manager@test.com", password: "manager" },
-    { label: "Antrenor Fotbal", email: "dorinelmunteanu@test.com", password: "munteanu" },
-    { label: "Antrenor Fitness", email: "fitness@test.com", password: "fitness" },
-    { label: "Medic", email: "medic@test.com", password: "medic" },
-    { label: "Atlet Fotbal", email: "antal@test.com", password: "Ds!0W0QFxbH" },
-    { label: "Atlet tenis", email: "tenisdan@test.com", password: "tenisdan" },
+    { label: "Admin", email: "AdminGlobal@datasports.test", password: "adminglobal" },
+    { label: "Manager Fotbal", email: "MngFtbRomania@datasports.test", password: "mngftbromania" },
+    { label: "Antrenor Fotbal", email: "DorinelMunteanu@datasports.test", password: "dorinelmunteanuog" },
+    { label: "Antrenor Fitness", email: "FitnesOtelGl@datasports.test", password: "fitnesotelgl" },
+    { label: "Medic", email: "MedicOtelGl@datasports.test", password: "medicotelgl" },
+    { label: "Atlet Fotbal", email: "antal@datasports.test", password: "Ds!0W0QFxbH" },
+    { label: "Atlet tenis", email: "tenisdan@datasports.test", password: "tenisdan" },
 ]
 
 export default function LoginPage() {
@@ -61,7 +61,7 @@ export default function LoginPage() {
         setError("")
 
         const result = await signIn("credentials", {
-            email: email.trim().toLowerCase(),
+            email: email.trim(),
             password,
             redirect: false,
         })

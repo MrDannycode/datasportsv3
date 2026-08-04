@@ -5,7 +5,7 @@ import { useTableMode } from "@/components/table-mode-provider"
 const ALL_ROLES = [
     { value: "admin_global", label: "Admin Global" },
     { value: "manager_fotbal", label: "Manager Fotbal" },
-    { value: "manager_tenis", label: "Manager Tenis" },
+    // { value: "manager_tenis", label: "Manager Tenis" },
     { value: "antrenor_fotbal", label: "Antrenor Fotbal" },
     { value: "antrenor_fitness", label: "Antrenor Fitness" },
     { value: "medic", label: "Medic" },

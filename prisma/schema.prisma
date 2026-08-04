@@ -415,7 +415,7 @@ model ManagerAssignment {
 enum Role {
   admin_global
   manager_fotbal
-  manager_tenis
+  // manager_tenis
   antrenor_fotbal
   antrenor_fitness
   medic

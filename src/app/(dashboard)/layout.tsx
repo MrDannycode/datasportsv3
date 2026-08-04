@@ -7,6 +7,7 @@ import type { SidebarStanding } from "@/components/layout/DashboardSidebar"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { normalizeFootballLeagueName } from "@/lib/football-league"
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
@@ -53,7 +54,7 @@ function hasPostgresCode(error: unknown, code: string) {
 const rolesWithoutSidebar = new Set([
     "admin_global",
     "manager_fotbal",
-    "manager_tenis",
+    // "manager_tenis",
     "atlet_tenis",
 ])
 
@@ -131,30 +132,35 @@ async function getSidebarStandings(userId?: string): Promise<{ leagueName: strin
             team: {
                 select: {
                     continent: true,
+                    country: true,
                 },
             },
         },
     })
 
     const leagueName = profile?.team?.continent
-    if (!leagueName) return { leagueName: null, standings: [] }
+    const country = profile?.team?.country
+    if (!leagueName || !country) return { leagueName: null, standings: [] }
+
+    const normalizedLeagueName = normalizeFootballLeagueName(leagueName)
 
     const [teams, matches] = await Promise.all([
         prisma.team.findMany({
             where: {
                 sport: "fotbal",
-                continent: leagueName,
+                country: country,
             },
             select: {
                 id: true,
                 name: true,
+                continent: true,
             },
         }),
         prisma.footballMatch.findMany({
             where: {
                 competition: {
                     sport: "fotbal",
-                    name: leagueName,
+                    country: country,
                 },
                 scoreHome: { not: null },
                 scoreAway: { not: null },
@@ -164,6 +170,7 @@ async function getSidebarStandings(userId?: string): Promise<{ leagueName: strin
                 teamAwayId: true,
                 scoreHome: true,
                 scoreAway: true,
+                competition: { select: { name: true } },
             },
         }),
     ])
@@ -171,6 +178,8 @@ async function getSidebarStandings(userId?: string): Promise<{ leagueName: strin
     const standings = new Map<number, Omit<SidebarStanding, "pos"> & { goalDifference: number; goalsFor: number }>()
 
     for (const team of teams) {
+        if (!team.continent || normalizeFootballLeagueName(team.continent) !== normalizedLeagueName) continue
+
         standings.set(team.id, {
             team: team.name,
             played: 0,
@@ -184,7 +193,14 @@ async function getSidebarStandings(userId?: string): Promise<{ leagueName: strin
     }
 
     for (const match of matches) {
-        if (match.scoreHome === null || match.scoreAway === null) continue
+        if (
+            match.scoreHome === null ||
+            match.scoreAway === null ||
+            !match.competition ||
+            normalizeFootballLeagueName(match.competition.name) !== normalizedLeagueName
+        ) {
+            continue
+        }
 
         const home = standings.get(match.teamHomeId)
         const away = standings.get(match.teamAwayId)

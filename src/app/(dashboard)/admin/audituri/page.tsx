@@ -134,15 +134,15 @@ export default async function AdminAuditPage({ searchParams }: AdminAuditPagePro
         <main>
             <div className="sd-box">
                 <div className="sd-box-header">
-                    <Link href="/admin" className="sd-btn-secondary">Inapoi</Link>
+                    <Link href="/admin" className="sd-btn-secondary sd-btn-back">Inapoi</Link>
                     <h2 className="flex-1 text-center">Gestionare Audituri</h2>
-                    <div className="sd-btn-secondary invisible">Inapoi</div>
+                    <div className="sd-btn-secondary sd-btn-back invisible">Inapoi</div>
                 </div>
 
                 <div className="sd-box-content">
                     <div className="sd-box-header">
                         <h2>Inregistrari audit ({totalLogs})</h2>
-                        <a href={buildExportHref(filtersForLinks)} download className="sd-btn-secondary">
+                        <a href={buildExportHref(filtersForLinks)} download className="sd-btn-secondary sd-btn-focus-square">
                             Export XLSX
                         </a>
                     </div>
@@ -173,8 +173,8 @@ export default async function AdminAuditPage({ searchParams }: AdminAuditPagePro
                             </select>
 
                             <div className="sd-table-toolbar-actions">
-                                <button type="submit" className="sd-btn-primary">Filtreaza</button>
-                                <Link href="/admin/audituri" className="sd-btn-secondary">Reseteaza</Link>
+                                <button type="submit" className="sd-btn-primary sd-btn-focus-square">Filtreaza</button>
+                                <Link href="/admin/audituri" className="sd-btn-secondary sd-btn-focus-square">Reseteaza</Link>
                             </div>
                         </form>
 
@@ -232,12 +232,12 @@ export default async function AdminAuditPage({ searchParams }: AdminAuditPagePro
                 </span>
                 <div className="sd-action-group">
                     {currentPage > 1 && (
-                        <Link href={buildHref({ ...filtersForLinks, page: currentPage - 1 })} className="sd-btn-secondary">
+                        <Link href={buildHref({ ...filtersForLinks, page: currentPage - 1 })} className="sd-btn-secondary sd-btn-focus-square">
                             Inapoi
                         </Link>
                     )}
                     {currentPage < totalPages && (
-                        <Link href={buildHref({ ...filtersForLinks, page: currentPage + 1 })} className="sd-btn-secondary">
+                        <Link href={buildHref({ ...filtersForLinks, page: currentPage + 1 })} className="sd-btn-secondary sd-btn-focus-square">
                             Inainte
                         </Link>
                     )}

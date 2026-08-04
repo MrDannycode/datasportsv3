@@ -28,7 +28,7 @@ export async function GET() {
     const session = await getServerSession(authOptions)
     if (
         !session ||
-        !["atlet_tenis", "manager_tenis", "admin_global"].includes(session.user.role)
+        !["atlet_tenis", /* "manager_tenis", */ "admin_global"].includes(session.user.role)
     ) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
