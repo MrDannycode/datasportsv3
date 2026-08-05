@@ -3376,5 +3376,5 @@ html:not(.sd-table-mode-normal) .sd-btn-back {
 /* Buttons that must be square in Focus mode (server components cannot read the
    table mode from React, so they opt in with this class instead). */
 html:not(.sd-table-mode-normal) .sd-btn-focus-square {
-    border-radius: 0;
+    border-radius: 0 !important;
 }

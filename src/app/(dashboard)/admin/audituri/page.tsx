@@ -173,8 +173,22 @@ export default async function AdminAuditPage({ searchParams }: AdminAuditPagePro
                             </select>
 
                             <div className="sd-table-toolbar-actions">
-                                <button type="submit" className="sd-btn-primary sd-btn-focus-square">Filtreaza</button>
-                                <Link href="/admin/audituri" className="sd-btn-secondary sd-btn-focus-square">Reseteaza</Link>
+                                <button
+                                    type="submit"
+                                    className="sd-btn-focus-square"
+                                    style={{
+                                        padding: "9px 20px",
+                                        background: "#0070f3",
+                                        color: "white",
+                                        border: "none",
+                                        borderRadius: "4px",
+                                        cursor: "pointer",
+                                        fontWeight: "bold",
+                                    }}
+                                >
+                                    Filtreaza
+                                </button>
+                                <Link href="/admin/audituri" className="sd-btn-secondary sd-btn-focus-square" style={{ padding: "9px 20px" }}>Reseteaza</Link>
                             </div>
                         </form>
 
