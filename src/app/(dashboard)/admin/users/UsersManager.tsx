@@ -380,16 +380,7 @@ export default function UsersManager({ initialUsers, shouldOpenNewUserModal = fa
                                         <td style={{ color: "#999" }}>{user.id}</td>
                                         <td>{user.email}</td>
                                         <td>
-                                            <span style={{
-                                                backgroundColor: "#e8f0fb",
-                                                color: "#0056b3",
-                                                padding: "2px 8px",
-                                                fontSize: "11px",
-                                                fontWeight: "bold",
-                                                borderRadius: "2px",
-                                            }}>
-                                                {roleLabel(user.role)}
-                                            </span>
+                                            <span className="sd-badge sd-badge-tehnic">{roleLabel(user.role)}</span>
                                         </td>
                                         <td style={{ color: "#666", fontSize: "12px" }}>
                                             {new Date(user.createdAt).toLocaleDateString("ro-RO")}

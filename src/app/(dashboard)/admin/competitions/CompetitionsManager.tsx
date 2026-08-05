@@ -470,16 +470,7 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                                         <td>#{comp.id}</td>
                                         <td style={{ fontWeight: "bold" }}>{comp.name}</td>
                                         <td>
-                                            <span style={{
-                                                padding: "3px 8px",
-                                                borderRadius: "12px",
-                                                fontSize: "12px",
-                                                background: comp.sport === "fotbal" ? "#e6f7ff" : "#f6ffed",
-                                                color: comp.sport === "fotbal" ? "#0050b3" : "#389e0d",
-                                                border: `1px solid ${comp.sport === "fotbal" ? "#91d5ff" : "#b7eb8f"}`,
-                                            }}>
-                                                {sportLabel(comp.sport)}
-                                            </span>
+                                            <span className="sd-badge sd-badge-tehnic">{sportLabel(comp.sport)}</span>
                                         </td>
                                         <td>{comp.country}</td>
                                         <td>{comp.continent}</td>
