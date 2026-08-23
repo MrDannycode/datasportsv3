@@ -94,9 +94,9 @@ export default function AthleteInviteManager({ shouldOpenInviteModal = false, te
     return <div style={{ display: "grid", gap: "20px" }}>
         <div className="sd-box"><div className="sd-box-header"><h2>Invita atlet</h2></div><div className="sd-box-content">
             <form onSubmit={submitInvite} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: "12px", alignItems: "end" }}>
-                <label style={labelStyle}>Email<input type="email" required value={invite.email} onChange={e => update("email", e.target.value)} style={fieldStyle} /></label>
-                <label style={labelStyle}>Prenume<input required value={invite.firstName} onChange={e => update("firstName", e.target.value)} style={fieldStyle} /></label>
-                <label style={labelStyle}>Nume<input required value={invite.lastName} onChange={e => update("lastName", e.target.value)} style={fieldStyle} /></label>
+                <label style={labelStyle}>Email<input type="email" required value={invite.email} onChange={e => update("email", e.target.value)} className="sd-input" /></label>
+                <label style={labelStyle}>Prenume<input required value={invite.firstName} onChange={e => update("firstName", e.target.value)} className="sd-input" /></label>
+                <label style={labelStyle}>Nume<input required value={invite.lastName} onChange={e => update("lastName", e.target.value)} className="sd-input" /></label>
                 <button disabled={busy !== null} style={{ ...fieldStyle, border: 0, background: "#0056b3", color: "#fff", fontWeight: 700, cursor: "pointer" }}>{busy === "invite" ? "Se creeaza..." : "Trimite invitatia"}</button>
             </form>
             {inviteResult && <div role="status" style={{ marginTop: 12, padding: 10, background: inviteResult.success ? "#ecfdf5" : "#fef2f2", color: inviteResult.success ? "#166534" : "#b91c1c", fontSize: 13 }}>{inviteResult.success ? <>Cont creat pentru <strong>{inviteResult.email}</strong>. Parola temporara: <strong style={{ userSelect: "all" }}>{inviteResult.temporaryPassword}</strong></> : inviteResult.error}</div>}
