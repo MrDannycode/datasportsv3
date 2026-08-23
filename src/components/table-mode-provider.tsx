@@ -38,7 +38,7 @@ function setStoredTableMode(mode: TableMode) {
 }
 
 export function TableModeProvider({ children }: { children: React.ReactNode }) {
-    const tableMode = useSyncExternalStore(subscribeToTableModeChanges, getStoredTableMode, () => "focus");
+    const tableMode = useSyncExternalStore(subscribeToTableModeChanges, getStoredTableMode, () => "focus" as TableMode);
 
     useEffect(() => {
         document.documentElement.classList.toggle(NORMAL_MODE_CLASS, tableMode === "normal");

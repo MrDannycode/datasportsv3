@@ -441,8 +441,8 @@ export default function MatchManager({
                 <div style={{ marginBottom: "20px", padding: "15px", border: "1px solid #ddd", borderRadius: "5px", background: "#f9f9f9" }}>
                     <h3 style={{ marginTop: 0, marginBottom: "8px" }}>Importa meciuri din CSV</h3>
                     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                        <button type="button" onClick={downloadTemplate} style={{ ...fieldStyle, cursor: "pointer" }}>Descarca model CSV</button>
-                        <label style={{ ...fieldStyle, background: "#0056b3", color: "#fff", cursor: "pointer", fontWeight: 700 }}>
+                        <button className="sd-btn-focus-square" type="button" onClick={downloadTemplate} style={{ ...fieldStyle, cursor: "pointer" }}>Descarca model CSV</button>
+                        <label className="sd-btn-focus-square" style={{ ...fieldStyle, background: "#0056b3", color: "#fff", cursor: "pointer", fontWeight: 700 }}>
                             {importLoading ? "Se importa..." : "Alege fisier CSV"}
                             <input ref={fileRef} type="file" accept=".csv,text/csv" disabled={importLoading || loading} onChange={e => { const file = e.target.files?.[0]; if (file) void submitCsv(file) }} style={{ display: "none" }} />
                         </label>

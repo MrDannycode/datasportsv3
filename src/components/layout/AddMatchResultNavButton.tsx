@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react"
 import { updateMatchResult } from "@/app/(dashboard)/manager-fotbal/actions"
+import BaseModal, { ModalActions, modalInputStyle } from "@/components/base-modal"
+
 
 type MatchOption = {
     id: number
@@ -31,12 +33,9 @@ const emptyForm: ResultFormData = {
 }
 
 const fieldStyle = {
+    ...modalInputStyle,
     width: "100%",
     padding: "8px",
-    borderRadius: "3px",
-    border: "1px solid var(--sd-border)",
-    background: "var(--sd-box-bg)",
-    color: "var(--sd-text)",
 }
 
 interface Props {
@@ -165,143 +164,93 @@ export default function AddMatchResultNavButton({ label, matches, isActive = fal
             </button>
 
             {isOpen && (
-                <div
-                    role="dialog"
-                    aria-modal="true"
-                    aria-labelledby="match-result-nav-modal-title"
-                    onClick={closeModal}
-                    style={{
-                        position: "fixed",
-                        inset: 0,
-                        backgroundColor: "rgba(0, 0, 0, 0.45)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        padding: "24px",
-                        zIndex: 1000,
-                    }}
+                <BaseModal
+                    modalId="match-result-nav-modal-title"
+                    title="Adauga rezultat Meci"
+                    subtitle={selectedMatch ? `${selectedMatch.teamHome.name} vs ${selectedMatch.teamAway.name}` : "Selecteaza competitia, apoi etapa si meciul pentru care adaugi rezultatul."}
+                    maxWidth="680px"
+                    onClose={closeModal}
                 >
-                    <div
-                        onClick={event => event.stopPropagation()}
-                        style={{
-                            width: "100%",
-                            maxWidth: "680px",
-                            backgroundColor: "var(--sd-box-bg)",
-                            color: "var(--sd-text)",
-                            border: "1px solid var(--sd-border)",
-                            borderRadius: "8px",
-                            boxShadow: "0 24px 60px rgba(0, 0, 0, 0.18)",
-                            overflow: "hidden",
-                        }}
-                    >
-                        <div
-                            style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "center",
-                                padding: "18px 22px",
-                                borderBottom: "1px solid var(--sd-border)",
-                            }}
-                        >
-                            <div>
-                                <h2 id="match-result-nav-modal-title" style={{ margin: 0 }}>Adauga rezultat Meci</h2>
-                                <p style={{ margin: "6px 0 0", color: "color-mix(in srgb, var(--sd-text) 68%, transparent)", fontSize: "13px" }}>
-                                    {selectedMatch ? `${selectedMatch.teamHome.name} vs ${selectedMatch.teamAway.name}` : "Selecteaza competitia, apoi etapa si meciul pentru care adaugi rezultatul."}
-                                </p>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={closeModal}
-                                style={{ border: "none", background: "transparent", fontSize: "24px", lineHeight: 1, cursor: "pointer", color: "var(--sd-text)" }}
-                                aria-label="Inchide"
+                    {error && <div style={{ color: "#f87171", marginBottom: "10px" }}>{error}</div>}
+
+                    <form onSubmit={handleSubmit} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                        <div style={{ gridColumn: "1 / -1" }}>
+                            <label style={{ display: "block", marginBottom: "5px" }}>Competitie</label>
+                            <select
+                                required
+                                value={formData.competitionId}
+                                onChange={event => updateField("competitionId", event.target.value)}
+                                style={fieldStyle}
                             >
-                                x
-                            </button>
+                                <option value="">-- Selecteaza --</option>
+                                {competitions.map(competition => (
+                                    <option key={competition.id} value={competition.id}>{competition.name}</option>
+                                ))}
+                            </select>
                         </div>
-
-                        <div style={{ padding: "22px" }}>
-                            {error && <div style={{ color: "#f87171", marginBottom: "10px" }}>{error}</div>}
-
-                            <form onSubmit={handleSubmit} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-                                <div style={{ gridColumn: "1 / -1" }}>
-                                    <label style={{ display: "block", marginBottom: "5px" }}>Competitie</label>
-                                    <select
-                                        required
-                                        value={formData.competitionId}
-                                        onChange={event => updateField("competitionId", event.target.value)}
-                                        style={fieldStyle}
-                                    >
-                                        <option value="">-- Selecteaza --</option>
-                                        {competitions.map(competition => (
-                                            <option key={competition.id} value={competition.id}>{competition.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div style={{ gridColumn: "1 / -1" }}>
-                                    <label style={{ display: "block", marginBottom: "5px" }}>Etapa</label>
-                                    <select
-                                        required
-                                        value={formData.stage}
-                                        onChange={event => updateField("stage", event.target.value)}
-                                        disabled={!formData.competitionId}
-                                        style={fieldStyle}
-                                    >
-                                        <option value="">{formData.competitionId ? "-- Selecteaza --" : "-- Selecteaza competitia --"}</option>
-                                        {stageOptions.map(stage => (
-                                            <option key={stage} value={stage}>{stage}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div style={{ gridColumn: "1 / -1" }}>
-                                    <label style={{ display: "block", marginBottom: "5px" }}>Meci</label>
-                                    <select
-                                        required
-                                        value={formData.matchId}
-                                        onChange={event => updateField("matchId", event.target.value)}
-                                        disabled={!formData.stage}
-                                        style={fieldStyle}
-                                    >
-                                        <option value="">{formData.stage ? "-- Selecteaza --" : "-- Selecteaza etapa --"}</option>
-                                        {filteredMatches.map(match => (
-                                            <option key={match.id} value={match.id}>{match.teamHome.name} vs {match.teamAway.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label style={{ display: "block", marginBottom: "5px" }}>Scor Gazda</label>
-                                    <input
-                                        required
-                                        min="0"
-                                        type="number"
-                                        value={formData.scoreHome}
-                                        onChange={event => updateField("scoreHome", event.target.value)}
-                                        style={fieldStyle}
-                                    />
-                                </div>
-                                <div>
-                                    <label style={{ display: "block", marginBottom: "5px" }}>Scor Oaspete</label>
-                                    <input
-                                        required
-                                        min="0"
-                                        type="number"
-                                        value={formData.scoreAway}
-                                        onChange={event => updateField("scoreAway", event.target.value)}
-                                        style={fieldStyle}
-                                    />
-                                </div>
-
-                                <div style={{ gridColumn: "1 / -1", display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "10px" }}>
-                                    <button type="button" onClick={closeModal} style={{ padding: "8px 15px", background: "var(--sd-box-bg)", color: "var(--sd-text)", border: "1px solid var(--sd-border)", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }}>
-                                        Inchide
-                                    </button>
-                                    <button disabled={loading || matches.length === 0} type="submit" style={{ padding: "8px 15px", background: "#0070f3", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }}>
-                                        {loading ? "Se salveaza..." : "Salveaza rezultat"}
-                                    </button>
-                                </div>
-                            </form>
+                        <div style={{ gridColumn: "1 / -1" }}>
+                            <label style={{ display: "block", marginBottom: "5px" }}>Etapa</label>
+                            <select
+                                required
+                                value={formData.stage}
+                                onChange={event => updateField("stage", event.target.value)}
+                                disabled={!formData.competitionId}
+                                style={fieldStyle}
+                            >
+                                <option value="">{formData.competitionId ? "-- Selecteaza --" : "-- Selecteaza competitia --"}</option>
+                                {stageOptions.map(stage => (
+                                    <option key={stage} value={stage}>{stage}</option>
+                                ))}
+                            </select>
                         </div>
-                    </div>
-                </div>
+                        <div style={{ gridColumn: "1 / -1" }}>
+                            <label style={{ display: "block", marginBottom: "5px" }}>Meci</label>
+                            <select
+                                required
+                                value={formData.matchId}
+                                onChange={event => updateField("matchId", event.target.value)}
+                                disabled={!formData.stage}
+                                style={fieldStyle}
+                            >
+                                <option value="">{formData.stage ? "-- Selecteaza --" : "-- Selecteaza etapa --"}</option>
+                                {filteredMatches.map(match => (
+                                    <option key={match.id} value={match.id}>{match.teamHome.name} vs {match.teamAway.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label style={{ display: "block", marginBottom: "5px" }}>Scor Gazda</label>
+                            <input
+                                required
+                                min="0"
+                                type="number"
+                                value={formData.scoreHome}
+                                onChange={event => updateField("scoreHome", event.target.value)}
+                                style={fieldStyle}
+                            />
+                        </div>
+                        <div>
+                            <label style={{ display: "block", marginBottom: "5px" }}>Scor Oaspete</label>
+                            <input
+                                required
+                                min="0"
+                                type="number"
+                                value={formData.scoreAway}
+                                onChange={event => updateField("scoreAway", event.target.value)}
+                                style={fieldStyle}
+                            />
+                        </div>
+                        <div style={{ gridColumn: "1 / -1" }}>
+                            <ModalActions
+                                onClose={closeModal}
+                                loading={loading}
+                                submitLabel="Adaugă rezultat meci"
+                                loadingLabel="Se salvează..."
+                                cancelLabel="Închide"
+                            />
+                        </div>
+                    </form>
+                </BaseModal>
             )}
         </>
     )

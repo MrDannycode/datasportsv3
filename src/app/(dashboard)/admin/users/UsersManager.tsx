@@ -392,7 +392,7 @@ export default function UsersManager({ initialUsers, shouldOpenNewUserModal = fa
                                                     onClick={() => openEditModal(user)}
                                                     style={isNormalMode ? { padding: "4px 10px", cursor: "pointer", background: "#f0f7ff", color: "#0050b3", border: "1px solid #91d5ff", borderRadius: "3px" } : { fontSize: "11px", border: "1px solid #0056b3", color: "#0056b3", backgroundColor: "transparent", padding: "2px 8px", cursor: "pointer" }}
                                                 >
-                                                    Edit
+                                                    Editeaza
                                                 </button>
                                                 <button
                                                     type="button"

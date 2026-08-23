@@ -2110,6 +2110,21 @@ html.dark.sd-table-mode-normal .sd-sidebar-metric-card:focus-visible {
     background-color: #151b26;
 }
 
+/* Team manager form and CSV import use inline light backgrounds. */
+.dark #team-form,
+.dark #csv-import-echipe {
+    background: #151b26 !important;
+    border-color: #2a3444 !important;
+    color: var(--sd-text);
+}
+
+.dark #team-form input,
+.dark #csv-import-echipe button {
+    background: #101826 !important;
+    border-color: #2a3444 !important;
+    color: #e5edf7;
+}
+
 .dark .sd-table th,
 .dark .sd-table td {
     border-color: #2a3444;

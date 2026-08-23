@@ -3,7 +3,9 @@ import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
+import { Role } from "@prisma/client"
 import { normalizeFootballLeagueName } from "@/lib/football-league"
+import AddFirstMatchButton from "./AddFirstMatchButton"
 
 type FootballTeamSummary = {
     id: number
@@ -254,8 +256,11 @@ export default async function ManagerFotbalPage({
         }
         : { role: "atlet_fotbal" as const, id: -1 }
     const footballStaffWhere = assignedCountry
-        ? { role: "antrenor_fotbal" as const, profile: { team: { country: assignedCountry } } }
-        : { role: "antrenor_fotbal" as const, id: -1 }
+        ? {
+            role: { in: [Role.antrenor_fotbal, Role.antrenor_fitness, Role.medic] },
+            profile: { is: { team: { country: assignedCountry } } },
+        }
+        : { id: -1 }
 
     const [teams, upcomingMatches, leagueMatches, totalMatches, footballAthletes, footballCoaches, playedMatches] = await Promise.all([
         prisma.team.findMany({
@@ -335,9 +340,7 @@ export default async function ManagerFotbalPage({
                                         {upcomingMatches.length === 0 ? (
                                             <div className="sd-empty-state">
                                                 <p>Nu exista meciuri programate.</p>
-                                                <Link href="/manager-fotbal/meciuri?open=match" className="sd-btn-primary">
-                                                    Adauga primul meci
-                                                </Link>
+                                                <AddFirstMatchButton />
                                             </div>
                                         ) : (
                                             <table className="sd-table">

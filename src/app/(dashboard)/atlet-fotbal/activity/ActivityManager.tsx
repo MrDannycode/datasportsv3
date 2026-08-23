@@ -125,7 +125,7 @@ export default function ActivityManager({ initialActivities, latestLoad, profile
   const [date, setDate] = useState(today())
   const [durationMin, setDurationMin] = useState("")
   const [avgHeartRate, setAvgHeartRate] = useState("")
-  const [sport, setSport] = useState(defaultSport)
+  const [sport, setSport] = useState<string>(defaultSport)
   const [notes, setNotes] = useState("")
   const [formError, setFormError] = useState<string | null>(null)
   const [formSuccess, setFormSuccess] = useState<string | null>(null)

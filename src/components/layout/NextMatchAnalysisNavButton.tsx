@@ -2,6 +2,8 @@
 
 import { useState } from "react"
 import { setNextMatchAnalysis } from "@/app/(dashboard)/actions/next-match-analysis"
+import BaseModal, { ModalActions, modalInputStyle } from "@/components/base-modal"
+
 
 type MatchDifficulty = "usor" | "mediu" | "greu"
 type TeamFormation = "4-3-3" | "4-4-2" | "4-2-3-1" | "3-5-2" | "3-4-3" | "5-3-2"
@@ -95,77 +97,65 @@ export default function NextMatchAnalysisNavButton({
             </button>
 
             {isOpen ? (
-                <div
-                    className="sd-modal-overlay"
-                    role="presentation"
-                    onMouseDown={(event) => {
-                        if (event.target === event.currentTarget) setIsOpen(false)
-                    }}
+                <BaseModal
+                    modalId="next-match-analysis-modal-title"
+                    title="Next Match Analysis"
+                    subtitle="Selecteaza analiza pentru urmatorul meci."
+                    maxWidth="480px"
+                    onClose={() => setIsOpen(false)}
                 >
-                    <section
-                        className="sd-modal"
-                        role="dialog"
-                        aria-modal="true"
-                        aria-labelledby="next-match-analysis-modal-title"
-                        style={{ maxWidth: 480 }}
-                    >
-                        <h3 id="next-match-analysis-modal-title">Next Match Analysis</h3>
-                        <p>Selecteaza analiza pentru urmatorul meci.</p>
+                    <form onSubmit={handleSubmit} style={{ display: "grid", gap: "14px" }}>
+                        <div style={{ display: "grid", gap: "6px" }}>
+                            <div className="sd-metric-title">Next Match</div>
+                            <strong>{nextMatch}</strong>
+                        </div>
 
-                        <form onSubmit={handleSubmit} style={{ display: "grid", gap: "14px" }}>
-                            <div style={{ display: "grid", gap: "6px" }}>
-                                <div className="sd-metric-title">Next Match</div>
-                                <strong>{nextMatch}</strong>
-                            </div>
+                        <label style={{ display: "grid", gap: "6px", fontSize: "12px", fontWeight: "bold" }}>
+                            Match Difficulty
+                            <select
+                                value={draftDifficulty}
+                                onChange={(event) => setDraftDifficulty(event.target.value as MatchDifficulty)}
+                                style={{ ...modalInputStyle, padding: "8px 10px" }}
+                            >
+                                {MATCH_DIFFICULTY_OPTIONS.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
 
-                            <label style={{ display: "grid", gap: "6px", fontSize: "12px", fontWeight: "bold" }}>
-                                Match Difficulty
-                                <select
-                                    value={draftDifficulty}
-                                    onChange={(event) => setDraftDifficulty(event.target.value as MatchDifficulty)}
-                                    style={INPUT_STYLE}
-                                >
-                                    {MATCH_DIFFICULTY_OPTIONS.map((option) => (
-                                        <option key={option.value} value={option.value}>
-                                            {option.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </label>
+                        <label style={{ display: "grid", gap: "6px", fontSize: "12px", fontWeight: "bold" }}>
+                            Team Formation
+                            <select
+                                value={draftFormation}
+                                onChange={(event) => setDraftFormation(event.target.value as TeamFormation)}
+                                style={{ ...modalInputStyle, padding: "8px 10px" }}
+                            >
+                                {TEAM_FORMATION_OPTIONS.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
 
-                            <label style={{ display: "grid", gap: "6px", fontSize: "12px", fontWeight: "bold" }}>
-                                Team Formation
-                                <select
-                                    value={draftFormation}
-                                    onChange={(event) => setDraftFormation(event.target.value as TeamFormation)}
-                                    style={INPUT_STYLE}
-                                >
-                                    {TEAM_FORMATION_OPTIONS.map((option) => (
-                                        <option key={option.value} value={option.value}>
-                                            {option.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </label>
+                        <div style={{ display: "grid", gap: "6px", color: "#64748b", fontSize: "12px" }}>
+                            <span>Dificultate selectata: <strong>{matchDifficulty}</strong></span>
+                            <span>Formatie selectata: <strong>{teamFormation}</strong></span>
+                        </div>
 
-                            <div style={{ display: "grid", gap: "6px", color: "#64748b", fontSize: "12px" }}>
-                                <span>Dificultate selectata: <strong>{matchDifficulty}</strong></span>
-                                <span>Formatie selectata: <strong>{teamFormation}</strong></span>
-                            </div>
+                        {formError ? <p style={{ margin: 0, color: "#f87171" }}>{formError}</p> : null}
 
-                            {formError ? <p style={{ margin: 0, color: "#f87171" }}>{formError}</p> : null}
-
-                            <div className="sd-modal-actions">
-                                <button type="button" className="sd-btn-secondary" onClick={() => setIsOpen(false)}>
-                                    Inchide
-                                </button>
-                                <button type="submit" className="sd-btn" disabled={formLoading}>
-                                    {formLoading ? "Se salveaza..." : "Salveaza"}
-                                </button>
-                            </div>
-                        </form>
-                    </section>
-                </div>
+                        <ModalActions
+                            onClose={() => setIsOpen(false)}
+                            loading={formLoading}
+                            submitLabel="Salveaza"
+                            loadingLabel="Se salvează..."
+                            cancelLabel="Închide"
+                        />
+                    </form>
+                </BaseModal>
             ) : null}
         </>
     )

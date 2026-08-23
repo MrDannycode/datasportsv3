@@ -4,6 +4,10 @@ import { useState } from "react"
 import { Severity } from "@prisma/client"
 import { saveMedicalRecord } from "./actions"
 import { Athlete, MedicalRecord, Injury } from "./DosarManager"
+import BaseModal, { modalInputStyle } from "@/components/base-modal"
+
+const fieldStyle = { ...modalInputStyle, width: "100%", padding: "8px" }
+const smallFieldStyle = { ...modalInputStyle, flex: 1, padding: "6px" }
 
 interface Props {
     editingRecord: MedicalRecord | null;
@@ -67,37 +71,13 @@ export default function DosarMedicalModal({ editingRecord, athletes, onClose, on
     }
 
     return (
-        <div role="dialog"
-            aria-modal="true"
-            onClick={onClose}
-            style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: "rgba(0,0,0,0.5)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                zIndex: 1000,
-            }}
+        <BaseModal
+            modalId="dosar-medical-modal-title"
+            title={editingRecord ? "Editează Dosar" : "Adaugă Dosar Medical"}
+            maxWidth="600px"
+            onClose={onClose}
         >
-            <div
-                onClick={e => e.stopPropagation()}
-                style={{
-                    background: "var(--sd-box-bg)",
-                    color: "var(--sd-text)",
-                    border: "1px solid var(--sd-border)",
-                    padding: "24px",
-                    borderRadius: "8px",
-                    width: "600px",
-                    maxWidth: "90%",
-                    maxHeight: "90vh",
-                    overflowY: "auto",
-                }}
-            >
-                <h2 style={{ marginTop: 0 }}>{editingRecord ? "Editează Dosar" : "Adaugă Dosar Medical"}</h2>
+            <div style={{ maxHeight: "70vh", overflowY: "auto" }}>
                 <form onSubmit={handleSubmit}>
                     <div style={{ marginBottom: "16px" }}>
                         <label style={{ display: "block", marginBottom: "8px" }}>Atlet (Fotbal)</label>
@@ -105,7 +85,7 @@ export default function DosarMedicalModal({ editingRecord, athletes, onClose, on
                             value={athleteId}
                             onChange={e => setAthleteId(e.target.value ? Number(e.target.value) : "")}
                             required
-                            style={{ width: "100%", padding: "8px", border: "1px solid var(--sd-border)", background: "var(--sd-box-bg)", color: "var(--sd-text)", borderRadius: "4px" }}
+                            style={fieldStyle}
                         >
                             <option value="">Selectează atlet</option>
                             {athletes.map((athlete) => (
@@ -123,7 +103,7 @@ export default function DosarMedicalModal({ editingRecord, athletes, onClose, on
                             value={diagnosis}
                             onChange={e => setDiagnosis(e.target.value)}
                             required
-                            style={{ width: "100%", padding: "8px", border: "1px solid var(--sd-border)", background: "var(--sd-box-bg)", color: "var(--sd-text)", borderRadius: "4px" }}
+                            style={fieldStyle}
                         />
                     </div>
 
@@ -134,7 +114,7 @@ export default function DosarMedicalModal({ editingRecord, athletes, onClose, on
                             onChange={e => setTreatment(e.target.value)}
                             required
                             rows={3}
-                            style={{ width: "100%", padding: "8px", border: "1px solid var(--sd-border)", background: "var(--sd-box-bg)", color: "var(--sd-text)", borderRadius: "4px" }}
+                            style={fieldStyle}
                         />
                     </div>
 
@@ -146,7 +126,7 @@ export default function DosarMedicalModal({ editingRecord, athletes, onClose, on
                                 value={startDate}
                                 onChange={e => setStartDate(e.target.value)}
                                 required
-                                style={{ width: "100%", padding: "8px", border: "1px solid var(--sd-border)", background: "var(--sd-box-bg)", color: "var(--sd-text)", borderRadius: "4px" }}
+                                style={fieldStyle}
                             />
                         </div>
                         <div style={{ flex: 1 }}>
@@ -155,7 +135,7 @@ export default function DosarMedicalModal({ editingRecord, athletes, onClose, on
                                 type="date"
                                 value={endDate}
                                 onChange={e => setEndDate(e.target.value)}
-                                style={{ width: "100%", padding: "8px", border: "1px solid var(--sd-border)", background: "var(--sd-box-bg)", color: "var(--sd-text)", borderRadius: "4px" }}
+                                style={fieldStyle}
                             />
                         </div>
                     </div>
@@ -167,7 +147,7 @@ export default function DosarMedicalModal({ editingRecord, athletes, onClose, on
                             <select
                                 value={isAvailable ? "disponibil" : "indisponibil"}
                                 onChange={e => setIsAvailable(e.target.value === "disponibil")}
-                                style={{ width: "100%", padding: "8px", border: "1px solid var(--sd-border)", background: "var(--sd-box-bg)", color: "var(--sd-text)", borderRadius: "4px" }}
+                                style={fieldStyle}
                             >
                                 <option value="disponibil">Disponibil</option>
                                 <option value="indisponibil">Indisponibil</option>
@@ -190,7 +170,7 @@ export default function DosarMedicalModal({ editingRecord, athletes, onClose, on
                                         value={injury.injuryType}
                                         onChange={e => handleInjuryChange(index, "injuryType", e.target.value)}
                                         required
-                                        style={{ flex: 1, padding: "6px", border: "1px solid var(--sd-border)", background: "var(--sd-box-bg)", color: "var(--sd-text)", borderRadius: "4px" }}
+                                        style={smallFieldStyle}
                                     />
                                     <input
                                         type="text"
@@ -198,14 +178,14 @@ export default function DosarMedicalModal({ editingRecord, athletes, onClose, on
                                         value={injury.bodyPart}
                                         onChange={e => handleInjuryChange(index, "bodyPart", e.target.value)}
                                         required
-                                        style={{ flex: 1, padding: "6px", border: "1px solid var(--sd-border)", background: "var(--sd-box-bg)", color: "var(--sd-text)", borderRadius: "4px" }}
+                                        style={smallFieldStyle}
                                     />
                                 </div>
                                 <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
                                     <select
                                         value={injury.severity}
                                         onChange={e => handleInjuryChange(index, "severity", e.target.value as Severity)}
-                                        style={{ flex: 1, padding: "6px", border: "1px solid var(--sd-border)", background: "var(--sd-box-bg)", color: "var(--sd-text)", borderRadius: "4px" }}
+                                        style={smallFieldStyle}
                                     >
                                         <option value={Severity.usoara}>Ușoară</option>
                                         <option value={Severity.medie}>Medie</option>
@@ -218,7 +198,7 @@ export default function DosarMedicalModal({ editingRecord, athletes, onClose, on
                                         onChange={e => handleInjuryChange(index, "recoveryDays", e.target.value)}
                                         required
                                         min="0"
-                                        style={{ flex: 1, padding: "6px", border: "1px solid var(--sd-border)", background: "var(--sd-box-bg)", color: "var(--sd-text)", borderRadius: "4px" }}
+                                        style={smallFieldStyle}
                                     />
                                 </div>
                                 <div>
@@ -227,7 +207,7 @@ export default function DosarMedicalModal({ editingRecord, athletes, onClose, on
                                         placeholder="Note (opțional)"
                                         value={injury.notes || ""}
                                         onChange={e => handleInjuryChange(index, "notes", e.target.value)}
-                                        style={{ width: "100%", padding: "6px", border: "1px solid var(--sd-border)", background: "var(--sd-box-bg)", color: "var(--sd-text)", borderRadius: "4px" }}
+                                        style={{ ...modalInputStyle, width: "100%", padding: "6px", borderRadius: "4px" }}
                                     />
                                 </div>
                             </div>
@@ -244,6 +224,6 @@ export default function DosarMedicalModal({ editingRecord, athletes, onClose, on
                     </div>
                 </form>
             </div>
-        </div>
+        </BaseModal>
     )
 }

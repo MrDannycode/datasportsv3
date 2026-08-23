@@ -95,7 +95,7 @@ export default function SignOutPage() {
                 </p>
 
                 <div style={{ display: "flex", gap: 10 }}>
-                    <button
+                    <button className="sd-btn-focus-square"
                         type="button"
                         onClick={() => router.back()}
                         style={{
@@ -112,7 +112,7 @@ export default function SignOutPage() {
                     >
                         Cancel
                     </button>
-                    <button
+                    <button className="sd-btn-focus-square"
                         type="button"
                         onClick={() => signOut({ callbackUrl: "/login" })}
                         onMouseEnter={(event) => {

@@ -36,7 +36,7 @@ export async function updateMyProfile(formData: FormData): Promise<UpdateProfile
     return { success: false, error: "Numele și prenumele sunt obligatorii" }
   }
 
-  const profileData: Record<string, string | Date | null> = {
+  const profileData: any = {
     firstName: firstName.trim(),
     lastName: lastName.trim(),
     phone: phone ? phone.trim() : null,
