@@ -392,39 +392,39 @@ export default function MatchManager({
             <div className="sd-box-content">
                 {error && <div style={{ color: "red", marginBottom: "10px" }}>{error}</div>}
 
-                <form onSubmit={handleSubmit} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "20px", padding: "15px", border: "1px solid #ddd", borderRadius: "5px", background: "#f9f9f9" }}>
+                <form onSubmit={handleSubmit} className="sd-form-panel" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "20px" }}>
                     <div>
                         <label style={{ display: "block", marginBottom: "5px" }}>Competitie</label>
-                        <select required value={formData.competitionId} onChange={e => updateField("competitionId", e.target.value)} style={{ width: "100%", padding: "5px", borderRadius: "3px", border: "1px solid #ccc" }}>
+                        <select required value={formData.competitionId} onChange={e => updateField("competitionId", e.target.value)} className="sd-input" style={{ width: "100%" }}>
                             <option value="">-- Selecteaza --</option>
                             {competitions.map(competition => <option key={competition.id} value={competition.id}>{competition.name}</option>)}
                         </select>
                     </div>
                     <div>
                         <label style={{ display: "block", marginBottom: "5px" }}>Etapa</label>
-                        <input type="text" value={formData.stage} onChange={e => updateField("stage", e.target.value)} style={{ width: "100%", padding: "5px", borderRadius: "3px", border: "1px solid #ccc" }} />
+                        <input type="text" value={formData.stage} onChange={e => updateField("stage", e.target.value)} className="sd-input" style={{ width: "100%" }} />
                     </div>
                     <div>
                         <label style={{ display: "block", marginBottom: "5px" }}>Echipa Gazda</label>
-                        <select required value={formData.teamHomeId} onChange={e => updateField("teamHomeId", e.target.value)} disabled={!selectedCompetition} style={{ width: "100%", padding: "5px", borderRadius: "3px", border: "1px solid #ccc" }}>
+                        <select required value={formData.teamHomeId} onChange={e => updateField("teamHomeId", e.target.value)} disabled={!selectedCompetition} className="sd-input" style={{ width: "100%" }}>
                             <option value="">{selectedCompetition ? "-- Selecteaza --" : "-- Selecteaza competitia --"}</option>
                             {filteredTeams.map(team => <option key={team.id} value={team.id}>{team.name}</option>)}
                         </select>
                     </div>
                     <div>
                         <label style={{ display: "block", marginBottom: "5px" }}>Echipa Oaspete</label>
-                        <select required value={formData.teamAwayId} onChange={e => updateField("teamAwayId", e.target.value)} disabled={!selectedCompetition} style={{ width: "100%", padding: "5px", borderRadius: "3px", border: "1px solid #ccc" }}>
+                        <select required value={formData.teamAwayId} onChange={e => updateField("teamAwayId", e.target.value)} disabled={!selectedCompetition} className="sd-input" style={{ width: "100%" }}>
                             <option value="">{selectedCompetition ? "-- Selecteaza --" : "-- Selecteaza competitia --"}</option>
                             {filteredTeams.map(team => <option key={team.id} value={team.id}>{team.name}</option>)}
                         </select>
                     </div>
                     <div>
                         <label style={{ display: "block", marginBottom: "5px" }}>Data si Ora</label>
-                        <input required type="datetime-local" value={formData.matchDate} onChange={e => updateField("matchDate", e.target.value)} style={{ width: "100%", padding: "5px", borderRadius: "3px", border: "1px solid #ccc" }} />
+                        <input required type="datetime-local" value={formData.matchDate} onChange={e => updateField("matchDate", e.target.value)} className="sd-input" style={{ width: "100%" }} />
                     </div>
                     <div>
                         <label style={{ display: "block", marginBottom: "5px" }}>Stadion</label>
-                        <input required type="text" value={formData.location} onChange={e => updateField("location", e.target.value)} style={{ width: "100%", padding: "5px", borderRadius: "3px", border: "1px solid #ccc" }} />
+                        <input required type="text" value={formData.location} onChange={e => updateField("location", e.target.value)} className="sd-input" style={{ width: "100%" }} />
                     </div>
 
                     <div style={{ gridColumn: "1 / -1", display: "flex", gap: "10px", marginTop: "10px" }}>
@@ -438,7 +438,7 @@ export default function MatchManager({
                         )}
                     </div>
                 </form>
-                <div style={{ marginBottom: "20px", padding: "15px", border: "1px solid #ddd", borderRadius: "5px", background: "#f9f9f9" }}>
+                <div className="sd-form-panel" style={{ marginBottom: "20px" }}>
                     <h3 style={{ marginTop: 0, marginBottom: "8px" }}>Importa meciuri din CSV</h3>
                     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                         <button className="sd-btn-focus-square" type="button" onClick={downloadTemplate} style={{ ...fieldStyle, cursor: "pointer" }}>Descarca model CSV</button>
