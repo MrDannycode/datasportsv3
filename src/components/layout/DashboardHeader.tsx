@@ -595,8 +595,10 @@ export default async function DashboardHeader({
                             src={logoSvg}
                             alt="SportsData Logo"
                             priority
+                            className="sd-logo-image"
                             style={{ height: 42, width: "auto", display: "block" }}
                         />
+                        <span className="sd-logo-text">SportsData</span>
                     </Link>
                 </div>
 

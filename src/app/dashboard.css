@@ -160,6 +160,27 @@
     color: #000;
 }
 
+/* Logo image: visible only in normal mode */
+.sd-logo-image {
+    display: none;
+}
+html.sd-table-mode-normal .sd-logo-image {
+    display: block;
+}
+
+/* "SportsData" text: visible only in focus mode */
+.sd-logo-text {
+    display: inline;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: inherit;
+}
+html.sd-table-mode-normal .sd-logo-text {
+    display: none;
+}
+
+
 .sd-nav {
     display: flex;
     justify-content: center;
