@@ -1,6 +1,7 @@
 "use client"
 
 import { signOut } from "next-auth/react"
+import Link from "next/link"
 import { useTheme } from "@/components/theme-provider"
 import { useRouter } from "next/navigation"
 import { LogOut } from "lucide-react"
@@ -70,7 +71,9 @@ export default function SignOutPage() {
                         marginBottom: 20,
                     }}
                 >
-                    <strong style={{ fontSize: 18 }}>SportsData</strong>
+                    <Link href="/" style={{ textDecoration: "none", color: "inherit" }}>
+                        <img src="/logomic.svg" alt="SportsData" style={{ height: 18 }} />
+                    </Link>
                     <span
                         style={{
                             display: "inline-flex",

@@ -441,8 +441,8 @@ export default function MatchManager({
                 <div className="sd-form-panel" style={{ marginBottom: "20px" }}>
                     <h3 style={{ marginTop: 0, marginBottom: "8px" }}>Importa meciuri din CSV</h3>
                     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                        <button className="sd-btn-focus-square" type="button" onClick={downloadTemplate} style={{ ...fieldStyle, cursor: "pointer" }}>Descarca model CSV</button>
-                        <label className="sd-btn-focus-square" style={{ ...fieldStyle, background: "#0056b3", color: "#fff", cursor: "pointer", fontWeight: 700 }}>
+                        <button className="sd-btn-secondary" type="button" onClick={downloadTemplate}>Descarca model CSV</button>
+                        <label className="sd-btn-primary" style={{ cursor: importLoading || loading ? "not-allowed" : "pointer" }}>
                             {importLoading ? "Se importa..." : "Alege fisier CSV"}
                             <input ref={fileRef} type="file" accept=".csv,text/csv" disabled={importLoading || loading} onChange={e => { const file = e.target.files?.[0]; if (file) void submitCsv(file) }} style={{ display: "none" }} />
                         </label>
@@ -551,10 +551,9 @@ export default function MatchManager({
                                 <td>{match.stage || "-"}</td>
                                 <td>{match.scoreHome !== null && match.scoreAway !== null ? `${match.scoreHome} - ${match.scoreAway}` : "-"}</td>
                                 <td style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                                    <button style={{ padding: "4px 8px" }} type="button" onClick={() => handleEdit(match)} disabled={loading}>Editeaza</button>
-                                    <button style={{ padding: "4px 8px" }} type="button" onClick={() => openResultModal(match)} disabled={loading}>Adauga rezultat</button>
-                                    <button style={{ padding: "4px 8px", backgroundColor: "red", color: "white" }} type="button" onClick={() => handleDelete(match.id)} disabled={loading}>Sterge</button>
-                                </td>
+                                    <button type="button" onClick={() => handleEdit(match)} className="sd-btn-edit" disabled={loading}>Editeaza</button>
+                                    <button type="button" onClick={() => openResultModal(match)} className="sd-btn-edit" disabled={loading}>Adauga rezultat</button>
+                                    <button type="button" onClick={() => handleDelete(match.id)} className="sd-btn-delete" disabled={loading}>Sterge</button>                            </td>
                             </tr>
                         )) : (
                             <tr>

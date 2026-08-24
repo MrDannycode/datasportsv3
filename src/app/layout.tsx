@@ -31,6 +31,28 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                // Apply dark mode class
+                const storedTheme = localStorage.getItem('theme');
+                const theme = storedTheme === 'light' || storedTheme === 'dark' ? storedTheme : 'dark';
+                if (theme === 'dark') {
+                  document.documentElement.classList.add('dark');
+                }
+                // Apply table mode class
+                const storedTableMode = localStorage.getItem('sd-table-mode');
+                const tableMode = storedTableMode === 'normal' || storedTableMode === 'focus' ? storedTableMode : 'focus';
+                if (tableMode === 'normal') {
+                  document.documentElement.classList.add('sd-table-mode-normal');
+                }
+              })();
+            `,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <ThemeProvider
           attribute="class"

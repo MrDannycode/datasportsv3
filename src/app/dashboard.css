@@ -865,25 +865,51 @@ html.dark.sd-table-mode-normal .sd-sidebar-metric-card:focus-visible {
 }
 
 .sd-btn-edit {
-    background: #e9f0ff;
+    background: transparent;
     color: #0056b3;
-    border-color: #bfdbfe;
+    border: 1px solid #0056b3;
+    padding: 2px 8px;
+    font-size: 11px;
 }
 
 .sd-btn-edit:hover {
-    background: #dbeafe;
+    background: rgba(0, 86, 179, 0.08);
     text-decoration: none;
     color: #0056b3;
 }
 
 .sd-btn-delete {
-    background: #fff0f0;
+    background: transparent;
     color: #c00;
-    border-color: #fca5a5;
+    border: 1px solid #c00;
+    padding: 2px 8px;
+    font-size: 11px;
 }
 
 .sd-btn-delete:hover {
-    background: #ffe0e0;
+    background: rgba(204, 0, 0, 0.08);
+    text-decoration: none;
+    color: #c00;
+}
+
+.dark .sd-btn-edit {
+    color: #60a5fa;
+    border-color: #3b82f6;
+}
+
+.dark .sd-btn-edit:hover {
+    background: rgba(59, 130, 246, 0.15);
+    color: #93c5fd;
+}
+
+.dark .sd-btn-delete {
+    color: #f87171;
+    border-color: #ef4444;
+}
+
+.dark .sd-btn-delete:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: #fca5a5;
 }
 
 /* ---- Description cell ----------------------------------- */
@@ -2426,26 +2452,66 @@ html.dark.sd-table-mode-normal .sd-sidebar-metric-card:focus-visible {
 
 .sd-table-mode-normal .sd-btn-primary,
 .sd-table-mode-normal .sd-tournament-register-btn {
-    background: #0f766e;
-    border-color: #0f766e;
+    background: #0056b3;
+    border-color: #0056b3;
 }
 
 .sd-table-mode-normal .sd-btn-primary:hover,
 .sd-table-mode-normal .sd-tournament-register-btn:hover:not(:disabled) {
-    background: #115e59;
-    border-color: #115e59;
+    background: #004494;
+    border-color: #004494;
 }
 
 .sd-table-mode-normal .sd-btn-edit {
-    background: #e0f2fe;
-    color: #075985;
-    border-color: #7dd3fc;
+    background: #f0f7ff;
+    color: #0050b3;
+    border: 1px solid #91d5ff;
+    padding: 4px 10px;
+    font-size: 12px;
+}
+
+.sd-table-mode-normal .sd-btn-edit:hover {
+    background: #bae0ff;
+    border-color: #69c0ff;
+    color: #003a8c;
 }
 
 .sd-table-mode-normal .sd-btn-delete {
-    background: #fee2e2;
-    color: #991b1b;
-    border-color: #fca5a5;
+    background: #fff0f0;
+    color: #c00;
+    border: 1px solid #ffcccc;
+    padding: 4px 10px;
+    font-size: 12px;
+}
+
+.sd-table-mode-normal .sd-btn-delete:hover {
+    background: #ffd8d8;
+    border-color: #ffa39e;
+    color: #a8071a;
+}
+
+.dark.sd-table-mode-normal .sd-btn-edit {
+    background: rgba(30, 58, 138, 0.35);
+    color: #93c5fd;
+    border: 1px solid #1e40af;
+}
+
+.dark.sd-table-mode-normal .sd-btn-edit:hover {
+    background: rgba(30, 58, 138, 0.55);
+    border-color: #3b82f6;
+    color: #bfdbfe;
+}
+
+.dark.sd-table-mode-normal .sd-btn-delete {
+    background: rgba(127, 29, 29, 0.35);
+    color: #fca5a5;
+    border: 1px solid #991b1b;
+}
+
+.dark.sd-table-mode-normal .sd-btn-delete:hover {
+    background: rgba(127, 29, 29, 0.55);
+    border-color: #ef4444;
+    color: #fecaca;
 }
 
 .sd-table-mode-normal .sd-badge-tehnic,
@@ -2619,9 +2685,15 @@ html.dark.sd-table-mode-normal .sd-sidebar-metric-card:focus-visible {
 
 .sd-table-mode-normal .sd-btn-primary,
 .sd-table-mode-normal .sd-tournament-register-btn {
-    background: linear-gradient(135deg, #0f766e 0%, #0891b2 100%);
-    border-color: transparent;
-    box-shadow: 0 10px 20px rgba(15, 118, 110, 0.2);
+    background: #0056b3;
+    border-color: #0056b3;
+    box-shadow: 0 10px 20px rgba(0, 86, 179, 0.2);
+}
+
+.sd-table-mode-normal .sd-btn-primary:hover,
+.sd-table-mode-normal .sd-tournament-register-btn:hover:not(:disabled) {
+    background: #004494;
+    border-color: #004494;
 }
 
 .sd-table-mode-normal .sd-btn-secondary,
@@ -2729,9 +2801,15 @@ html.dark.sd-table-mode-normal .sd-sidebar-metric-card:focus-visible {
 
 .dark.sd-table-mode-normal .sd-btn-primary,
 .dark.sd-table-mode-normal .sd-tournament-register-btn {
-    background: linear-gradient(135deg, #0f766e 0%, #2563eb 100%);
-    border-color: transparent;
+    background: #0056b3;
+    border-color: #0056b3;
     box-shadow: 0 10px 22px rgba(37, 99, 235, 0.24);
+}
+
+.dark.sd-table-mode-normal .sd-btn-primary:hover,
+.dark.sd-table-mode-normal .sd-tournament-register-btn:hover:not(:disabled) {
+    background: #004494;
+    border-color: #004494;
 }
 
 .dark.sd-table-mode-normal .sd-btn-secondary,
@@ -3045,13 +3123,15 @@ html.dark.sd-table-mode-normal .sd-sidebar-metric-card:focus-visible {
 
 .sd-table-mode-normal .sd-btn-primary,
 .sd-table-mode-normal .sd-tournament-register-btn {
-    background: linear-gradient(135deg, #4f46e5 0%, #10b981 100%);
-    box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);
+    background: #0056b3;
+    border-color: #0056b3;
+    box-shadow: 0 10px 20px rgba(0, 86, 179, 0.2);
 }
 
 .sd-table-mode-normal .sd-btn-primary:hover,
 .sd-table-mode-normal .sd-tournament-register-btn:hover:not(:disabled) {
-    background: linear-gradient(135deg, #4338ca 0%, #059669 100%);
+    background: #004494;
+    border-color: #004494;
 }
 
 .sd-table-mode-normal .sd-btn-secondary,
@@ -3194,8 +3274,15 @@ html.dark.sd-table-mode-normal .sd-sidebar-metric-card:focus-visible {
 
 .dark.sd-table-mode-normal .sd-btn-primary,
 .dark.sd-table-mode-normal .sd-tournament-register-btn {
-    background: linear-gradient(135deg, #6366f1 0%, #10b981 100%);
-    box-shadow: 0 10px 22px rgba(99, 102, 241, 0.24);
+    background: #0056b3;
+    border-color: #0056b3;
+    box-shadow: 0 10px 22px rgba(0, 86, 179, 0.24);
+}
+
+.dark.sd-table-mode-normal .sd-btn-primary:hover,
+.dark.sd-table-mode-normal .sd-tournament-register-btn:hover:not(:disabled) {
+    background: #004494;
+    border-color: #004494;
 }
 
 .dark.sd-table-mode-normal .sd-btn-secondary,
@@ -3423,6 +3510,19 @@ html:not(.sd-table-mode-normal) .sd-btn-back {
 
 /* Buttons that must be square in Focus mode (server components cannot read the
    table mode from React, so they opt in with this class instead). */
-html:not(.sd-table-mode-normal) .sd-btn-focus-square {
+html:not(.sd-table-mode-normal) .sd-btn-focus-square,
+html:not(.sd-table-mode-normal) .sd-btn-primary,
+html:not(.sd-table-mode-normal) .sd-btn-secondary,
+html:not(.sd-table-mode-normal) .sd-btn-danger,
+html:not(.sd-table-mode-normal) .sd-btn-edit,
+html:not(.sd-table-mode-normal) .sd-btn-delete {
     border-radius: 0 !important;
+}
+
+.sd-table-mode-normal .sd-btn-primary,
+.sd-table-mode-normal .sd-btn-secondary,
+.sd-table-mode-normal .sd-btn-danger,
+.sd-table-mode-normal .sd-btn-edit,
+.sd-table-mode-normal .sd-btn-delete {
+    border-radius: 4px;
 }

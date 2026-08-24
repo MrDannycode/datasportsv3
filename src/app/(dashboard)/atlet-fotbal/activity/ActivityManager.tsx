@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState, useTransition } from "react"
-import { addActivity, deleteActivity, importActivities, type ActivityImportResult } from "./actions"
+import { addActivity, updateActivity, deleteActivity, importActivities, type ActivityImportResult } from "./actions"
 import ActivityModal from "./ActivityModal"
 import { parseCsv } from "@/lib/csv"
 
@@ -130,6 +130,7 @@ export default function ActivityManager({ initialActivities, latestLoad, profile
   const [formError, setFormError] = useState<string | null>(null)
   const [formSuccess, setFormSuccess] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [editingId, setEditingId] = useState<number | null>(null)
   const [isActivityModalOpen, setIsActivityModalOpen] = useState(false)
   const hasOpenedFromQueryRef = useRef(false)
   const csvFileRef = useRef<HTMLInputElement>(null)
@@ -156,11 +157,24 @@ export default function ActivityManager({ initialActivities, latestLoad, profile
     setNotes("")
     setFormError(null)
     setFormSuccess(null)
+    setEditingId(null)
   }
 
   function closeActivityModal() {
     setIsActivityModalOpen(false)
     resetForm()
+  }
+
+  function handleEdit(activity: Activity) {
+    setEditingId(activity.id)
+    setDate(new Date(activity.date).toISOString().slice(0, 10))
+    setDurationMin(String(activity.durationMin))
+    setAvgHeartRate(activity.avgHeartRate ? String(activity.avgHeartRate) : "")
+    setSport(activity.sport || defaultSport)
+    setNotes(activity.notes || "")
+    setFormError(null)
+    setFormSuccess(null)
+    setIsActivityModalOpen(true)
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -429,7 +443,7 @@ export default function ActivityManager({ initialActivities, latestLoad, profile
                     {act.notes ? <span title={act.notes}>{act.notes.length > 50 ? act.notes.slice(0, 50) + "..." : act.notes}</span> : <span style={{ color: "#999" }}>-</span>}
                   </td>
                   <td>
-                    <button onClick={() => handleDelete(act.id)} disabled={isPending && deletingId === act.id} style={{ fontSize: "11px", border: "1px solid #c00", color: "#c00", backgroundColor: "transparent", padding: "2px 8px", cursor: "pointer" }}>
+                    <button onClick={() => handleDelete(act.id)} disabled={isPending && deletingId === act.id} className="sd-btn-delete">
                       {isPending && deletingId === act.id ? "..." : "Sterge"}
                     </button>
                   </td>

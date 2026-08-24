@@ -461,7 +461,7 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                                     </th>
                                     <th>Durata</th>
                                     <th>Data crearii</th>
-                                    <th style={{ textAlign: "right" }}>Actiuni</th>
+                                    <th>Actiuni</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -476,10 +476,24 @@ export default function CompetitionsManager({ initialCompetitions, shouldOpenNew
                                         <td>{comp.continent}</td>
                                         <td>{formatCompetitionDuration(comp.startDate, comp.endDate)}</td>
                                         <td>{new Date(comp.createdAt).toLocaleDateString("ro-RO")}</td>
-                                        <td style={{ textAlign: "right" }}>
-                                            <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", flexWrap: "wrap" }}>
-                                                <button disabled={loading} type="button" onClick={() => openEditModal(comp)} style={isNormalMode ? { padding: "4px 10px", cursor: "pointer", background: "#f0f7ff", color: "#0050b3", border: "1px solid #91d5ff", borderRadius: "3px" } : { fontSize: "11px", border: "1px solid #0056b3", color: "#0056b3", backgroundColor: "transparent", padding: "2px 8px", cursor: "pointer" }}>Editeaza</button>
-                                                <button disabled={loading} type="button" onClick={() => handleDelete(comp.id)} style={isNormalMode ? { padding: "4px 10px", cursor: "pointer", background: "#fff0f0", color: "red", border: "1px solid #ffcccc", borderRadius: "3px" } : { fontSize: "11px", border: "1px solid #c00", color: "#c00", backgroundColor: "transparent", padding: "2px 8px", cursor: "pointer" }}>Sterge</button>
+                                        <td>
+                                            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                                                <button
+                                                    disabled={loading}
+                                                    type="button"
+                                                    onClick={() => openEditModal(comp)}
+                                                    className="sd-btn-edit"
+                                                >
+                                                    Editeaza
+                                                </button>
+                                                <button
+                                                    disabled={loading}
+                                                    type="button"
+                                                    onClick={() => handleDelete(comp.id)}
+                                                    className="sd-btn-delete"
+                                                >
+                                                    Sterge
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>

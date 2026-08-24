@@ -31,17 +31,17 @@ export default async function AntrenamentePage({ searchParams }: AntrenamentePag
 
     return (
         <main>
-    <div className="sd-box">
+            <div className="sd-box">
                 <div className="sd-box-header">
-                    <Link href="/antrenor-fotbal" className="sd-btn-secondary">Inapoi</Link>
+                    <Link href="/antrenor-fotbal" className="sd-btn-secondary sd-btn-back">Inapoi</Link>
                     <h2 className="flex-1 text-center">Gestionare Planuri Antrenament</h2>
                     <div className="sd-btn-secondary invisible">Inapoi</div>
                 </div>
                 <div className="sd-box-content">
 
-            <AntrenamenteManager initialPlans={serializedPlans} shouldOpenNewPlanModal={resolvedSearchParams?.open === "plan"} />
-       </div>
-       </div>
+                    <AntrenamenteManager initialPlans={serializedPlans} shouldOpenNewPlanModal={resolvedSearchParams?.open === "plan"} />
+                </div>
+            </div>
         </main>
     )
 }

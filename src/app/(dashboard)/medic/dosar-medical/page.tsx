@@ -24,7 +24,7 @@ export default async function DosarMedicalPage({ searchParams }: DosarMedicalPag
         <main>
             <div className="sd-box">
                 <div className="sd-box-header">
-                    <Link href="/medic" className="sd-btn-secondary">Inapoi</Link>
+                    <Link href="/medic" className="sd-btn-secondary sd-btn-back">Inapoi</Link>
                     <h2 className="flex-1 text-center">Gestionare Dosare Medicale</h2>
                     <div className="sd-btn-secondary invisible">Inapoi</div>
                 </div>

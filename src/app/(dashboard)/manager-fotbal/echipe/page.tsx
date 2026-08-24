@@ -40,7 +40,7 @@ export default async function EchipePage() {
         <main>
             <div className="sd-box">
                 <div className="sd-box-header">
-                    <Link href="/manager-fotbal" className="sd-btn-secondary">Inapoi</Link>
+                    <Link href="/manager-fotbal" className="sd-btn-secondary sd-btn-back">Inapoi</Link>
                     <h2 className="flex-1 text-center">Gestionare Echipe Fotbal</h2>
                     <div className="sd-btn-secondary invisible">Inapoi</div>
                 </div>

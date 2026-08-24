@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useSyncExternalStore } from "react"
+import { useState } from "react"
 import { signIn } from "next-auth/react"
+import Link from "next/link"
 import { useTheme } from "@/components/theme-provider"
 import { useRouter } from "next/navigation"
 import { useTableMode } from "@/components/table-mode-provider"
@@ -12,7 +13,7 @@ const demoAccounts = [
     { label: "Antrenor Fotbal", email: "DorinelMunteanu@datasports.test", password: "dorinelmunteanuog" },
     { label: "Antrenor Fitness", email: "FitnesOtelGl@datasports.test", password: "fitnesotelgl" },
     { label: "Medic", email: "MedicOtelGl@datasports.test", password: "medicotelgl" },
-    { label: "Atlet Fotbal", email: "antal@datasports.test", password: "Ds!0W0QFxbH" },
+    { label: "Atlet Fotbal", email: "cristian.branet@example.com", password: "Ds!lhVhVVrP" },
     { label: "Atlet tenis", email: "tenisdan@datasports.test", password: "tenisdan" },
 ]
 
@@ -24,8 +25,7 @@ export default function LoginPage() {
     const [password, setPassword] = useState("")
     const [error, setError] = useState("")
     const [loading, setLoading] = useState(false)
-    const isMounted = useSyncExternalStore(() => () => {}, () => true, () => false)
-    const isDark = isMounted && theme === "dark"
+    const isDark = theme === "dark"
     const isNormal = tableMode === "normal"
     const colors = isDark
         ? {
@@ -106,7 +106,9 @@ export default function LoginPage() {
                 }}
             >
                 <div style={{ marginBottom: 20, borderBottom: `2px solid ${colors.border}`, paddingBottom: 10 }}>
-                    <strong style={{ fontSize: 18 }}>SportsData</strong>
+                    <Link href="/" style={{ textDecoration: "none", color: "inherit" }}>
+                        <img src="/logomic.svg" alt="SportsData" style={{ height: 18 }} />
+                    </Link>
                 </div>
 
                 <h1 style={{ fontSize: 20, fontWeight: "normal", margin: "0 0 20px" }}>

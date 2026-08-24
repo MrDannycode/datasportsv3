@@ -390,14 +390,14 @@ export default function UsersManager({ initialUsers, shouldOpenNewUserModal = fa
                                                 <button
                                                     type="button"
                                                     onClick={() => openEditModal(user)}
-                                                    style={isNormalMode ? { padding: "4px 10px", cursor: "pointer", background: "#f0f7ff", color: "#0050b3", border: "1px solid #91d5ff", borderRadius: "3px" } : { fontSize: "11px", border: "1px solid #0056b3", color: "#0056b3", backgroundColor: "transparent", padding: "2px 8px", cursor: "pointer" }}
+                                                    className="sd-btn-edit"
                                                 >
                                                     Editeaza
                                                 </button>
                                                 <button
                                                     type="button"
                                                     onClick={() => handleDelete(user.id, user.email)}
-                                                    style={isNormalMode ? { padding: "4px 10px", cursor: "pointer", background: "#fff0f0", color: "red", border: "1px solid #ffcccc", borderRadius: "3px" } : { fontSize: "11px", border: "1px solid #c00", color: "#c00", backgroundColor: "transparent", padding: "2px 8px", cursor: "pointer" }}
+                                                    className="sd-btn-delete"
                                                 >
                                                     Sterge
                                                 </button>

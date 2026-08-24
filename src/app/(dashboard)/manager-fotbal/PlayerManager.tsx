@@ -270,9 +270,8 @@ export default function PlayerManager({
                                                 </div>
                                             ) : (
                                                 <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                                                    <button disabled={loading} type="button" onClick={() => startEdit(player)} style={{ padding: "4px 10px", cursor: "pointer", background: "#f0f0f0", border: "1px solid #ccc", borderRadius: "3px" }}>Editeaza</button>
-                                                    <button disabled={loading} type="button" onClick={() => handleDelete(player)} style={{ padding: "4px 10px", cursor: "pointer", background: "#fff0f0", color: "red", border: "1px solid #ffcccc", borderRadius: "3px" }}>Sterge</button>
-                                                </div>
+                                                    <button disabled={loading} type="button" onClick={() => startEdit(player)} className="sd-btn-edit">Editeaza</button>
+                                                    <button disabled={loading} type="button" onClick={() => handleDelete(player)} className="sd-btn-delete">Sterge</button>                                                </div>
                                             )}
                                         </td>
                                     </tr>

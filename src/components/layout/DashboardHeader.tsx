@@ -1,6 +1,8 @@
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import Link from "next/link"
+import Image from "next/image"
+import logoSvg from "@/../public/logov5.jpeg"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { TableModeToggle } from "@/components/table-mode-toggle"
 import AddMedicalRecordNavButton from "@/components/layout/AddMedicalRecordNavButton"
@@ -588,8 +590,16 @@ export default async function DashboardHeader({
         <header className="sd-header">
             <div className="sd-header-row sd-header-top">
                 <div className="sd-logo">
-                    <strong>SportsData</strong>
+                    <Link href="/" style={{ textDecoration: "none", color: "inherit", display: "inline-flex", alignItems: "center" }}>
+                        <Image
+                            src={logoSvg}
+                            alt="SportsData Logo"
+                            priority
+                            style={{ height: 42, width: "auto", display: "block" }}
+                        />
+                    </Link>
                 </div>
+
 
                 <div className="sd-user-info">
                     {session?.user ? (

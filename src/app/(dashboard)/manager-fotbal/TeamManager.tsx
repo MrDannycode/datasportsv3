@@ -299,8 +299,8 @@ export default function TeamManager({
                     >
                         <h3 style={{ marginTop: 0, marginBottom: "8px" }}>Importa echipe din CSV</h3>
                         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                            <button className="sd-btn-focus-square" type="button" onClick={downloadTemplate} style={{ ...fieldStyle, cursor: "pointer" }}>Descarca model CSV</button>
-                            <label className="sd-btn-focus-square" style={{ ...fieldStyle, background: "#0056b3", color: "#fff", cursor: "pointer", fontWeight: 700 }}>
+                            <button className="sd-btn-secondary" type="button" onClick={downloadTemplate}>Descarca model CSV</button>
+                            <label className="sd-btn-primary" style={{ cursor: importLoading || loading ? "not-allowed" : "pointer" }}>
                                 {importLoading ? "Se importa..." : "Alege fisier CSV"}
                                 <input ref={fileRef} type="file" accept=".csv,text/csv" disabled={importLoading || loading} onChange={e => { const file = e.target.files?.[0]; if (file) void submitCsv(file) }} style={{ display: "none" }} />
                             </label>
@@ -355,7 +355,7 @@ export default function TeamManager({
                                                     type="button"
                                                     disabled={loading}
                                                     onClick={() => handleEdit(team)}
-                                                    style={isNormalMode ? { padding: "4px 10px", cursor: "pointer", background: "#f0f7ff", color: "#0050b3", border: "1px solid #91d5ff", borderRadius: "3px" } : { fontSize: "11px", border: "1px solid #0056b3", color: "#0056b3", backgroundColor: "transparent", padding: "2px 8px", cursor: "pointer" }}
+                                                    className="sd-btn-edit"
                                                 >
                                                     Editeaza
                                                 </button>
@@ -363,7 +363,7 @@ export default function TeamManager({
                                                     type="button"
                                                     disabled={loading}
                                                     onClick={() => handleDelete(team.id)}
-                                                    style={isNormalMode ? { padding: "4px 10px", cursor: "pointer", background: "#fff0f0", color: "red", border: "1px solid #ffcccc", borderRadius: "3px" } : { fontSize: "11px", border: "1px solid #c00", color: "#c00", backgroundColor: "transparent", padding: "2px 8px", cursor: "pointer" }}
+                                                    className="sd-btn-delete"
                                                 >
                                                     Sterge
                                                 </button>

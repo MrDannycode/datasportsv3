@@ -247,10 +247,10 @@ export default function AntrenamenteManager({ initialPlans, shouldOpenNewPlanMod
                                     <td style={{ color: "#666", fontSize: "12px" }}>{formatDate(plan.date)}</td>
                                     <td style={{ color: "#666", fontSize: "12px" }}>{plan.description ?? "-"}</td>
                                     <td>
-                                        <button onClick={() => openEditForm(plan)} style={{ fontSize: "11px", border: "1px solid #0056b3", color: "#0056b3", backgroundColor: "transparent", padding: "2px 8px", cursor: "pointer", marginRight: "6px" }}>
+                                        <button onClick={() => openEditForm(plan)} className="sd-btn-edit">
                                             Editeaza
                                         </button>
-                                        <button onClick={() => handleDelete(plan.id, plan.title)} style={{ fontSize: "11px", border: "1px solid #c00", color: "#c00", backgroundColor: "transparent", padding: "2px 8px", cursor: "pointer" }}>
+                                        <button onClick={() => handleDelete(plan.id, plan.title)} className="sd-btn-delete">
                                             Sterge
                                         </button>
                                     </td>
