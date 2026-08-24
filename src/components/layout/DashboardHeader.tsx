@@ -596,7 +596,7 @@ export default async function DashboardHeader({
                             alt="SportsData Logo"
                             priority
                             className="sd-logo-image"
-                            style={{ height: 42, width: "auto", display: "block" }}
+                            style={{ height: 42, width: "auto" }}
                         />
                         <span className="sd-logo-text">SportsData</span>
                     </Link>
